@@ -1,0 +1,20 @@
+{
+  "name": "espina-bifida-backend",
+  "version": "1.0.0",
+  "description": "back end para app espina bifida con node js",
+  "license": "ISC",
+  "author": "Ayax Gaytan",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "oracledb": "^6.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
