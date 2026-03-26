@@ -13,7 +13,6 @@ function App() {
         <Header />
 
         <div className="content">
-          <Credencial />
         </div>
       </div>
     </div>
