@@ -8,14 +8,20 @@ import {
   LogOut,
 } from "lucide-react";
 
+import { Link, useLocation } from "react-router-dom";
+
 const menuItems = [
-  { name: "Usuarios", icon: Users, active: true },
-  { name: "Registro", icon: ClipboardList },
-  { name: "Inventario", icon: Boxes },
-  { name: "Estadísticas", icon: BarChart3 },
+  { name: "Usuarios", icon: Users, path: "/" },
+  { name: "Historial", icon: ClipboardList, path: "/historial" },
+  { name: "Registro", icon: ClipboardList, path: "/registro" },
+  { name: "Inventario", icon: ClipboardList, path: "/inventario" },
+  { name: "Estadisticas", icon: ClipboardList, path: "/estadisticas" },
 ];
 
+
 function Sidebar() {
+  const location = useLocation();
+
   return (
     <aside className="sidebar">
       {/* Header */}
@@ -33,15 +39,17 @@ function Sidebar() {
 
         {menuItems.map((item, index) => {
           const Icon = item.icon;
+          const isActive = location.pathname === item.path;
 
           return (
-            <div
+            <Link
+              to={item.path}
               key={index}
-              className={`menu-item ${item.active ? "active" : ""}`}
+              className={`menu-item ${isActive ? "active" : ""}`}
             >
               <Icon size={18} />
               <span>{item.name}</span>
-            </div>
+            </Link>
           );
         })}
       </div>
