@@ -2,6 +2,7 @@ import React from 'react';
 import Sidebar from './componentes/sidebar/sidebar';
 import './App.css';
 import Header from './componentes/header/header';
+import Credencial from './componentes/credencial/credencial';
 
 function App() {
   return (
@@ -12,7 +13,7 @@ function App() {
         <Header />
 
         <div className="content">
-          {/* tus cards aquí */}
+          <Credencial />
         </div>
       </div>
     </div>
