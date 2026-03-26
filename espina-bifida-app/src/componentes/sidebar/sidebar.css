@@ -1,0 +1,88 @@
+.sidebar {
+  width: 240px;
+  height: 100vh;
+  background-color: #001b4d;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* HEADER */
+.sidebar-header {
+  background-color: #083a99;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+}
+
+.logo {
+  width: 40px;
+  height: 40px;
+  background-color: black;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.sidebar-header h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.sidebar-header p {
+  margin: 0;
+  font-size: 12px;
+  color: #cbd5e1;
+}
+
+/* MENU */
+.sidebar-menu {
+  padding: 20px 10px;
+}
+
+.menu-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin: 10px 10px;
+}
+
+/* ITEMS */
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  margin: 5px 0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+  color: #cbd5e1;
+}
+
+.menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.menu-item.active {
+  background-color: #083a99;
+  color: white;
+}
+
+/* FOOTER */
+.sidebar-footer {
+  padding: 20px 10px;
+}
+
+.logout {
+  color: #f87171;
+}
+
+.logout:hover {
+  background-color: rgba(248, 113, 113, 0.15);
+}
