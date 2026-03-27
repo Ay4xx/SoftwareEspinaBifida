@@ -2,6 +2,7 @@ import React from 'react';
 import Sidebar from './componentes/sidebar/sidebar';
 import './App.css';
 import Header from './componentes/header/header';
+import Credencial from './componentes/credencial/credencial';
 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
