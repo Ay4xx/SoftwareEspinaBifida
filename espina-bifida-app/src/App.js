@@ -13,6 +13,7 @@ import {
 
 import UsuariosPage from './pantallas/usuario';
 import HistorialPage from './pantallas/historial';
+import NotificacionesPage from './pantallas/notificaciones';
 import Login from './pantallas/login';
 
 function AppContent() {
@@ -39,6 +40,7 @@ function AppContent() {
             <Route path="/" element={<Navigate to="/login" />} />
             <Route path="/usuarios" element={<UsuariosPage />} />
             <Route path="/historial" element={<HistorialPage />} />
+            <Route path="/notificaciones" element={<NotificacionesPage />} />
           </Routes>
         </div>
       </div>
