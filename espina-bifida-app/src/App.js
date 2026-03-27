@@ -6,7 +6,7 @@ import Credencial from './componentes/credencial/credencial';
 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-import UsuariosPage from './pantallas/usuario';
+import UsuariosPage from './pantallas/usuario/usuario';
 import HistorialPage from './pantallas/historial';
 //import Login from './pages/login';
 
