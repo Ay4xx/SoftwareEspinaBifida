@@ -7,6 +7,7 @@ import {
   BarChart3,
   LogOut,
 } from "lucide-react";
+import AEBNLogo from "../../assets/logo_AEBNL.png";
 
 import { Link, useLocation } from "react-router-dom";
 
@@ -28,7 +29,7 @@ function Sidebar() {
       <div className="sidebar-header">
         <div className="logo">AE</div>
         <div>
-          <h2>AEBINL</h2>
+          <h2>AEBNL</h2>
           <p>Espina Bífida NL</p>
         </div>
       </div>
