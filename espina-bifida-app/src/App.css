@@ -29,6 +29,7 @@ body,
 
 .main {
   margin-left: 240px;
+  margin-top: 70px;
   width: calc(100% - 240px);
   min-height: 100vh;
   display: flex;
