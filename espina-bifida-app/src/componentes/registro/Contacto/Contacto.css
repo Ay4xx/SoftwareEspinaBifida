@@ -1,0 +1,88 @@
+.ct-seccion {
+  padding: 0 32px;
+}
+
+.ct-seccion-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.ct-icono {
+  width: 34px;
+  height: 34px;
+  background-color: #083a99;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ct-seccion-titulo {
+  font-size: 16px;
+  font-weight: 700;
+  color: #083a99;
+}
+
+.ct-divisor {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 0 0 24px;
+}
+
+.ct-formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ct-fila {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.ct-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ct-campo label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.ct-campo input,
+.ct-campo select {
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1e293b;
+  outline: none;
+  transition: border-color 0.2s;
+  background: white;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.ct-campo select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
+.ct-campo input:focus,
+.ct-campo select:focus {
+  border-color: #083a99;
+}
+
+.ct-campo input::placeholder {
+  color: #9ca3af;
+}

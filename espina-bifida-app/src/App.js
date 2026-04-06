@@ -14,6 +14,7 @@ import {
 import UsuariosPage from './pantallas/usuario/usuario';
 import HistorialPage from './pantallas/historial';
 import NotificacionesPage from './pantallas/notificaciones';
+import RegistroPage from './pantallas/registro';
 import Login from './pantallas/login';
 
 function AppContent() {
@@ -41,6 +42,7 @@ function AppContent() {
             <Route path="/usuarios" element={<UsuariosPage />} />
             <Route path="/historial" element={<HistorialPage />} />
             <Route path="/notificaciones" element={<NotificacionesPage />} />
+            <Route path="/registro" element={<RegistroPage />} />
           </Routes>
         </div>
       </div>
