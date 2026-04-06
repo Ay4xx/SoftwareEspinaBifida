@@ -1,0 +1,43 @@
+.tab-nav {
+    display: flex;
+    gap: 8px;
+    background: #e5e7eb; /* gris de fondo */
+    border-radius: 12px;
+    padding: 8px;
+    width: fit-content;
+    margin-left: auto;
+  }
+  
+  .tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: transparent; /* transparente = se ve el gris del contenedor */
+    color: #6b7280;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  
+  .tab-btn:hover {
+    background: #ffffff; /* blanco al pasar */
+    color: #1f2937;
+  }
+  
+  .tab-btn.active {
+    background: #ffffff; /* blanco al seleccionar */
+    color: #083a99;      /* texto azul para diferenciarlo del hover */
+    font-weight: 600;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .tab-icon {
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+  }
