@@ -11,7 +11,7 @@ import {
   Navigate
 } from 'react-router-dom';
 
-import UsuariosPage from './pantallas/usuario';
+import UsuariosPage from './pantallas/usuario/usuario';
 import HistorialPage from './pantallas/historial';
 import NotificacionesPage from './pantallas/notificaciones';
 import Login from './pantallas/login';
