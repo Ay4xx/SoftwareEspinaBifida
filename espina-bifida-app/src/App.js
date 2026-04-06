@@ -2,6 +2,7 @@ import React from 'react';
 import Sidebar from './componentes/sidebar/sidebar';
 import Header from './componentes/header/header';
 import './App.css';
+import Tabnav from './componentes/tabnav/tabnav';
 
 import {
   BrowserRouter as Router,
@@ -16,6 +17,8 @@ import HistorialPage from './pantallas/historial';
 import NotificacionesPage from './pantallas/notificaciones';
 import RegistroPage from './pantallas/registro';
 import Login from './pantallas/login';
+import ServiciosPanel from './pantallas/inventario';
+//import Login from './pages/login';
 
 function AppContent() {
   const location = useLocation();
@@ -35,6 +38,13 @@ function AppContent() {
 
       <div className="main">
         <Header />
+          <div className="content">
+            <Routes>
+              <Route path="/" element={<UsuariosPage />} />
+              <Route path="/historial" element={<HistorialPage />} />
+              <Route path="/inventario" element={<ServiciosPanel />} />
+            </Routes>
+          </div>
 
         <div className="content">
           <Routes>

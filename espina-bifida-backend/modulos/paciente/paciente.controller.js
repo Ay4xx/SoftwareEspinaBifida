@@ -1,4 +1,4 @@
-import { getPacienteCards } from "../paciente/paciente.service.js";
+import { getPacienteCards, getPacienteDetail } from "../paciente/paciente.service.js";
 
 export async function listarPacienteCards(req, res) {
   try {

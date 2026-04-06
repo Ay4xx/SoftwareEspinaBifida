@@ -12,9 +12,10 @@ function UsuariosPage() {
     const fetchPatients = async () => {
       try {
         const res = await fetch(
-          `http://localhost:3000/api/pacientes/cards?search=${encodeURIComponent(search)}`
+          `http://localhost:3001/api/pacientes/cards?search=${encodeURIComponent(search)}`
         );
         const data = await res.json();
+        console.log("Respuesta backend:", data);
         setPatients(data.data || []);
       } catch (error) {
         console.error("Error cargando pacientes:", error);
