@@ -35,6 +35,7 @@ body,
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
+  background-color: #f4f8fa;
 }
 
 .content {

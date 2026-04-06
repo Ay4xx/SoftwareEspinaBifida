@@ -1,0 +1,28 @@
+{
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "mssql": "^12.2.1",
+    "oracledb": "^6.10.0",
+    "react-router-dom": "^7.14.0"
+  },
+  "name": "softwareespinabifida",
+  "version": "1.0.0",
+  "description": "��#\u0000 \u0000S\u0000o\u0000f\u0000t\u0000w\u0000a\u0000r\u0000e\u0000E\u0000s\u0000p\u0000i\u0000n\u0000a\u0000B\u0000i\u0000f\u0000i\u0000d\u0000a\u0000\r\u0000 \u0000",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ay4xx/SoftwareEspinaBifida.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Ay4xx/SoftwareEspinaBifida/issues"
+  },
+  "homepage": "https://github.com/Ay4xx/SoftwareEspinaBifida#readme"
+}
