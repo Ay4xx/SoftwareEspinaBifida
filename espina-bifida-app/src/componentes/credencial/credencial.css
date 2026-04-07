@@ -1,0 +1,140 @@
+.credencial-wrapper {
+  padding: 20px;
+  background: #f5f5f5;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+}
+
+.acciones {
+  margin-bottom: 16px;
+}
+
+.acciones button {
+  padding: 10px 16px;
+  margin-left: 10px;
+  border: none;
+  background: #1f4f8f;
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.acciones button:hover {
+  background: #163b6b;
+}
+
+.credencial {
+  width: 1000px;
+  min-height: 650px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  overflow: hidden;
+  padding: 0;
+}
+
+.credencial::before {
+  content: "";
+  display: block;
+  height: 10px;
+  background: linear-gradient(90deg, #1f4f8f, #3b82f6);
+}
+
+.credencial-superior {
+  display: grid;
+  grid-template-columns: 90px 1fr 1.2fr;
+  min-height: 220px;
+}
+
+.logo-col {
+  border-right: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.info-col {
+  padding: 12px 14px;
+  border-right: 1px solid #e5e7eb;
+  font-size: 13px;
+}
+
+.info-col.derecha {
+  border-right: none;
+}
+
+.logo {
+  width: 70px;
+  height: auto;
+  object-fit: contain;
+}
+
+.fila {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  color: #374151;
+}
+
+.fila strong {
+  color: #111827;
+  font-weight: 600;
+}
+
+.foto-info {
+  align-items: center;
+}
+
+.bloque-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.asociacion-box {
+  border: none;
+  background: #f1f5f9;
+  padding: 10px;
+  text-align: center;
+  margin: 12px 0;
+  font-size: 12px;
+  border-radius: 10px;
+}
+
+.titulo-asociacion {
+  font-weight: bold;
+  margin-bottom: 6px;
+  color: #1f4f8f;
+}
+
+.direccion-asociacion {
+  line-height: 1.4;
+}
+
+.datos-extra {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  font-size: 12px;
+}
+
+.credencial-inferior {
+  padding: 20px 10px;
+}
+
+.foto-mini {
+  width: 70px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+}
+
+.foto-principal {
+  width: 320px;
+  height: 400px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 3px solid #e5e7eb;
+}

@@ -1,14 +1,29 @@
 .header {
-  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 240px;
+  width: calc(100% - 240px);
+  height: 70px;
+
   display: flex;
-  justify-content: space-between; /* 🔥 separa izquierda y derecha */
+  justify-content: space-between;
   align-items: center;
-  padding: 20px 30px;
+
+  padding: 0 30px;
+  box-sizing: border-box;
+
   border-bottom: 1px solid #e5e7eb;
   background-color: #f8fafc;
+  z-index: 1000;
 }
 
 /* IZQUIERDA */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
 .header-left h1 {
   margin: 0;
   font-size: 22px;
@@ -20,6 +35,7 @@
   display: flex;
   align-items: center;
   gap: 15px;
+  flex-shrink: 0;
 }
 
 /* BOTÓN */
@@ -45,4 +61,7 @@
   justify-content: center;
   border-radius: 12px;
   font-weight: bold;
+}
+.header {
+  background-color: #ffffff; /* blanco */
 }

@@ -6,23 +6,31 @@ import {
   Boxes,
   BarChart3,
   LogOut,
+  PenBoxIcon,
 } from "lucide-react";
+import AEBNLogo from "../../assets/logo_AEBNL.png";
+
+import { Link, useLocation } from "react-router-dom";
 
 const menuItems = [
-  { name: "Usuarios", icon: Users, active: true },
-  { name: "Registro", icon: ClipboardList },
-  { name: "Inventario", icon: Boxes },
-  { name: "Estadísticas", icon: BarChart3 },
+  { name: "Usuarios", icon: Users, path: "/" },
+  { name: "Historial", icon: ClipboardList, path: "/historial" },
+  { name: "Registro", icon: PenBoxIcon, path: "/registro" },
+  { name: "Inventario", icon: Boxes, path: "/inventario" },
+  { name: "Estadisticas", icon: BarChart3, path: "/estadisticas" },
 ];
 
+
 function Sidebar() {
+  const location = useLocation();
+
   return (
     <aside className="sidebar">
       {/* Header */}
       <div className="sidebar-header">
         <div className="logo">AE</div>
         <div>
-          <h2>AEBINL</h2>
+          <h2>AEBNL</h2>
           <p>Espina Bífida NL</p>
         </div>
       </div>
@@ -33,15 +41,17 @@ function Sidebar() {
 
         {menuItems.map((item, index) => {
           const Icon = item.icon;
+          const isActive = location.pathname === item.path;
 
           return (
-            <div
+            <Link
+              to={item.path}
               key={index}
-              className={`menu-item ${item.active ? "active" : ""}`}
+              className={`menu-item ${isActive ? "active" : ""}`}
             >
               <Icon size={18} />
               <span>{item.name}</span>
-            </div>
+            </Link>
           );
         })}
       </div>

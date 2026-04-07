@@ -1,0 +1,120 @@
+.dp-seccion {
+  padding: 0 32px;
+}
+
+.dp-seccion-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.dp-icono {
+  width: 34px;
+  height: 34px;
+  background-color: #083a99;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dp-seccion-titulo {
+  font-size: 16px;
+  font-weight: 700;
+  color: #083a99;
+}
+
+.dp-divisor {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 0 0 24px;
+}
+
+.dp-formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dp-fila {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.dp-campo,
+.dp-campo-full {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dp-campo label,
+.dp-campo-full label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.dp-campo input {
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1e293b;
+  outline: none;
+  transition: border-color 0.2s;
+  background: white;
+}
+
+.dp-campo input:focus {
+  border-color: #083a99;
+}
+
+.dp-campo input::placeholder {
+  color: #9ca3af;
+}
+
+/* Género */
+.dp-genero-opciones {
+  display: flex;
+  gap: 16px;
+}
+
+.dp-genero-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  color: #6b7280;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.dp-genero-btn:hover {
+  border-color: #083a99;
+  color: #083a99;
+}
+
+.dp-genero-btn.activo {
+  background-color: #eff6ff;
+  border-color: #083a99;
+  color: #083a99;
+  font-weight: 600;
+}
+
+.dp-genero-simbolo {
+  font-size: 16px;
+}
+
+.dp-info-icon {
+  color: #9ca3af;
+  font-size: 13px;
+  cursor: help;
+}

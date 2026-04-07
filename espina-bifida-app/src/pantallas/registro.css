@@ -1,0 +1,108 @@
+.registro-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 20px 20px 60px;
+}
+
+.registro-card {
+  background: white;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 860px;
+  padding-bottom: 56px;
+  position: relative;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  overflow: visible;
+}
+
+/* ── Barra de progreso ── */
+.registro-progreso-barra {
+  height: 5px;
+  background: #e5e7eb;
+  border-radius: 20px 20px 0 0;
+  overflow: hidden;
+}
+
+.registro-progreso-relleno {
+  height: 100%;
+  background: #001b4d;
+  transition: width 0.4s ease;
+}
+
+/* ── Info paso ── */
+.registro-progreso-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 32px;
+}
+
+.registro-paso-badge {
+  background: #001b4d;
+  color: white;
+  padding: 6px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.registro-porcentaje {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* ── Encabezado ── */
+.registro-encabezado {
+  padding: 0 32px 28px;
+}
+
+.registro-encabezado h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #001b4d;
+  margin: 0 0 6px;
+}
+
+.registro-encabezado p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ── Botón de navegación ── */
+.registro-btn-nav {
+  position: absolute;
+  bottom: -22px;
+  right: 28px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  transition: transform 0.15s, background 0.2s;
+}
+
+.registro-btn-nav:hover {
+  transform: scale(1.06);
+}
+
+.btn-siguiente {
+  background: #f97316;
+}
+
+.btn-siguiente:hover {
+  background: #ea6c0e;
+}
+
+.btn-finalizar {
+  background: #16a34a;
+}
+
+.btn-finalizar:hover {
+  background: #15803d;
+}
