@@ -18,6 +18,7 @@ function EquipoMedico() {
   };
 
   return (
+    <div className="equipo-wrapper">
     <div className="equipo-card">
       <div className="equipo-header">
         <h3 className="equipo-title">
@@ -42,9 +43,10 @@ function EquipoMedico() {
       <div className="equipo-footer">
         <button className="equipo-cancelar">Cancelar</button>
         <button className="equipo-guardar">
-          💾 Guardar Consulta
+           Guardar Consulta
         </button>
       </div>
+    </div>
     </div>
   );
 }

@@ -8,6 +8,7 @@
     flex-direction: column;
     gap: 12px;
     margin-top: 16px;
+    width: 50%
   }
   
   .med-header {
@@ -110,4 +111,9 @@
   
   .med-guardar:hover {
     background: #062d7a;
+  }
+
+  .med-wrapper {
+    display: flex;
+    justify-content: flex-end;
   }

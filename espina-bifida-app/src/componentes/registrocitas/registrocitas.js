@@ -16,7 +16,7 @@ function getMinDate() {
 function RegistrarConsulta() {
   const [medicos, setMedicos] = useState([]);
   const [form, setForm] = useState({
-    fecha: "",
+    fecha: getMinDate(), 
     hora: "",
     medico_id: "",
     especialidad: "",
@@ -53,6 +53,7 @@ function RegistrarConsulta() {
   };
 
   return (
+    <div className="consulta-wrapper">
     <div className="consulta-card">
       <h3 className="consulta-title">
         <CalendarDays size={18} /> Registrar Consulta
@@ -108,6 +109,7 @@ function RegistrarConsulta() {
       <button className="consulta-btn" onClick={handleSubmit}>
         Registrar Consulta
       </button>
+    </div>
     </div>
   );
 }

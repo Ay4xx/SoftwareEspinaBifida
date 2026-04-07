@@ -119,3 +119,12 @@
   .equipo-guardar:hover {
     background: #062d7a;
   }
+
+  .equipo-wrapper {
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .equipo-card {
+    width: 50%;
+  }

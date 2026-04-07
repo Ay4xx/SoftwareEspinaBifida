@@ -18,6 +18,7 @@ function Medicamentos() {
   };
 
   return (
+    <div className="med-wrapper">
     <div className="med-card">
       <div className="med-header">
         <h3 className="med-title">
@@ -40,9 +41,10 @@ function Medicamentos() {
       <div className="med-footer">
         <button className="med-cancelar">Cancelar</button>
         <button className="med-guardar">
-          💾 Guardar Consulta
+           Guardar Consulta
         </button>
       </div>
+    </div>
     </div>
   );
 }
