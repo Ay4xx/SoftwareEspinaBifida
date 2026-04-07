@@ -25,9 +25,8 @@ function RegistrarConsulta() {
   useEffect(() => {
     fetch("http://localhost:4000/api/medicos")
       .then((r) => r.json())
-      .then((data) => {
-        // por si Oracle devuelve objeto en lugar de array
-        const lista = Array.isArray(data) ? data : [];
+      .then((res) => {
+        const lista = Array.isArray(res.data) ? res.data : []; 
         setMedicos(lista);
       })
       .catch(console.error);

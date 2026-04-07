@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import TabNav from '../componentes/tabnav/tabnav'; // 
 import RegistrarConsulta from '../componentes/registrocitas/registrocitas';
+import Medicamentos from '../componentes/medicamentos/medicamentos';
+import EquipoMedico from '../componentes/equipomedico/equipomedico';
 import { FileText, Pill, Users } from "lucide-react";
 
 
@@ -19,8 +21,8 @@ function ServiciosPanel() {
 
       <div className="tab-content">
         {activeTab === "citas" &&  <RegistrarConsulta />}
-        {activeTab === "medicamentos" && <div>Contenido de Medicamentos</div>}
-        {activeTab === "equipo" && <div>Contenido de Equipo médico</div>}
+        {activeTab === "medicamentos" && <Medicamentos />}
+        {activeTab === "equipo" && <EquipoMedico />}
       </div>
     </div>
   );

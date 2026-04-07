@@ -1,0 +1,121 @@
+/* equipomedico.css — igual estructura, diferente prefijo */
+.equipo-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  
+  .equipo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .equipo-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+  }
+  
+  .equipo-agregar {
+    border: 1.5px solid #16a34a;
+    color: #16a34a;
+    background: transparent;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .equipo-agregar:hover {
+    background: #f0fdf4;
+  }
+  
+  .equipo-table-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    padding: 0 8px;
+  }
+  
+  .equipo-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 8px;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  
+  .equipo-nombre {
+    font-size: 14px;
+    color: #1f2937;
+    flex: 1;
+  }
+  
+  .equipo-cantidad {
+    font-size: 14px;
+    color: #1f2937;
+    margin-right: 16px;
+  }
+  
+  .equipo-delete {
+    background: #fee2e2;
+    color: #ef4444;
+    border: none;
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .equipo-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+  }
+  
+  .equipo-cancelar {
+    background: transparent;
+    border: none;
+    color: #6b7280;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 10px 16px;
+  }
+  
+  .equipo-guardar {
+    background: #083a99;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .equipo-guardar:hover {
+    background: #062d7a;
+  }
