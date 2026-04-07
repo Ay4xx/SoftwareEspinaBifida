@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./registro.css";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import DatosPersonales from "../componentes/registro/DatosPersonales/DatosPersonales";
 import Contacto from "../componentes/registro/Contacto/Contacto";
 import HistorialMedico from "../componentes/registro/HistorialMedico/HistorialMedico";
@@ -34,6 +34,10 @@ function RegistroPage() {
 
   const siguientePaso = () => {
     if (paso < TOTAL_PASOS) setPaso(paso + 1);
+  };
+
+  const pasoAnterior = () => {
+    if (paso > 1) setPaso(paso - 1);
   };
 
   const handleSubmit = () => {
@@ -89,15 +93,22 @@ function RegistroPage() {
         {/* Contenido del paso actual */}
         {renderPaso()}
 
-        {/* Botón de navegación */}
-        <button
-          className={`registro-btn-nav ${
-            paso === TOTAL_PASOS ? "btn-finalizar" : "btn-siguiente"
-          }`}
-          onClick={paso === TOTAL_PASOS ? handleSubmit : siguientePaso}
-        >
-          {paso === TOTAL_PASOS ? <Check size={22} /> : <ArrowRight size={22} />}
-        </button>
+        {/* Botones de navegación */}
+        <div className="registro-nav-contenedor">
+          {paso > 1 && (
+            <button className="registro-btn-nav btn-regresar" onClick={pasoAnterior}>
+              <ArrowLeft size={22} />
+            </button>
+          )}
+          <button
+            className={`registro-btn-nav ${
+              paso === TOTAL_PASOS ? "btn-finalizar" : "btn-siguiente"
+            }`}
+            onClick={paso === TOTAL_PASOS ? handleSubmit : siguientePaso}
+          >
+            {paso === TOTAL_PASOS ? <Check size={22} /> : <ArrowRight size={22} />}
+          </button>
+        </div>
       </div>
     </div>
   );

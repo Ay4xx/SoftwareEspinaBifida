@@ -69,11 +69,19 @@
   margin: 0;
 }
 
-/* ── Botón de navegación ── */
-.registro-btn-nav {
+/* ── Contenedor de botones ── */
+.registro-nav-contenedor {
   position: absolute;
   bottom: -22px;
-  right: 28px;
+  left: 0;
+  right: 0;
+  padding: 0 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.registro-btn-nav {
   width: 50px;
   height: 50px;
   border-radius: 50%;
@@ -89,6 +97,19 @@
 
 .registro-btn-nav:hover {
   transform: scale(1.06);
+}
+
+/* Cuando solo hay un botón (paso 1), empujarlo a la derecha */
+.registro-nav-contenedor > .registro-btn-nav:only-child {
+  margin-left: auto;
+}
+
+.btn-regresar {
+  background: #64748b;
+}
+
+.btn-regresar:hover {
+  background: #475569;
 }
 
 .btn-siguiente {
