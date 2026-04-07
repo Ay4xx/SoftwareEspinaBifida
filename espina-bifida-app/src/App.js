@@ -17,6 +17,7 @@ import HistorialPage from './pantallas/historial';
 import NotificacionesPage from './pantallas/notificaciones';
 import Login from './pantallas/login';
 import ServiciosPanel from './pantallas/inventario';
+import Credencial from './componentes/credencial/credencial';
 //import Login from './pages/login';
 
 function AppContent() {
@@ -42,6 +43,7 @@ function AppContent() {
               <Route path="/" element={<UsuariosPage />} />
               <Route path="/historial" element={<HistorialPage />} />
               <Route path="/inventario" element={<ServiciosPanel />} />
+              <Route path="/credencial/:pacienteId" element={<Credencial />} />
             </Routes>
           </div>
 

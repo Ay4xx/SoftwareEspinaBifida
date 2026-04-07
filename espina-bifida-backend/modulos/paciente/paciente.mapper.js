@@ -10,17 +10,18 @@ export function mapPacienteToCard(row) {
 
   return {
     id: row.PACIENTE_ID,
+    folio: row.PACIENTE_ID.toString().padStart(3, '0'),
     initials,
     name: nombre,
     subtitle: "Paciente registrado",
     status:
-      row.VIVE && row.VIVE.toUpperCase() === "SI"
+      row.ESTATUS_MEMBRESIA && row.ESTATUS_MEMBRESIA.toLowerCase() === 'activa'
         ? "Activo"
         : "Inactivo",
     location: [row.CIUDAD_RESIDENCIA, row.ESTADO_RESIDENCIA]
       .filter(Boolean)
       .join(", "),
-    etapaVida: row.ETAPA_VIDA || "Sin etapa",
+    totalConsultas: row.TOTAL_CONSULTAS || 0,
     ultimaVisita: row.FECHA_ULTIMA_VISITA || null,
   };
 }
