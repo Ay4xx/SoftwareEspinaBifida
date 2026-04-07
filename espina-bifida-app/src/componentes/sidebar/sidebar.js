@@ -6,6 +6,7 @@ import {
   Boxes,
   BarChart3,
   LogOut,
+  PenBoxIcon,
 } from "lucide-react";
 import AEBNLogo from "../../assets/logo_AEBNL.png";
 
@@ -14,9 +15,9 @@ import { Link, useLocation } from "react-router-dom";
 const menuItems = [
   { name: "Usuarios", icon: Users, path: "/" },
   { name: "Historial", icon: ClipboardList, path: "/historial" },
-  { name: "Registro", icon: ClipboardList, path: "/registro" },
-  { name: "Inventario", icon: ClipboardList, path: "/inventario" },
-  { name: "Estadisticas", icon: ClipboardList, path: "/estadisticas" },
+  { name: "Registro", icon: PenBoxIcon, path: "/registro" },
+  { name: "Inventario", icon: Boxes, path: "/inventario" },
+  { name: "Estadisticas", icon: BarChart3, path: "/estadisticas" },
 ];
 
 
