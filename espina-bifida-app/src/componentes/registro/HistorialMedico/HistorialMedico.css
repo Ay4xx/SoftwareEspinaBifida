@@ -1,0 +1,177 @@
+.hm-seccion {
+  padding: 0 32px;
+}
+
+.hm-seccion-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.hm-icono {
+  width: 34px;
+  height: 34px;
+  background-color: #083a99;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.hm-seccion-titulo {
+  font-size: 16px;
+  font-weight: 700;
+  color: #083a99;
+}
+
+.hm-divisor {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 0 0 24px;
+}
+
+.hm-formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.hm-campo-full {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hm-campo-full label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.hm-campo-full input {
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1e293b;
+  outline: none;
+  background: white;
+  transition: border-color 0.2s;
+}
+
+.hm-campo-full input:focus {
+  border-color: #083a99;
+}
+
+.hm-campo-full input::placeholder {
+  color: #9ca3af;
+}
+
+/* Tipo de Sangre */
+.hm-sangre-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.hm-sangre-btn {
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: 0.2s;
+  text-align: center;
+}
+
+.hm-sangre-btn:hover {
+  border-color: #083a99;
+  color: #083a99;
+}
+
+.hm-sangre-btn.activo {
+  background-color: #083a99;
+  border-color: #083a99;
+  color: white;
+  font-weight: 600;
+}
+
+/* Tipo de Espina Bífida */
+.hm-espina-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.hm-espina-btn {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  text-align: left;
+  transition: 0.2s;
+}
+
+.hm-espina-btn:hover {
+  border-color: #083a99;
+}
+
+.hm-espina-btn.activo {
+  border-color: #083a99;
+  background-color: #eff6ff;
+}
+
+.hm-espina-radio {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #d1d5db;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+  transition: border-color 0.2s;
+}
+
+.hm-espina-btn.activo .hm-espina-radio {
+  border-color: #083a99;
+}
+
+.hm-espina-radio-inner {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: transparent;
+  transition: background 0.2s;
+}
+
+.hm-espina-radio-inner.activo {
+  background: #083a99;
+}
+
+.hm-espina-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.hm-espina-nombre {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.hm-espina-desc {
+  font-size: 12px;
+  color: #6b7280;
+}

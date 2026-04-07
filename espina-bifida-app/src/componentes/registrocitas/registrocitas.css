@@ -1,0 +1,74 @@
+.consulta-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 16px;
+  }
+  
+  .consulta-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+  }
+  
+  .consulta-row {
+    display: flex;
+    gap: 16px;
+  }
+  
+  .consulta-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+  }
+  
+  .consulta-field label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #083a99;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .consulta-field input,
+  .consulta-field select {
+    padding: 10px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #1f2937;
+    background: #f9fafb;
+    outline: none;
+    transition: border 0.2s;
+  }
+  
+  .consulta-field input:focus,
+  .consulta-field select:focus {
+    border-color: #083a99;
+    background: #ffffff;
+  }
+  
+  .consulta-btn {
+    padding: 12px;
+    background: #083a99;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  .consulta-btn:hover {
+    background: #062d7a;
+  }
