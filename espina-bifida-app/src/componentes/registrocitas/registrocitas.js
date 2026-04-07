@@ -23,7 +23,7 @@ function RegistrarConsulta() {
   });
 
   useEffect(() => {
-    fetch("http://localhost:4000/api/medicos")
+    fetch("http://localhost:3001/api/medicos")
       .then((r) => r.json())
       .then((res) => {
         const lista = Array.isArray(res.data) ? res.data : []; 
