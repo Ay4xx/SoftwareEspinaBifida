@@ -10,6 +10,7 @@ const TOTAL_PASOS = 4;
 
 function RegistroPage() {
   const [paso, setPaso] = useState(1);
+  const [guardado, setGuardado] = useState(false);
   const [formData, setFormData] = useState({
     nombres: "",
     apellidos: "",
@@ -43,6 +44,28 @@ function RegistroPage() {
   const handleSubmit = () => {
     console.log("Registro completado:", formData);
     // TODO: enviar al backend
+    setGuardado(true);
+    setTimeout(() => {
+      setGuardado(false);
+      setPaso(1);
+      setFormData({
+        nombres: "",
+        apellidos: "",
+        genero: "",
+        fechaNacimiento: "",
+        curp: "",
+        municipio: "",
+        colonia: "",
+        codigoPostal: "",
+        estado: "",
+        telefono: "",
+        correo: "",
+        lugarNacimiento: "",
+        tipoSangre: "",
+        tipoEspinaBifida: "",
+        foto: null,
+      });
+    }, 2000);
   };
 
   const porcentaje = paso * 25;
@@ -61,6 +84,20 @@ function RegistroPage() {
         return null;
     }
   };
+
+  if (guardado) {
+    return (
+      <div className="registro-wrapper">
+        <div className="registro-exito">
+          <div className="registro-exito-icono">
+            <Check size={40} color="white" />
+          </div>
+          <h2>¡Registro guardado exitosamente!</h2>
+          <p>Redirigiendo al registro de usuarios</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="registro-wrapper">
