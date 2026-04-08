@@ -1,8 +1,10 @@
 import React from "react";
-import { MapPin, Calendar, Plus } from "lucide-react";
+import { MapPin, Calendar, Plus, IdCard } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import "./patientCard.css";
 
 function PatientCard({ patient }) {
+  const navigate = useNavigate();
   const formatDate = (dateString) => {
     if (!dateString) return "Sin registro";
 
@@ -53,6 +55,10 @@ function PatientCard({ patient }) {
 
       <div className="card-footer">
         <button className="btn-secondary">Historial</button>
+        <button className="btn-secondary" onClick={() => navigate(`/credencial/${patient.id}`)}>
+          <IdCard size={14} />
+          Ver Credencial
+        </button>
         <button className="btn-primary">
           <Plus size={14} />
           Agregar

@@ -1,4 +1,5 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
 import "./credencial.css";
@@ -6,23 +7,52 @@ import logoPic from "../../assets/logo_AEBNL.png";
 import placeholederPic from "../../assets/placeholder.png";
 
 function Credencial() {
+  const { pacienteId } = useParams();
+  const navigate = useNavigate();
   const credencialRef = useRef(null);
+  const [datos, setDatos] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const datos = {
-    folio: "303",
-    nombre: "Juan Pérez López",
-    direccion: "Monterrey, Nuevo León",
-    telCasa: "8181234567",
-    padres: "María López / Pedro Pérez",
-    fechaExpedicion: "27/7/99",
-    tipoSangre: "A+",
-    valvula: "Sí",
-    accidenteAvisar: "María López",
-    telefonoEmergencia: "8187654321",
-    correo: "correo@ejemplo.com",
-    fechaNacimiento: "26/05/1993",
-    lugarNacimiento: "Monterrey",
-    hospital: "GINE-IMSS",
+  useEffect(() => {
+    const fetchCredencial = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:3001/api/pacientes/credencial/${pacienteId}`
+        );
+        const json = await response.json();
+
+        if (!response.ok || !json.ok) {
+          throw new Error(json.message || "No se pudo cargar la credencial");
+        }
+
+        setDatos(json.data);
+      } catch (err) {
+        console.error("Error cargando la credencial:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCredencial();
+  }, [pacienteId]);
+
+  const datosMostrados = datos || {
+    folio: "000",
+    nombre: "Sin nombre",
+    direccion: "Sin dirección",
+    telCasa: "Sin teléfono",
+    padres: "Sin contacto",
+    fechaExpedicion: "Sin fecha",
+    tipoSangre: "Sin tipo",
+    valvula: "No",
+    accidenteAvisar: "Sin contacto",
+    telefonoEmergencia: "Sin teléfono",
+    correo: "Sin correo",
+    fechaNacimiento: "Sin fecha",
+    lugarNacimiento: "Sin lugar",
+    hospital: "Sin hospital",
     fotoPrincipal: placeholederPic,
     fotoMini: placeholederPic,
     logo: logoPic,
@@ -67,6 +97,19 @@ function Credencial() {
     }
   };
 
+  if (loading) {
+    return <div className="credencial-loading">Cargando credencial...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="credencial-error">
+        <p>Error: {error}</p>
+        <button onClick={() => navigate(-1)}>Volver</button>
+      </div>
+    );
+  }
+
   return (
     <div className="credencial-wrapper">
       <div className="acciones">
@@ -77,42 +120,42 @@ function Credencial() {
       <div className="credencial" ref={credencialRef}>
         <div className="credencial-superior">
           <div className="logo-col">
-            <img src={datos.logo} alt="Logo" className="logo" />
+            <img src={logoPic} alt="Logo" className="logo" />
           </div>
 
           <div className="info-col">
             <div className="fila">
-              <span><strong>Nombre:</strong> {datos.nombre}</span>
-              <span><strong>Folio:</strong> {datos.folio}</span>
+              <span><strong>Nombre:</strong> {datosMostrados.nombre}</span>
+              <span><strong>Folio:</strong> {datosMostrados.folio}</span>
             </div>
 
             <div className="fila">
-              <span><strong>Dirección:</strong> {datos.direccion}</span>
+              <span><strong>Dirección:</strong> {datosMostrados.direccion}</span>
             </div>
 
             <div className="fila foto-info">
-              <img src={datos.fotoMini} alt="Foto mini" className="foto-mini" />
+              <img src={datosMostrados.fotoMini || placeholederPic} alt="Foto mini" className="foto-mini" />
               <div className="bloque-texto">
-                <div><strong>Tel. Casa:</strong> {datos.telCasa}</div>
-                <div><strong>Nombre de padres:</strong> {datos.padres}</div>
-                <div><strong>Fecha de Expedición:</strong> {datos.fechaExpedicion}</div>
+                <div><strong>Tel. Casa:</strong> {datosMostrados.telCasa}</div>
+                <div><strong>Nombre de padres:</strong> {datosMostrados.padres}</div>
+                <div><strong>Fecha de Expedición:</strong> {datosMostrados.fechaExpedicion}</div>
               </div>
             </div>
           </div>
 
           <div className="info-col derecha">
             <div className="fila">
-              <span><strong>Tipo de Sangre:</strong> {datos.tipoSangre}</span>
-              <span><strong>Tiene Válvula?:</strong> {datos.valvula}</span>
+              <span><strong>Tipo de Sangre:</strong> {datosMostrados.tipoSangre}</span>
+              <span><strong>Tiene Válvula?:</strong> {datosMostrados.valvula}</span>
             </div>
 
             <div className="fila">
-              <span><strong>En caso de accidente avisar a:</strong> {datos.accidenteAvisar}</span>
-              <span><strong>Teléfono:</strong> {datos.telefonoEmergencia}</span>
+              <span><strong>En caso de accidente avisar a:</strong> {datosMostrados.accidenteAvisar}</span>
+              <span><strong>Teléfono:</strong> {datosMostrados.telefonoEmergencia}</span>
             </div>
 
             <div className="fila">
-              <span><strong>Correo Electrónico:</strong> {datos.correo}</span>
+              <span><strong>Correo Electrónico:</strong> {datosMostrados.correo}</span>
             </div>
 
             <div className="asociacion-box">
@@ -125,16 +168,16 @@ function Credencial() {
             </div>
 
             <div className="datos-extra">
-              <div><strong>Fecha</strong><br />{datos.fechaNacimiento}</div>
-              <div><strong>Lugar Nac.</strong><br />{datos.lugarNacimiento}</div>
-              <div><strong>Hospital</strong><br />{datos.hospital}</div>
+              <div><strong>Fecha</strong><br />{datosMostrados.fechaNacimiento}</div>
+              <div><strong>Lugar Nac.</strong><br />{datosMostrados.lugarNacimiento}</div>
+              <div><strong>Hospital</strong><br />{datosMostrados.hospital}</div>
             </div>
           </div>
         </div>
 
         <div className="credencial-inferior">
           <img
-            src={datos.fotoPrincipal}
+            src={datosMostrados.fotoPrincipal || placeholederPic}
             alt="Foto principal"
             className="foto-principal"
           />
