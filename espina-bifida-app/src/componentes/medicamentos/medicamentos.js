@@ -1,35 +1,74 @@
 import React, { useState } from "react";
 import "./medicamentos.css";
-import { Paperclip } from "lucide-react";
-
-const PRECIO_UNITARIO = {
-  "Ácido fólico 5mg": 85,
-  "Vitamina B12": 120,
-};
+import { Paperclip, X, Search } from "lucide-react";
 
 function Medicamentos() {
-  const [medicamentos, setMedicamentos] = useState([
-    { id: 1, nombre: "Ácido fólico 5mg", cantidad: 1 },
-    { id: 2, nombre: "Vitamina B12", cantidad: 1 },
-  ]);
+  const [medicamentos, setMedicamentos] = useState([]);
+  const [disponibles, setDisponibles] = useState([]);
+  const [seleccionados, setSeleccionados] = useState([]);
+  const [showPopup, setShowPopup] = useState(false);
+  const [busqueda, setBusqueda] = useState("");
 
-  const agregar = () => {
-    setMedicamentos([...medicamentos, { id: Date.now(), nombre: "Nuevo medicamento", cantidad: 1 }]);
+  const abrirPopup = async () => {
+    const ids = medicamentos.map((m) => m.MEDICINA_ID).join(",");
+    const url = ids
+      ? `http://localhost:3001/api/medicamentos/disponibles?ids=${ids}`
+      : `http://localhost:3001/api/medicamentos/disponibles`;
+
+    try {
+      const res = await fetch(url);
+      const json = await res.json();
+      setDisponibles(json.data || []);
+      setSeleccionados([]);
+      setBusqueda("");
+      setShowPopup(true);
+    } catch (err) {
+      console.error("Error al cargar medicamentos:", err);
+    }
+  };
+
+  const toggleSeleccion = (med) => {
+    const yaSeleccionado = seleccionados.find((s) => s.MEDICINA_ID === med.MEDICINA_ID);
+    if (yaSeleccionado) {
+      setSeleccionados(seleccionados.filter((s) => s.MEDICINA_ID !== med.MEDICINA_ID));
+    } else {
+      setSeleccionados([...seleccionados, med]);
+    }
+  };
+
+  const confirmarSeleccion = () => {
+    const nuevos = seleccionados.map((med) => ({ ...med, cantidad: 1 }));
+    setMedicamentos([...medicamentos, ...nuevos]);
+    setShowPopup(false);
+  };
+
+  const cancelarPopup = () => {
+    setSeleccionados([]);
+    setShowPopup(false);
+  };
+
+  const cancelarLista = () => {
+    setMedicamentos([]);
   };
 
   const eliminar = (id) => {
-    setMedicamentos(medicamentos.filter((m) => m.id !== id));
+    setMedicamentos(medicamentos.filter((m) => m.MEDICINA_ID !== id));
   };
 
   const cambiarCantidad = (id, valor) => {
     const cantidad = Math.max(1, parseInt(valor) || 1);
-    setMedicamentos(medicamentos.map((m) => m.id === id ? { ...m, cantidad } : m));
+    setMedicamentos(medicamentos.map((m) =>
+      m.MEDICINA_ID === id ? { ...m, cantidad } : m
+    ));
   };
 
-  const getPrecio = (nombre, cantidad) => {
-    const precio = PRECIO_UNITARIO[nombre] || 0;
-    return `$${(precio * cantidad).toFixed(2)}`;
-  };
+  const getPrecio = (med) => `$${(med.PRECIO * med.cantidad).toFixed(2)}`;
+
+  const total = medicamentos.reduce((acc, m) => acc + m.PRECIO * m.cantidad, 0);
+
+  const disponiblesFiltrados = disponibles.filter((d) =>
+    d.DESCRIPCION.toLowerCase().includes(busqueda.toLowerCase())
+  );
 
   return (
     <div className="med-wrapper">
@@ -38,46 +77,116 @@ function Medicamentos() {
           <h3 className="med-title">
             <Paperclip size={18} /> Medicamentos Recetados
           </h3>
-          <button className="med-agregar" onClick={agregar}>+ Agregar</button>
+          <button className="med-agregar" onClick={abrirPopup}>+ Agregar</button>
         </div>
 
-        <div className="med-table-header">
-          <span className="col-nombre">Medicamento</span>
-          <span className="col-cantidad">Cantidad</span>
-          <span className="col-precio">Precio</span>
-          <span className="col-delete"></span>
-        </div>
+        {medicamentos.length > 0 ? (
+          <>
+            <div className="med-table-header">
+              <span>Medicamento</span>
+              <span>Cantidad</span>
+              <span>Precio</span>
+              <span></span>
+            </div>
 
-        {medicamentos.map((m) => (
-          <div key={m.id} className="med-row">
-            <span className="col-nombre med-nombre">{m.nombre}</span>
-            <input
-              type="number"
-              className="col-cantidad med-input"
-              value={m.cantidad}
-              min={1}
-              onChange={(e) => cambiarCantidad(m.id, e.target.value)}
-            />
-            <span className="col-precio med-precio">{getPrecio(m.nombre, m.cantidad)}</span>
-            <button className="col-delete med-delete" onClick={() => eliminar(m.id)}>✕</button>
-          </div>
-        ))}
+            {medicamentos.map((m) => (
+              <div key={m.MEDICINA_ID} className="med-row">
+                <span className="med-nombre">{m.DESCRIPCION}</span>
+                <input
+                  type="number"
+                  className="med-input"
+                  value={m.cantidad}
+                  min={1}
+                  onChange={(e) => cambiarCantidad(m.MEDICINA_ID, e.target.value)}
+                />
+                <span className="med-precio">{getPrecio(m)}</span>
+                <button className="med-delete" onClick={() => eliminar(m.MEDICINA_ID)}>✕</button>
+              </div>
+            ))}
 
-        <div className="med-total">
-          <span>Total</span>
-          <span>
-            ${medicamentos.reduce((acc, m) => {
-              const precio = PRECIO_UNITARIO[m.nombre] || 0;
-              return acc + precio * m.cantidad;
-            }, 0).toFixed(2)}
-          </span>
-        </div>
+            <div className="med-total">
+              <span>Total</span>
+              <span>${total.toFixed(2)}</span>
+            </div>
+          </>
+        ) : (
+          <p className="med-empty">No hay medicamentos agregados.</p>
+        )}
 
         <div className="med-footer">
-          <button className="med-cancelar">Cancelar</button>
+        <button className="med-cancelar" onClick={cancelarLista}>Cancelar</button>
           <button className="med-guardar"> Guardar Consulta</button>
         </div>
       </div>
+
+      {showPopup && (
+        <div className="med-overlay" onClick={() => setShowPopup(false)}>
+          <div className="med-popup" onClick={(e) => e.stopPropagation()}>
+
+            <div className="med-popup-header">
+              <h4>Seleccionar Medicamentos</h4>
+              <button className="med-popup-close" onClick={() => setShowPopup(false)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Buscador */}
+            <div className="med-search">
+              <Search size={16} className="med-search-icon" />
+              <input
+                type="text"
+                placeholder="Buscar medicamento..."
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                className="med-search-input"
+              />
+            </div>
+
+            {/* Lista con checklist */}
+            <div className="med-popup-list">
+              {disponiblesFiltrados.length === 0 ? (
+                <p className="med-empty">No se encontraron medicamentos.</p>
+              ) : (
+                disponiblesFiltrados.map((d) => {
+                  const marcado = seleccionados.find((s) => s.MEDICINA_ID === d.MEDICINA_ID);
+                  return (
+                    <div
+                      key={d.MEDICINA_ID}
+                      className={`med-popup-item ${marcado ? "selected" : ""}`}
+                      onClick={() => toggleSeleccion(d)}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={!!marcado}
+                        onChange={() => toggleSeleccion(d)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="med-checkbox"
+                      />
+                      <span className="med-popup-nombre">{d.DESCRIPCION}</span>
+                      <span className="med-popup-precio">${d.PRECIO}</span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Botones */}
+            <div className="med-popup-footer">
+              <button className="med-popup-cancelar" onClick={cancelarPopup}>
+                Cancelar
+              </button>
+              <button
+                className="med-popup-confirmar"
+                onClick={confirmarSeleccion}
+                disabled={seleccionados.length === 0}
+              >
+                Agregar ({seleccionados.length})
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 }
