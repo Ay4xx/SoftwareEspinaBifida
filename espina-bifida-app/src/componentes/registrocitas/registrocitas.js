@@ -101,7 +101,7 @@ function RegistrarConsulta() {
             type="text"
             value={form.especialidad}
             readOnly
-            placeholder="Se llena al elegir médico"
+            placeholder=""
           />
         </div>
       </div>

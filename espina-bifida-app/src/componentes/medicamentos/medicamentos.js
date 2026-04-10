@@ -75,7 +75,7 @@ function Medicamentos() {
 
         <div className="med-footer">
           <button className="med-cancelar">Cancelar</button>
-          <button className="med-guardar">💾 Guardar Consulta</button>
+          <button className="med-guardar"> Guardar Consulta</button>
         </div>
       </div>
     </div>

@@ -1,5 +1,9 @@
-/* equipomedico.css — igual estructura, diferente prefijo */
-.equipo-card {
+.equipo-wrapper {
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .equipo-card {
     background: #ffffff;
     border-radius: 16px;
     padding: 24px;
@@ -8,6 +12,7 @@
     flex-direction: column;
     gap: 12px;
     margin-top: 16px;
+    width: 50%;
   }
   
   .equipo-header {
@@ -43,19 +48,22 @@
   }
   
   .equipo-table-header {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 36px;
+    align-items: center;
+    gap: 24px;
+    padding: 10px 8px;
     font-size: 11px;
     font-weight: 600;
     color: #9ca3af;
     text-transform: uppercase;
-    padding: 0 8px;
   }
   
   .equipo-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 36px;
     align-items: center;
-    justify-content: space-between;
+    gap: 24px;
     padding: 10px 8px;
     border-bottom: 1px solid #f3f4f6;
   }
@@ -63,13 +71,29 @@
   .equipo-nombre {
     font-size: 14px;
     color: #1f2937;
-    flex: 1;
   }
   
-  .equipo-cantidad {
+  .equipo-input {
+    width: 60px;
+    padding: 6px 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
     font-size: 14px;
     color: #1f2937;
-    margin-right: 16px;
+    background: #e5e7eb;
+    outline: none;
+    text-align: center;
+  }
+  
+  .equipo-input:focus {
+    border-color: #083a99;
+    background: #ffffff;
+  }
+  
+  .equipo-precio {
+    font-size: 14px;
+    color: #1f2937;
+    font-weight: 700;
   }
   
   .equipo-delete {
@@ -84,6 +108,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+  
+  .equipo-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 16px 8px 8px 8px;
+    font-weight: 700;
+    font-size: 16px;
+    color: #083a99;
+    border-top: 2px solid #e5e7eb;
+    margin-top: 8px;
   }
   
   .equipo-footer {
@@ -118,13 +153,4 @@
   
   .equipo-guardar:hover {
     background: #062d7a;
-  }
-
-  .equipo-wrapper {
-    display: flex;
-    justify-content: flex-end;
-  }
-  
-  .equipo-card {
-    width: 50%;
   }
