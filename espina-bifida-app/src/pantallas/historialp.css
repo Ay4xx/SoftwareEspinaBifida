@@ -1,0 +1,19 @@
+.contenedor {
+  margin-top: 0px;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 20px;
+}
+/* izquierda */
+.lado-izq {
+  margin-top: 70px;
+  flex: 1; /* 40% aprox */
+  min-width: 300px;
+}
+
+/* derecha */
+.lado-derecho {
+  flex: 2; /* 60% */
+  display: flex;
+  flex-direction: column;
+}
