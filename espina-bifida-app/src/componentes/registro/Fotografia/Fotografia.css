@@ -1,0 +1,100 @@
+.foto-seccion {
+  padding: 0 32px;
+}
+
+.foto-seccion-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.foto-icono {
+  width: 34px;
+  height: 34px;
+  background-color: #0891b2;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.foto-seccion-titulo {
+  font-size: 16px;
+  font-weight: 700;
+  color: #083a99;
+}
+
+.foto-divisor {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 0 0 24px;
+}
+
+.foto-zona {
+  border: 2px dashed #cbd5e1;
+  border-radius: 14px;
+  padding: 48px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+  background: #f8fafc;
+  min-height: 220px;
+}
+
+.foto-zona:hover {
+  border-color: #083a99;
+  background: #eff6ff;
+}
+
+.foto-zona.encima {
+  border-color: #083a99;
+  background: #dbeafe;
+}
+
+.foto-zona.con-preview {
+  padding: 16px;
+  background: white;
+}
+
+.foto-camara-icono {
+  width: 60px;
+  height: 60px;
+  background-color: #e0f2fe;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.foto-texto-principal {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.foto-texto-secundario {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.foto-texto-limite {
+  font-size: 12px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.foto-preview {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 10px;
+  object-fit: contain;
+}
