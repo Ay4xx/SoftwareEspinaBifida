@@ -1,13 +1,13 @@
 import { getConnection } from "../../../config/db.js"; 
 import oracledb from "oracledb";
 
-export async function getMedicamentos() {
+export async function getEquipoMedico() {
     let conn;
     try {
       conn = await getConnection();
       const result = await conn.execute(
-        `SELECT MEDICINA_ID, DESCRIPCION, PRECIO, UNIDAD, CANTIDAD_TOTAL 
-         FROM INVENTARIO_MEDICINAS
+        `SELECT EQUIPO_M_ID, DESCRIPCION, PRECIO, CANTIDAD_TOTAL 
+         FROM INVENTARIO_EQUIPO_MEDICO
          WHERE CANTIDAD_TOTAL > 0`,
         [],
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
@@ -18,7 +18,7 @@ export async function getMedicamentos() {
     }
   }
   
-  export async function getMedicamentosDisponibles(idsSeleccionados = []) {
+  export async function getEquipoDisponibles(idsSeleccionados = []) {
     let conn;
     try {
       conn = await getConnection();
@@ -27,16 +27,16 @@ export async function getMedicamentos() {
       let binds;
   
       if (idsSeleccionados.length === 0) {
-        query = `SELECT MEDICINA_ID, DESCRIPCION, PRECIO, UNIDAD, CANTIDAD_TOTAL 
-                 FROM INVENTARIO_MEDICINAS
+        query = `SELECT EQUIPO_M_ID, DESCRIPCION, PRECIO, CANTIDAD_TOTAL 
+                 FROM INVENTARIO_EQUIPO_MEDICO
                  WHERE CANTIDAD_TOTAL > 0`;
         binds = [];
       } else {
         const placeholders = idsSeleccionados.map((_, i) => `:id${i}`).join(", ");
-        query = `SELECT MEDICINA_ID, DESCRIPCION, PRECIO, UNIDAD, CANTIDAD_TOTAL 
-                 FROM INVENTARIO_MEDICINAS 
+        query = `SELECT EQUIPO_M_ID, DESCRIPCION, PRECIO, CANTIDAD_TOTAL 
+                 FROM INVENTARIO_EQUIPO_MEDICO 
                  WHERE CANTIDAD_TOTAL > 0
-                 AND MEDICINA_ID NOT IN (${placeholders})`;
+                 AND EQUIPO_M_ID NOT IN (${placeholders})`;
         binds = idsSeleccionados.reduce((acc, id, i) => {
           acc[`id${i}`] = id;
           return acc;
