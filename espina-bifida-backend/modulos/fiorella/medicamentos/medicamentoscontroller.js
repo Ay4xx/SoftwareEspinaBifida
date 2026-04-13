@@ -1,4 +1,4 @@
-import { getMedicamentos, getMedicamentosDisponibles } from "./medicamentosservice.js";
+import { getMedicamentos, getMedicamentosDisponibles , guardarEventoMedicinas} from "./medicamentosservice.js";
 
 export async function listarMedicamentos(req, res) {
     try {
@@ -21,5 +21,16 @@ export async function listarMedicamentosDisponibles(req, res) {
   } catch (error) {
     console.error(error);
     res.status(500).json({ ok: false, message: "Error al obtener medicamentos disponibles" });
+  }
+}
+
+export async function guardarConsulta(req, res) {
+  try {
+    const { pacienteId, medicamentos } = req.body;
+    const result = await guardarEventoMedicinas(pacienteId, medicamentos);
+    res.json({ ok: true, eventoId: result.eventoId });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ ok: false, message: error.message });
   }
 }
