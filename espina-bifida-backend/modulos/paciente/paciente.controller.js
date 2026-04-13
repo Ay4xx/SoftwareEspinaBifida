@@ -1,4 +1,4 @@
-import { getPacienteCards, getPacienteDetail, getPacienteCredencial } from "../paciente/paciente.service.js";
+import { getPacienteCards, getPacienteDetail, getPacienteCredencial, getPacienteDetalle } from "../paciente/paciente.service.js";
 
 export async function listarPacienteCards(req, res) {
   try {
@@ -66,6 +66,33 @@ export async function obtenerPacienteCredencial(req, res) {
       ok: false,
       message: "Error interno del servidor",
       error: error.message,
+    });
+  }
+
+  
+}
+
+export async function obtenerPacienteDetalle(req, res) {
+  try {
+    const { id } = req.params;
+    const paciente = await getPacienteDetalle(id);
+
+    if (!paciente) {
+      return res.status(404).json({
+        ok: false,
+        message: "Paciente no encontrado"
+      });
+    }
+
+    res.json({
+      ok: true,
+      data: paciente
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      ok: false,
+      message: error.message
     });
   }
 }

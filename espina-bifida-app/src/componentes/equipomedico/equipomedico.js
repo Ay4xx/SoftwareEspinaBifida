@@ -131,7 +131,7 @@ function EquipoMedico() {
 
         <div className="equipo-footer">
           <button className="equipo-cancelar" onClick={cancelarLista}>Cancelar</button>
-          <button className="equipo-guardar">💾 Guardar Consulta</button>
+          <button className="equipo-guardar"> Guardar Consulta</button>
         </div>
       </div>
 

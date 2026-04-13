@@ -84,7 +84,7 @@ function RegistrarConsulta() {
 
       <div className="consulta-row">
         <div className="consulta-field">
-          <label>Médico Tratante</label>
+          <label>Médico</label>
           <select name="medico_id" value={form.medico_id} onChange={handleMedicoChange}>
             <option value="">Seleccionar</option>
             {medicos.map((m) => (

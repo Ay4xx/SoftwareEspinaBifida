@@ -54,12 +54,13 @@ function PatientCard({ patient }) {
       </div>
 
       <div className="card-footer">
-        <button className="btn-secondary">Historial</button>
+        <button className="btn-secondary" onClick={() => navigate(`/historial/${patient.id}`)}>
+          Historial</button>
         <button className="btn-secondary" onClick={() => navigate(`/credencial/${patient.id}`)}>
           <IdCard size={14} />
           Ver Credencial
         </button>
-        <button className="btn-primary">
+        <button className="btn-primary" onClick={() => navigate(`/inventario/${patient.id}`)}>
           <Plus size={14} />
           Agregar
         </button>
