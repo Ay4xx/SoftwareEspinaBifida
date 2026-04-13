@@ -1,6 +1,9 @@
 import React from "react";
 import { MapPin, Calendar, Plus, IdCard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import placeholederPic from "../../assets/placeholder.png";
+import manPic from "../../assets/id-photo.webp";
+
 import "./patientCard.css";
 
 function PatientCard({ patient }) {
@@ -20,7 +23,7 @@ function PatientCard({ patient }) {
     <div className="card">
       <div className="card-header">
         <div className="user-info">
-          <div className="avatar-circle">{patient.initials}</div>
+          <img className="avatar-circle" src={patient.foto || placeholederPic} alt={patient.name} />
 
           <div>
             <h3>{patient.name}</h3>

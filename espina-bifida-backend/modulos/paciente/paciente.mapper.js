@@ -12,6 +12,7 @@ export function mapPacienteToCard(row) {
     id: row.PACIENTE_ID,
     folio: row.PACIENTE_ID.toString().padStart(3, '0'),
     initials,
+    foto: row.FOTOGRAFIA || null,
     name: nombre,
     subtitle: "Paciente registrado",
     status:
