@@ -107,6 +107,17 @@
   margin: 0;
 }
 
+/* ── Error de validación de paso ── */
+.registro-error-paso {
+  margin: 0 32px 8px;
+  padding: 10px 14px;
+  background-color: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
 /* ── Contenedor de botones ── */
 .registro-nav-contenedor {
   display: flex;
