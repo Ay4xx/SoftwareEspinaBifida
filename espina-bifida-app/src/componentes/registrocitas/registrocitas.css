@@ -7,6 +7,7 @@
     flex-direction: column;
     gap: 20px;
     margin-top: 16px;
+    width: 50%
   }
   
   .consulta-title {
@@ -35,7 +36,7 @@
     font-size: 12px;
     font-weight: 600;
     color: #083a99;
-    text-transform: uppercase;
+
     letter-spacing: 0.5px;
   }
   
@@ -71,4 +72,9 @@
   
   .consulta-btn:hover {
     background: #062d7a;
+  }
+
+  .consulta-wrapper {
+    display: flex;
+    justify-content: flex-end;
   }
