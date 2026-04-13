@@ -13,30 +13,16 @@ const tabs = [
   { id: "equipo", label: "Equipo médico", icon: <Users size={16} /> },
 ];
 
-const pacientee = {
-  nombre: "María García López",
-  iniciales: "MG",
-  curp: "MAGL031599MNL",
-  email: "maria.garcia@email.com",
-  telefono: "81 1234 5678",
-  ubicacion: "Nuevo León",
-  registro: "2022-03-15",
-  estado: "Activo",
-  vencimiento: "30-03-2026"
-};
-
 function ServiciosPanel() {
   const [activeTab, setActiveTab] = useState("citas");
 
   return (
     <div className="inventario-contenedor">
 
-      {/* IZQUIERDA — Info del paciente */}
       <div className="inventario-izq">
-        <VisualizarInfo paciente={pacientee} />
+        <VisualizarInfo /> 
       </div>
 
-      {/* DERECHA — Tabs y contenido */}
       <div className="inventario-derecho">
         <TabNav tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 

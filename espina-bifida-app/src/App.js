@@ -42,8 +42,9 @@ function AppContent() {
           <div className="content">
             <Routes>
               <Route path="/" element={<UsuariosPage />} />
-              <Route path="/inventario" element={<ServiciosPanel />} />
               <Route path="/credencial/:pacienteId" element={<Credencial />} />
+              <Route path="/inventario/:pacienteId" element={<ServiciosPanel />} />
+              <Route path="/historial/:pacienteId" element={<HistorialPage />} />
             </Routes>
           </div>
 
