@@ -118,3 +118,21 @@
   font-size: 13px;
   cursor: help;
 }
+
+.dp-input-error {
+  border-color: #ef4444 !important;
+}
+
+.dp-input-valido {
+  border-color: #22c55e !important;
+}
+
+.dp-error-msg {
+  font-size: 12px;
+  color: #ef4444;
+}
+
+.dp-valido-msg {
+  font-size: 12px;
+  color: #22c55e;
+}

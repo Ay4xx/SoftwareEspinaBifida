@@ -11,6 +11,7 @@ const TOTAL_PASOS = 4;
 function RegistroPage() {
   const [paso, setPaso] = useState(1);
   const [guardado, setGuardado] = useState(false);
+  const [errorPaso, setErrorPaso] = useState(null);
   const [formData, setFormData] = useState({
     nombres: "",
     apellidos: "",
@@ -31,9 +32,24 @@ function RegistroPage() {
 
   const handleChange = (nuevosDatos) => {
     setFormData((prev) => ({ ...prev, ...nuevosDatos }));
+    if (nuevosDatos.curp !== undefined) setErrorPaso(null);
+  };
+
+  const validarPaso = () => {
+    if (paso === 1) {
+      const curp = formData.curp;
+      if (!curp) return "La CURP es obligatoria para continuar.";
+      const ESTADOS = ["AS","BC","BS","CC","CL","CM","CS","CH","DF","DG","GT","GR","HG","JC","MC","MN","MS","NT","NL","OC","PL","QT","QR","SP","SL","SR","TC","TS","TL","VZ","YN","ZS","NE"];
+      const regex = new RegExp(`^[A-Z][AEIOU][A-Z]{2}\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01])[HMX](${ESTADOS.join("|")})[B-DF-HJ-NP-TV-Z]{3}[0-9A-Z]\\d$`);
+      if (!regex.test(curp)) return "La CURP ingresada no tiene un formato válido. Verifica e intenta de nuevo.";
+    }
+    return null;
   };
 
   const siguientePaso = () => {
+    const error = validarPaso();
+    if (error) { setErrorPaso(error); return; }
+    setErrorPaso(null);
     if (paso < TOTAL_PASOS) setPaso(paso + 1);
   };
 
@@ -129,6 +145,11 @@ function RegistroPage() {
 
         {/* Contenido del paso actual */}
         {renderPaso()}
+
+        {/* Error de validación del paso */}
+        {errorPaso && (
+          <p className="registro-error-paso">{errorPaso}</p>
+        )}
 
         {/* Botones de navegación */}
         <div className="registro-nav-contenedor">
