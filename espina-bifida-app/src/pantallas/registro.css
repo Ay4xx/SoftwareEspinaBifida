@@ -4,15 +4,53 @@
   padding: 20px 20px 60px;
 }
 
+/* ── Pantalla de éxito ── */
+.registro-exito {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: white;
+  border-radius: 20px;
+  padding: 60px 48px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  text-align: center;
+  margin-top: 40px;
+}
+
+.registro-exito-icono {
+  width: 72px;
+  height: 72px;
+  background: #16a34a;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.registro-exito h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #001b4d;
+  margin: 0;
+}
+
+.registro-exito p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
 .registro-card {
   background: white;
   border-radius: 20px;
   width: 100%;
   max-width: 860px;
-  padding-bottom: 56px;
-  position: relative;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-  overflow: visible;
+  overflow: hidden;
 }
 
 /* ── Barra de progreso ── */
@@ -69,11 +107,15 @@
   margin: 0;
 }
 
-/* ── Botón de navegación ── */
+/* ── Contenedor de botones ── */
+.registro-nav-contenedor {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28px 32px 8px;
+}
+
 .registro-btn-nav {
-  position: absolute;
-  bottom: -22px;
-  right: 28px;
   width: 50px;
   height: 50px;
   border-radius: 50%;
@@ -89,6 +131,19 @@
 
 .registro-btn-nav:hover {
   transform: scale(1.06);
+}
+
+/* Cuando solo hay un botón (paso 1), empujarlo a la derecha */
+.registro-nav-contenedor:has(> .registro-btn-nav:only-child) {
+  justify-content: flex-end;
+}
+
+.btn-regresar {
+  background: #64748b;
+}
+
+.btn-regresar:hover {
+  background: #475569;
 }
 
 .btn-siguiente {

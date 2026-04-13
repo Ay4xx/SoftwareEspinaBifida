@@ -1,8 +1,13 @@
 import React from "react";
-import { MapPin, Calendar, Plus } from "lucide-react";
+import { MapPin, Calendar, Plus, IdCard } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import placeholederPic from "../../assets/placeholder.png";
+import manPic from "../../assets/id-photo.webp";
+
 import "./patientCard.css";
 
 function PatientCard({ patient }) {
+  const navigate = useNavigate();
   const formatDate = (dateString) => {
     if (!dateString) return "Sin registro";
 
@@ -18,7 +23,7 @@ function PatientCard({ patient }) {
     <div className="card">
       <div className="card-header">
         <div className="user-info">
-          <div className="avatar-circle">{patient.initials}</div>
+          <img className="avatar-circle" src={patient.foto || placeholederPic} alt={patient.name} />
 
           <div>
             <h3>{patient.name}</h3>
@@ -52,8 +57,13 @@ function PatientCard({ patient }) {
       </div>
 
       <div className="card-footer">
-        <button className="btn-secondary">Historial</button>
-        <button className="btn-primary">
+        <button className="btn-secondary" onClick={() => navigate(`/historial/${patient.id}`)}>
+          Historial</button>
+        <button className="btn-secondary" onClick={() => navigate(`/credencial/${patient.id}`)}>
+          <IdCard size={14} />
+          Ver Credencial
+        </button>
+        <button className="btn-primary" onClick={() => navigate(`/inventario/${patient.id}`)}>
           <Plus size={14} />
           Agregar
         </button>

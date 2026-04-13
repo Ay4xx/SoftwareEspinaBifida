@@ -1,0 +1,336 @@
+.equipo-wrapper {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .equipo-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+    width: 100%;
+  }
+  
+  .equipo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .equipo-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+  }
+  
+  .equipo-agregar {
+    border: 1.5px solid #16a34a;
+    color: #16a34a;
+    background: transparent;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .equipo-agregar:hover {
+    background: #f0fdf4;
+  }
+  
+  .equipo-table-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1.5fr 36px; /* 👈 agrega 1.5fr */
+    align-items: center;
+    gap: 24px;
+    padding: 10px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+  }
+  
+  .equipo-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1.5fr 36px; /* 👈 agrega 1.5fr */
+    align-items: center;
+    gap: 24px;
+    padding: 10px 8px;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  
+  .equipo-fecha {
+    padding: 6px 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #1f2937;
+    background: #e5e7eb;
+    outline: none;
+    width: 100%;
+  }
+  
+  .equipo-fecha:focus {
+    border-color: #083a99;
+    background: #ffffff;
+  }
+  
+  .equipo-nombre {
+    font-size: 14px;
+    color: #1f2937;
+  }
+  
+  .equipo-input {
+    width: 60px;
+    padding: 6px 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #1f2937;
+    background: #e5e7eb;
+    outline: none;
+    text-align: center;
+  }
+  
+  .equipo-input:focus {
+    border-color: #083a99;
+    background: #ffffff;
+  }
+  
+  .equipo-precio {
+    font-size: 14px;
+    color: #1f2937;
+    font-weight: 700;
+  }
+  
+  .equipo-delete {
+    background: #fee2e2;
+    color: #ef4444;
+    border: none;
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .equipo-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 16px 8px 8px 8px;
+    font-weight: 700;
+    font-size: 16px;
+    color: #083a99;
+    border-top: 2px solid #e5e7eb;
+    margin-top: 8px;
+  }
+  
+  .equipo-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+  }
+  
+  .equipo-cancelar {
+    background: transparent;
+    border: none;
+    color: #6b7280;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 10px 16px;
+  }
+  
+  .equipo-guardar {
+    background: #083a99;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .equipo-guardar:hover {
+    background: #062d7a;
+  }
+
+  .equipo-empty {
+    font-size: 14px;
+    color: #9ca3af;
+    text-align: center;
+    padding: 16px 0;
+  }
+  
+  .equipo-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .equipo-popup {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 24px;
+    width: 360px;
+    max-height: 500px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .equipo-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  
+  .equipo-popup-header h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+  }
+  
+  .equipo-popup-close {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+  }
+  
+  .equipo-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f3f4f6;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+  }
+  
+  .equipo-search-icon {
+    color: #9ca3af;
+    flex-shrink: 0;
+  }
+  
+  .equipo-search-input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 14px;
+    color: #1f2937;
+    width: 100%;
+  }
+  
+  .equipo-popup-list {
+    max-height: 260px;
+    overflow-y: auto;
+    margin-bottom: 12px;
+    scrollbar-width: none;
+  }
+  
+  .equipo-popup-list::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .equipo-popup-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 8px;
+    border-bottom: 1px solid #f3f4f6;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.15s;
+  }
+  
+  .equipo-popup-item:hover {
+    background: #f0f4ff;
+  }
+  
+  .equipo-popup-item.selected {
+    background: #eff6ff;
+  }
+  
+  .equipo-checkbox {
+    width: 16px;
+    height: 16px;
+    accent-color: #083a99;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  
+  .equipo-popup-nombre {
+    font-size: 14px;
+    color: #1f2937;
+    flex: 1;
+  }
+  
+  .equipo-popup-precio {
+    font-size: 14px;
+    font-weight: 600;
+    color: #083a99;
+  }
+  
+  .equipo-popup-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #e5e7eb;
+  }
+  
+  .equipo-popup-cancelar {
+    background: transparent;
+    border: none;
+    color: #6b7280;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 8px 16px;
+  }
+  
+  .equipo-popup-confirmar {
+    background: #083a99;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  .equipo-popup-confirmar:hover {
+    background: #062d7a;
+  }
+  
+  .equipo-popup-confirmar:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+  }

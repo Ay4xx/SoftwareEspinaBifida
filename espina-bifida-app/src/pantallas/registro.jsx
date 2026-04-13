@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./registro.css";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import DatosPersonales from "../componentes/registro/DatosPersonales/DatosPersonales";
 import Contacto from "../componentes/registro/Contacto/Contacto";
 import HistorialMedico from "../componentes/registro/HistorialMedico/HistorialMedico";
@@ -10,6 +10,7 @@ const TOTAL_PASOS = 4;
 
 function RegistroPage() {
   const [paso, setPaso] = useState(1);
+  const [guardado, setGuardado] = useState(false);
   const [formData, setFormData] = useState({
     nombres: "",
     apellidos: "",
@@ -36,9 +37,35 @@ function RegistroPage() {
     if (paso < TOTAL_PASOS) setPaso(paso + 1);
   };
 
+  const pasoAnterior = () => {
+    if (paso > 1) setPaso(paso - 1);
+  };
+
   const handleSubmit = () => {
     console.log("Registro completado:", formData);
     // TODO: enviar al backend
+    setGuardado(true);
+    setTimeout(() => {
+      setGuardado(false);
+      setPaso(1);
+      setFormData({
+        nombres: "",
+        apellidos: "",
+        genero: "",
+        fechaNacimiento: "",
+        curp: "",
+        municipio: "",
+        colonia: "",
+        codigoPostal: "",
+        estado: "",
+        telefono: "",
+        correo: "",
+        lugarNacimiento: "",
+        tipoSangre: "",
+        tipoEspinaBifida: "",
+        foto: null,
+      });
+    }, 2000);
   };
 
   const porcentaje = paso * 25;
@@ -57,6 +84,20 @@ function RegistroPage() {
         return null;
     }
   };
+
+  if (guardado) {
+    return (
+      <div className="registro-wrapper">
+        <div className="registro-exito">
+          <div className="registro-exito-icono">
+            <Check size={40} color="white" />
+          </div>
+          <h2>¡Registro guardado exitosamente!</h2>
+          <p>Redirigiendo al registro de usuarios</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="registro-wrapper">
@@ -89,15 +130,22 @@ function RegistroPage() {
         {/* Contenido del paso actual */}
         {renderPaso()}
 
-        {/* Botón de navegación */}
-        <button
-          className={`registro-btn-nav ${
-            paso === TOTAL_PASOS ? "btn-finalizar" : "btn-siguiente"
-          }`}
-          onClick={paso === TOTAL_PASOS ? handleSubmit : siguientePaso}
-        >
-          {paso === TOTAL_PASOS ? <Check size={22} /> : <ArrowRight size={22} />}
-        </button>
+        {/* Botones de navegación */}
+        <div className="registro-nav-contenedor">
+          {paso > 1 && (
+            <button className="registro-btn-nav btn-regresar" onClick={pasoAnterior}>
+              <ArrowLeft size={22} />
+            </button>
+          )}
+          <button
+            className={`registro-btn-nav ${
+              paso === TOTAL_PASOS ? "btn-finalizar" : "btn-siguiente"
+            }`}
+            onClick={paso === TOTAL_PASOS ? handleSubmit : siguientePaso}
+          >
+            {paso === TOTAL_PASOS ? <Check size={22} /> : <ArrowRight size={22} />}
+          </button>
+        </div>
       </div>
     </div>
   );
