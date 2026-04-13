@@ -4,9 +4,10 @@ import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import DatosPersonales from "../componentes/registro/DatosPersonales/DatosPersonales";
 import Contacto from "../componentes/registro/Contacto/Contacto";
 import HistorialMedico from "../componentes/registro/HistorialMedico/HistorialMedico";
+import HistorialTutor from "../componentes/registro/HistorialTutor/HistorialTutor";
 import Fotografia from "../componentes/registro/Fotografia/Fotografia";
 
-const TOTAL_PASOS = 4;
+const TOTAL_PASOS = 5;
 
 function RegistroPage() {
   const [paso, setPaso] = useState(1);
@@ -14,19 +15,38 @@ function RegistroPage() {
   const [errorPaso, setErrorPaso] = useState(null);
   const [formData, setFormData] = useState({
     nombres: "",
-    apellidos: "",
+    apellidoPaterno: "",
+
     genero: "",
     fechaNacimiento: "",
     curp: "",
-    municipio: "",
-    colonia: "",
+    direccion: "",
+    ciudad: "",
     codigoPostal: "",
     estado: "",
-    telefono: "",
+    telefonoCasa: "",
+    telefonoCelular: "",
     correo: "",
+    emergenciaContacto: "",
+    emergenciaTelefono: "",
     lugarNacimiento: "",
+    hospitalNacimiento: "",
     tipoSangre: "",
+    usaValvula: "",
     tipoEspinaBifida: "",
+    otrosPadecimiento: "",
+    notas: "",
+    tutorNombre: "",
+    tutorEdad: "",
+    tutorLugarNacimiento: "",
+    tutorOcupacion: "",
+    tutorEscolaridad: "",
+    tutorSeguroMedico: "",
+    tutorParentesco: "",
+    cdEmbarazo: "",
+    citasControl: "",
+    madreSeguroMedico: "",
+    acidoFolico: "",
     foto: null,
   });
 
@@ -66,25 +86,46 @@ function RegistroPage() {
       setPaso(1);
       setFormData({
         nombres: "",
-        apellidos: "",
+        apellidoPaterno: "",
+        apellidoMaterno: "",
+        nombrePadreMadre: "",
         genero: "",
         fechaNacimiento: "",
         curp: "",
-        municipio: "",
-        colonia: "",
+        direccion: "",
+        ciudad: "",
         codigoPostal: "",
         estado: "",
-        telefono: "",
+        telefonoCasa: "",
+        telefonoCelular: "",
         correo: "",
-        lugarNacimiento: "",
+        emergenciaContacto: "",
+        emergenciaTelefono: "",
+        ciudadNacimiento: "",
+        estadoNacimiento: "",
+        hospitalNacimiento: "",
         tipoSangre: "",
+        usaValvula: "",
         tipoEspinaBifida: "",
+        otrosPadecimiento: "",
+        notas: "",
+        tutorNombre: "",
+        tutorEdad: "",
+        tutorLugarNacimiento: "",
+        tutorOcupacion: "",
+        tutorEscolaridad: "",
+        tutorSeguroMedico: "",
+        tutorParentesco: "",
+        cdEmbarazo: "",
+        citasControl: "",
+        madreSeguroMedico: "",
+        acidoFolico: "",
         foto: null,
       });
     }, 2000);
   };
 
-  const porcentaje = paso * 25;
+  const porcentaje = paso * 20;
 
   const renderPaso = () => {
     switch (paso) {
@@ -95,6 +136,8 @@ function RegistroPage() {
       case 3:
         return <HistorialMedico datos={formData} onChange={handleChange} />;
       case 4:
+        return <HistorialTutor datos={formData} onChange={handleChange} />;
+      case 5:
         return <Fotografia datos={formData} onChange={handleChange} />;
       default:
         return null;

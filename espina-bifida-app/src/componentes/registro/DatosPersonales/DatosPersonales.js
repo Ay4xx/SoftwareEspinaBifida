@@ -66,16 +66,17 @@ function DatosPersonales({ datos, onChange }) {
             />
           </div>
           <div className="dp-campo">
-            <label>Apellidos</label>
+            <label>Apellido(s)</label>
             <input
               type="text"
-              name="apellidos"
-              value={datos.apellidos}
+              name="apellidoPaterno"
+              value={datos.apellidoPaterno}
               onChange={handleInput}
-              placeholder="Ej. González Martínez"
+              placeholder="Ej. González"
             />
           </div>
-        </div>
+        </div> 
+
 
         <div className="dp-campo-full">
           <label>Género</label>
