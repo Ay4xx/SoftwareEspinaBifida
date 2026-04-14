@@ -31,14 +31,17 @@ export async function getPacienteCards(search = "") {
         GROUP BY paciente_id
       ) ev
         ON p.paciente_id = ev.paciente_id
-      WHERE (
-        :search IS NULL
-        OR LOWER(p.nombre) LIKE '%' || LOWER(:search) || '%'
-        OR LOWER(p.apellido) LIKE '%' || LOWER(:search) || '%'
-        OR LOWER(p.nombre || ' ' || p.apellido) LIKE '%' || LOWER(:search) || '%'
-      )
+      INNER JOIN NOTIFICACION n
+        ON p.paciente_id = n.paciente_id
+      WHERE n.estado_proceso = 'aprobado'
+        AND (
+          :search IS NULL
+          OR LOWER(p.nombre) LIKE '%' || LOWER(:search) || '%'
+          OR LOWER(p.apellido) LIKE '%' || LOWER(:search) || '%'
+          OR LOWER(p.nombre || ' ' || p.apellido) LIKE '%' || LOWER(:search) || '%'
+        )
       ORDER BY p.paciente_id DESC
-    `;
+      `;
 
     const binds = {
       search: search?.trim() ? search.trim() : null,

@@ -1,21 +1,31 @@
 import { useEffect, useMemo, useState } from "react";
 import "./notificaciones.css";
 import { UserRound, MapPin, Phone, IdCard, Check, Bell } from "lucide-react";
+import { useNotificaciones } from "./notificacionesContext";
 
 const API_URL = "http://localhost:3001/api/notificaciones";
-
-// Cambia esto por el usuario real logueado cuando ya lo tengas
-const USUARIO_ID = 4;
 
 function NotificacionesPage() {
   const [filtro, setFiltro] = useState("todas");
   const [notificaciones, setNotificaciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const { setPendientesCount } = useNotificaciones();
 
   useEffect(() => {
-    cargarNotificaciones();
-  }, []);
+  cargarNotificaciones();
+
+  const intervalo = setInterval(() => {
+    setNotificaciones((prev) =>
+      prev.map((n) => ({
+        ...n,
+        tiempo: formatearTiempo(n.fechaCreacionRaw),
+      }))
+    );
+  }, 60000); // actualiza cada minuto
+
+  return () => clearInterval(intervalo);
+}, []);
 
   async function cargarNotificaciones() {
     try {
@@ -37,10 +47,14 @@ function NotificacionesPage() {
         telefono: item.paciente?.telefono || "",
         estado: (item.estado || "pendiente").toLowerCase(),
         tiempo: formatearTiempo(item.fechaCreacion),
+        fechaCreacionRaw: item.fechaCreacion,
         leida: (item.estado || "pendiente").toLowerCase() !== "pendiente",
       }));
 
       setNotificaciones(dataMapeada);
+
+      const count = dataMapeada.filter((n) => n.estado === "pendiente").length;
+      setPendientesCount(count);
     } catch (err) {
       console.error(err);
       setError(err.message || "Error al cargar notificaciones");
@@ -71,7 +85,6 @@ function NotificacionesPage() {
   }
 
   function parseFechaBackend(fechaTexto) {
-    // Espera formato tipo: DD/MM/YYYY HH24:MI
     const match = /^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}))?$/.exec(fechaTexto);
     if (!match) return null;
 
@@ -109,9 +122,7 @@ function NotificacionesPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          usuarioId: USUARIO_ID,
-        }),
+        body: JSON.stringify({}),
       });
 
       const result = await response.json();
@@ -123,15 +134,11 @@ function NotificacionesPage() {
       setNotificaciones((prev) =>
         prev.map((item) =>
           item.id === id
-            ? {
-                ...item,
-                estado: "aprobado",
-                leida: true,
-                tiempo: "Hace un momento",
-              }
+            ? { ...item, estado: "aprobado", leida: true, tiempo: "Hace un momento" }
             : item
         )
       );
+      setPendientesCount((prev) => Math.max(0, prev - 1));
     } catch (err) {
       console.error(err);
       alert(err.message || "Error al aprobar");
@@ -145,9 +152,7 @@ function NotificacionesPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          usuarioId: USUARIO_ID,
-        }),
+        body: JSON.stringify({}),
       });
 
       const result = await response.json();
@@ -159,15 +164,11 @@ function NotificacionesPage() {
       setNotificaciones((prev) =>
         prev.map((item) =>
           item.id === id
-            ? {
-                ...item,
-                estado: "rechazado",
-                leida: true,
-                tiempo: "Hace un momento",
-              }
+            ? { ...item, estado: "rechazado", leida: true, tiempo: "Hace un momento" }
             : item
         )
       );
+      setPendientesCount((prev) => Math.max(0, prev - 1));
     } catch (err) {
       console.error(err);
       alert(err.message || "Error al rechazar");
@@ -185,12 +186,8 @@ function NotificacionesPage() {
   }
 
   function renderTitulo(item) {
-    if (item.estado === "pendiente") {
-      return `Registro pendiente — ${item.nombre}`;
-    }
-    if (item.estado === "aprobado") {
-      return `Registro aprobado — ${item.nombre}`;
-    }
+    if (item.estado === "pendiente") return `Registro pendiente — ${item.nombre}`;
+    if (item.estado === "aprobado") return `Registro aprobado — ${item.nombre}`;
     return `Registro rechazado — ${item.nombre}`;
   }
 
@@ -231,12 +228,10 @@ function NotificacionesPage() {
               <IdCard size={16} />
               CURP: {item.curp}
             </span>
-
             <span className="noti-tag">
               <MapPin size={16} />
               {item.ciudad}
             </span>
-
             <span className="noti-tag">
               <Phone size={16} />
               {item.telefono}
@@ -245,17 +240,10 @@ function NotificacionesPage() {
 
           {item.estado === "pendiente" && (
             <div className="noti-actions">
-              <button
-                className="btn-aprobar"
-                onClick={() => aprobarRegistro(item.id)}
-              >
+              <button className="btn-aprobar" onClick={() => aprobarRegistro(item.id)}>
                 Aprobar
               </button>
-
-              <button
-                className="btn-rechazar"
-                onClick={() => rechazarRegistro(item.id)}
-              >
+              <button className="btn-rechazar" onClick={() => rechazarRegistro(item.id)}>
                 Rechazar
               </button>
             </div>
@@ -332,9 +320,7 @@ function NotificacionesPage() {
       <div className="seccion-notis">
         <h4>Anteriores</h4>
         {anteriores.length > 0 ? (
-          anteriores.map((item) => (
-            <TarjetaNotificacion key={item.id} item={item} />
-          ))
+          anteriores.map((item) => <TarjetaNotificacion key={item.id} item={item} />)
         ) : (
           <div className="sin-notificaciones">
             <Bell size={20} />
