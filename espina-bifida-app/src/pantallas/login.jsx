@@ -5,23 +5,59 @@ import "./login.css";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMessage("");
 
-    if (email && password) {
-      navigate("/usuarios");
-    } else {
-      alert("Completa todos los campos");
+    if (!email || !password) {
+      setErrorMessage("Completa todos los campos");
+      return;
     }
+
+    try {
+      setLoading(true);
+
+      const response = await fetch("http://localhost:3001/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: String(email).trim(),
+          password: String(password),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.ok) {
+        localStorage.setItem("usuario", JSON.stringify(data.data));
+        navigate("/usuarios");
+      } else {
+        setErrorMessage(data.message || "Credenciales incorrectas");
+      }
+    } catch (error) {
+      console.error("Error en login:", error);
+      setErrorMessage("No se pudo conectar con el servidor");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGuestLogin = () => {
+    navigate("/usuarios");
   };
 
   return (
     <div className="login-page">
       <div className="login-card">
         <div className="login-logo">
-            <img src="/espinaLogo.png" alt="logo" />
+          <img src="/espinaLogo.png" alt="logo" />
         </div>
 
         <h1 className="login-title">Espina Bífida</h1>
@@ -48,13 +84,19 @@ const Login = () => {
             />
           </div>
 
-          <button type="button" className="guest-btn">
+          {errorMessage && <p className="login-error">{errorMessage}</p>}
+
+          <button
+            type="button"
+            className="guest-btn"
+            onClick={handleGuestLogin}
+          >
             Ingresar como invitado
           </button>
 
-          <button type="submit" className="login-btn">
+          <button type="submit" className="login-btn" disabled={loading}>
             <span className="login-icon">↪</span>
-            Iniciar sesión
+            {loading ? "Ingresando..." : "Iniciar sesión"}
           </button>
         </form>
       </div>
