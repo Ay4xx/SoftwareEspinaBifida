@@ -1,4 +1,4 @@
-import { iniciarSesionPaciente } from "../login/login.service.js";
+import { iniciarSesionPaciente } from "./login.service.js";
 
 export async function loginPaciente(req, res) {
   try {
@@ -7,7 +7,7 @@ export async function loginPaciente(req, res) {
     if (!username || !password) {
       return res.status(400).json({
         ok: false,
-        message: "Username y contraseña son obligatorios"
+        message: "Username y contraseña son obligatorios",
       });
     }
 
@@ -16,19 +16,19 @@ export async function loginPaciente(req, res) {
     if (!data) {
       return res.status(401).json({
         ok: false,
-        message: "Credenciales incorrectas"
+        message: "Credenciales incorrectas",
       });
     }
 
     res.json({
       ok: true,
-      data
+      data,
     });
   } catch (error) {
-    console.error("Error en loginPaciente:", error);
+    console.error("Error real en loginPaciente:", error);
     res.status(500).json({
       ok: false,
-      message: "Error al iniciar sesión"
+      message: error.message || "Error al iniciar sesión",
     });
   }
 }

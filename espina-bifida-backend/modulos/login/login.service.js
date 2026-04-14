@@ -1,6 +1,7 @@
 import { getConnection } from "../../config/db.js";
 import oracledb from "oracledb";
-import { mapPacienteLogin } from "../login/login.mapper.js";
+import bcrypt from "bcrypt";
+import { mapPacienteLogin } from "./login.mapper.js";
 
 export async function iniciarSesionPaciente(username, password) {
   let conn;
@@ -19,7 +20,7 @@ export async function iniciarSesionPaciente(username, password) {
 
     const result = await conn.execute(
       sql,
-      { username },
+      { username: String(username).trim() },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
 
@@ -29,7 +30,17 @@ export async function iniciarSesionPaciente(username, password) {
 
     const usuario = result.rows[0];
 
-    if (usuario.PASSWORD !== password) {
+    if (!usuario.PASSWORD || typeof usuario.PASSWORD !== "string") {
+      console.error("PASSWORD inválido para usuario:", usuario.USUARIO_ID);
+      return null;
+    }
+
+    const passwordCorrecta = await bcrypt.compare(
+      String(password),
+      usuario.PASSWORD
+    );
+
+    if (!passwordCorrecta) {
       return null;
     }
 
