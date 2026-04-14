@@ -49,3 +49,37 @@ export async function getMedicamentos() {
       if (conn) await conn.close();
     }
   }
+
+  export async function guardarEventoMedicinas(pacienteId, medicamentos) {
+    let conn;
+    try {
+      conn = await getConnection();
+  
+      const cuota = medicamentos.reduce((acc, m) => acc + m.PRECIO * m.cantidad, 0);
+      const ids = medicamentos.map((m) => String(m.MEDICINA_ID));
+      const cantidades = medicamentos.map((m) => m.cantidad);
+  
+      const result = await conn.execute(
+        `BEGIN
+          insertar_evento_medicinas(
+            :pacienteId,
+            :cuota,
+            SYS.ODCIVARCHAR2LIST(${ids.map((_, i) => `:id${i}`).join(",")}),
+            SYS.ODCINUMBERLIST(${cantidades.map((_, i) => `:cant${i}`).join(",")}),
+            :eventoId
+          );
+        END;`,
+        {
+          pacienteId: parseInt(pacienteId),
+          cuota,
+          ...ids.reduce((acc, id, i) => ({ ...acc, [`id${i}`]: id }), {}),
+          ...cantidades.reduce((acc, c, i) => ({ ...acc, [`cant${i}`]: c }), {}),
+          eventoId: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
+        }
+      );
+  
+      return { eventoId: result.outBinds.eventoId };
+    } finally {
+      if (conn) await conn.close();
+    }
+  }

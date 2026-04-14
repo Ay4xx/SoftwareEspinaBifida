@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./equipomedico.css";
+import { useParams } from "react-router-dom";
 import { Paperclip, X, Search } from "lucide-react";
 
 function getMinDate() {
@@ -9,11 +10,13 @@ function getMinDate() {
 }
 
 function EquipoMedico() {
+  const { pacienteId } = useParams();
   const [equipos, setEquipos] = useState([]);
   const [disponibles, setDisponibles] = useState([]);
   const [seleccionados, setSeleccionados] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
   const [busqueda, setBusqueda] = useState("");
+  const [popup, setPopup] = useState(null);
 
   const abrirPopup = async () => {
     const ids = equipos.map((e) => e.EQUIPO_M_ID).join(",");
@@ -43,7 +46,7 @@ function EquipoMedico() {
   };
 
   const confirmarSeleccion = () => {
-    const nuevos = seleccionados.map((e) => ({ ...e, cantidad: 1, fechaEstimada: getMinDate() }));
+    const nuevos = seleccionados.map((e) => ({ ...e, cantidad: 1, fechaFinal: getMinDate() }));
     setEquipos([...equipos, ...nuevos]);
     setShowPopup(false);
   };
@@ -67,7 +70,7 @@ function EquipoMedico() {
   };
 
   const cambiarFecha = (id, valor) => {
-    setEquipos(equipos.map((e) => e.EQUIPO_M_ID === id ? { ...e, fechaEstimada: valor } : e));
+    setEquipos(equipos.map((e) => e.EQUIPO_M_ID === id ? { ...e, fechaFinal: valor } : e));
   };
 
   const getPrecio = (e) => `$${(e.PRECIO * e.cantidad).toFixed(2)}`;
@@ -78,16 +81,42 @@ function EquipoMedico() {
     d.DESCRIPCION.toLowerCase().includes(busqueda.toLowerCase())
   );
 
+  const guardarConsultaEquipo = async () => {
+    if (equipos.length === 0) {
+      setPopup("vacio");
+      return;
+    }
+  
+    try {
+      const res = await fetch("http://localhost:3001/api/equipomedico/guardar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pacienteId, equipos }),
+      });
+      const json = await res.json();
+  
+      if (json.ok) {
+        setEquipos([]);
+        setPopup("exito");
+      } else {
+        alert("Error: " + json.message);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  
+
   return (
     <div className="equipo-wrapper">
       <div className="equipo-card">
         <div className="equipo-header">
           <h3 className="equipo-title">
-            <Paperclip size={18} /> Prestamo de Equipo Médico
+            <Paperclip size={18} /> Préstamo de Equipo Médico
           </h3>
           <button className="equipo-agregar" onClick={abrirPopup}>+ Agregar</button>
         </div>
-
+  
         {equipos.length > 0 ? (
           <>
             <div className="equipo-table-header">
@@ -97,7 +126,7 @@ function EquipoMedico() {
               <span>Fecha Estimada</span>
               <span></span>
             </div>
-
+  
             {equipos.map((e) => (
               <div key={e.EQUIPO_M_ID} className="equipo-row">
                 <span className="equipo-nombre">{e.DESCRIPCION}</span>
@@ -112,14 +141,14 @@ function EquipoMedico() {
                 <input
                   type="date"
                   className="equipo-fecha"
-                  value={e.fechaEstimada}
+                  value={e.fechaFinal}
                   min={getMinDate()}
                   onChange={(ev) => cambiarFecha(e.EQUIPO_M_ID, ev.target.value)}
                 />
                 <button className="equipo-delete" onClick={() => eliminar(e.EQUIPO_M_ID)}>✕</button>
               </div>
             ))}
-
+  
             <div className="equipo-total">
               <span>Total</span>
               <span>${total.toFixed(2)}</span>
@@ -128,24 +157,53 @@ function EquipoMedico() {
         ) : (
           <p className="equipo-empty">No hay equipo médico agregado.</p>
         )}
-
+  
         <div className="equipo-footer">
           <button className="equipo-cancelar" onClick={cancelarLista}>Cancelar</button>
-          <button className="equipo-guardar"> Guardar Consulta</button>
+          <button className="equipo-guardar" onClick={guardarConsultaEquipo}> Guardar Consulta</button>
         </div>
       </div>
-
+  
+      {/* Popup éxito */}
+      {popup === "exito" && (
+        <div className="equipo-overlay" onClick={() => setPopup(null)}>
+          <div className="equipo-popup-msg" onClick={(e) => e.stopPropagation()}>
+            <div className="equipo-popup-msg-icon"></div>
+            <h4>¡Registro guardado!</h4>
+            <p>El préstamo de equipo médico fue registrado exitosamente.</p>
+            <button className="equipo-popup-confirmar" onClick={() => setPopup(null)}>
+              Aceptar
+            </button>
+          </div>
+        </div>
+      )}
+  
+      {/* Popup vacío */}
+      {popup === "vacio" && (
+        <div className="equipo-overlay" onClick={() => setPopup(null)}>
+          <div className="equipo-popup-msg" onClick={(e) => e.stopPropagation()}>
+            <div className="equipo-popup-msg-icon"></div>
+            <h4>¡Sin equipo médico!</h4>
+            <p>Debes seleccionar al menos un equipo médico antes de guardar.</p>
+            <button className="equipo-popup-confirmar" onClick={() => setPopup(null)}>
+              Entendido
+            </button>
+          </div>
+        </div>
+      )}
+  
+      {/* Popup selección */}
       {showPopup && (
         <div className="equipo-overlay" onClick={() => setShowPopup(false)}>
           <div className="equipo-popup" onClick={(e) => e.stopPropagation()}>
-
+  
             <div className="equipo-popup-header">
               <h4>Seleccionar Equipo Médico</h4>
               <button className="equipo-popup-close" onClick={() => setShowPopup(false)}>
                 <X size={18} />
               </button>
             </div>
-
+  
             <div className="equipo-search">
               <Search size={16} className="equipo-search-icon" />
               <input
@@ -156,7 +214,7 @@ function EquipoMedico() {
                 className="equipo-search-input"
               />
             </div>
-
+  
             <div className="equipo-popup-list">
               {disponiblesFiltrados.length === 0 ? (
                 <p className="equipo-empty">No se encontró equipo médico.</p>
@@ -183,7 +241,7 @@ function EquipoMedico() {
                 })
               )}
             </div>
-
+  
             <div className="equipo-popup-footer">
               <button className="equipo-popup-cancelar" onClick={cancelarPopup}>Cancelar</button>
               <button
@@ -194,12 +252,14 @@ function EquipoMedico() {
                 Agregar ({seleccionados.length})
               </button>
             </div>
-
+  
           </div>
         </div>
       )}
     </div>
   );
+  
+ 
 }
 
 export default EquipoMedico;
