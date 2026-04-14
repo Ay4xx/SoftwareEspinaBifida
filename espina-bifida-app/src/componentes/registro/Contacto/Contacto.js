@@ -69,27 +69,15 @@ function Contacto({ datos, onChange }) {
       <div className="ct-formulario">
         <div className="ct-fila">
           <div className="ct-campo">
-            <label>Municipio</label>
-            <select name="municipio" value={datos.municipio} onChange={handleInput}>
-              <option value="">Seleccionar municipio...</option>
-              {MUNICIPIOS.map((m) => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
-          </div>
-          <div className="ct-campo">
-            <label>Colonia</label>
+            <label>Dirección</label>
             <input
               type="text"
-              name="colonia"
-              value={datos.colonia}
+              name="direccion"
+              value={datos.direccion}
               onChange={handleInput}
-              placeholder="Ej. Centro, Del Valle..."
+              placeholder="Calle y número"
             />
           </div>
-        </div>
-
-        <div className="ct-fila">
           <div className="ct-campo">
             <label>Código Postal</label>
             <input
@@ -101,8 +89,11 @@ function Contacto({ datos, onChange }) {
               maxLength={5}
             />
           </div>
+        </div>
+
+        <div className="ct-fila">
           <div className="ct-campo">
-            <label>Estado</label>
+            <label>Estado de Residencia</label>
             <select name="estado" value={datos.estado} onChange={handleInput}>
               <option value="">Seleccionar estado...</option>
               {ESTADOS.map((e) => (
@@ -110,21 +101,45 @@ function Contacto({ datos, onChange }) {
               ))}
             </select>
           </div>
+          <div className="ct-campo">
+            <label>Ciudad de Residencia</label>
+            <input
+              type="text"
+              name="ciudad"
+              value={datos.ciudad}
+              onChange={handleInput}
+              placeholder="Ej. Monterrey"
+            />
+          </div>
         </div>
 
         <div className="ct-fila">
           <div className="ct-campo">
-            <label>Teléfono</label>
+            <label>Teléfono Casa</label>
             <input
               type="tel"
-              name="telefono"
-              value={datos.telefono}
+              name="telefonoCasa"
+              value={datos.telefonoCasa}
               onChange={handleInput}
               placeholder="10 dígitos"
               maxLength={10}
             />
           </div>
           <div className="ct-campo">
+            <label>Teléfono Celular</label>
+            <input
+              type="tel"
+              name="telefonoCelular"
+              value={datos.telefonoCelular}
+              onChange={handleInput}
+              placeholder="10 dígitos"
+              maxLength={10}
+            />
+          </div>
+        </div>
+
+        <div className="ct-fila">
+          <div className="ct-campo" style={{ gridColumn: "1 / -1" }}>
             <label>Correo Electrónico</label>
             <input
               type="email"
@@ -132,6 +147,32 @@ function Contacto({ datos, onChange }) {
               value={datos.correo}
               onChange={handleInput}
               placeholder="ejemplo@correo.com"
+            />
+          </div>
+        </div>
+
+        <div className="ct-subtitulo">En caso de emergencia</div>
+
+        <div className="ct-fila">
+          <div className="ct-campo">
+            <label>Nombre del Contacto</label>
+            <input
+              type="text"
+              name="emergenciaContacto"
+              value={datos.emergenciaContacto}
+              onChange={handleInput}
+              placeholder="Nombre completo"
+            />
+          </div>
+          <div className="ct-campo">
+            <label>Teléfono de Emergencia</label>
+            <input
+              type="tel"
+              name="emergenciaTelefono"
+              value={datos.emergenciaTelefono}
+              onChange={handleInput}
+              placeholder="10 dígitos"
+              maxLength={10}
             />
           </div>
         </div>

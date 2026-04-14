@@ -1,7 +1,9 @@
 export function mapPacienteToCard(row) {
-  const nombre = row.NOMBRE || "Sin nombre";
+  const nombre = row.NOMBRE || "";
+  const apellido = row.APELLIDO || "";
+  const nombreCompleto = [nombre, apellido].filter(Boolean).join(" ").trim() || "Sin nombre";
 
-  const initials = nombre
+  const initials = nombreCompleto
     .split(" ")
     .filter(Boolean)
     .slice(0, 2)
@@ -10,12 +12,15 @@ export function mapPacienteToCard(row) {
 
   return {
     id: row.PACIENTE_ID,
-    folio: row.PACIENTE_ID.toString().padStart(3, '0'),
+    folio: row.PACIENTE_ID.toString().padStart(3, "0"),
     initials,
-    name: nombre,
+    foto: row.FOTOGRAFIA ? `/api/pacientes/${row.PACIENTE_ID}/foto` : null,
+    name: nombreCompleto,
+    nombre,
+    apellido,
     subtitle: "Paciente registrado",
     status:
-      row.ESTATUS_MEMBRESIA && row.ESTATUS_MEMBRESIA.toLowerCase() === 'activa'
+      row.ESTATUS_MEMBRESIA && row.ESTATUS_MEMBRESIA.toLowerCase() === "activa"
         ? "Activo"
         : "Inactivo",
     location: [row.CIUDAD_RESIDENCIA, row.ESTADO_RESIDENCIA]
