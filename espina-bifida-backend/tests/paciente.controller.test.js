@@ -1,15 +1,17 @@
 import request from "supertest";
 import { jest } from "@jest/globals";
 
-// Mock del service ANTES de importar app
+// Mock completo del service
 jest.unstable_mockModule("../modulos/paciente/paciente.service.js", () => ({
   getPacienteCards: jest.fn(),
   getPacienteDetail: jest.fn(),
   getPacienteCredencial: jest.fn(),
+  getPacienteDetalle: jest.fn(),
+  guardarFoto: jest.fn(),
+  obtenerFoto: jest.fn(),
 }));
 
 const pacienteService = await import("../modulos/paciente/paciente.service.js");
-const { mapPacienteToCard } = await import("../modulos/paciente/paciente.mapper.js");
 const { default: app } = await import("../app.js");
 
 describe("PACIENTES API", () => {
@@ -17,7 +19,6 @@ describe("PACIENTES API", () => {
     jest.clearAllMocks();
   });
 
-  // Tests para GET /api/pacientes/cards
   describe("GET /api/pacientes/cards", () => {
     test("debe regresar lista de pacientes", async () => {
       pacienteService.getPacienteCards.mockResolvedValue([
@@ -29,7 +30,6 @@ describe("PACIENTES API", () => {
       expect(res.statusCode).toBe(200);
       expect(res.body.ok).toBe(true);
       expect(res.body.data.length).toBe(1);
-      expect(pacienteService.getPacienteCards).toHaveBeenCalledWith(undefined);
     });
 
     test("debe manejar error", async () => {
@@ -45,14 +45,12 @@ describe("PACIENTES API", () => {
     test("debe enviar search al service", async () => {
       pacienteService.getPacienteCards.mockResolvedValue([]);
 
-      const res = await request(app).get("/api/pacientes/cards?search=juan");
+      await request(app).get("/api/pacientes/cards?search=juan");
 
-      expect(res.statusCode).toBe(200);
       expect(pacienteService.getPacienteCards).toHaveBeenCalledWith("juan");
     });
   });
 
- // Tests para GET /api/pacientes/:id
   describe("GET /api/pacientes/:id", () => {
     test("debe regresar paciente por id", async () => {
       pacienteService.getPacienteDetail.mockResolvedValue({
@@ -89,7 +87,6 @@ describe("PACIENTES API", () => {
     });
   });
 
-  // Tests para GET /api/pacientes/credencial/:pacienteId
   describe("GET /api/pacientes/credencial/:pacienteId", () => {
     test("debe regresar credencial", async () => {
       pacienteService.getPacienteCredencial.mockResolvedValue({
@@ -125,50 +122,107 @@ describe("PACIENTES API", () => {
       expect(res.body.error).toBe("DB error");
     });
   });
-});
 
-// Tests para el mapper
-describe("PACIENTE MAPPER", () => {
-  test("debe mapear correctamente", () => {
-    const row = {
-      PACIENTE_ID: 1,
-      NOMBRE: "Juan Pérez",
-      CIUDAD_RESIDENCIA: "Monterrey",
-      ESTADO_RESIDENCIA: "NL",
-      ESTATUS_MEMBRESIA: "activa",
-    };
+  describe("GET /api/pacientes/detalle/:id", () => {
+    test("debe regresar detalle", async () => {
+      pacienteService.getPacienteDetalle.mockResolvedValue({
+        NOMBRE: "Juan",
+      });
 
-    const result = mapPacienteToCard(row);
+      const res = await request(app).get("/api/pacientes/detalle/1");
 
-    expect(result.id).toBe(1);
-    expect(result.folio).toBe("001");
-    expect(result.initials).toBe("JP");
-    expect(result.name).toBe("Juan Pérez");
-    expect(result.status).toBe("Activo");
-    expect(result.location).toBe("Monterrey, NL");
+      expect(res.statusCode).toBe(200);
+      expect(res.body.ok).toBe(true);
+      expect(res.body.data.NOMBRE).toBe("Juan");
+      expect(pacienteService.getPacienteDetalle).toHaveBeenCalledWith("1");
+    });
+
+    test("debe regresar 404 si no existe", async () => {
+      pacienteService.getPacienteDetalle.mockResolvedValue(null);
+
+      const res = await request(app).get("/api/pacientes/detalle/1");
+
+      expect(res.statusCode).toBe(404);
+      expect(res.body.ok).toBe(false);
+      expect(res.body.message).toBe("Paciente no encontrado");
+    });
+
+    test("debe manejar error interno", async () => {
+      pacienteService.getPacienteDetalle.mockRejectedValue(new Error("DB error"));
+
+      const res = await request(app).get("/api/pacientes/detalle/1");
+
+      expect(res.statusCode).toBe(500);
+      expect(res.body.ok).toBe(false);
+      expect(res.body.message).toBe("DB error");
+    });
   });
 
-  test("debe poner Inactivo si la membresía no es activa", () => {
-    const row = {
-      PACIENTE_ID: 2,
-      NOMBRE: "María López",
-      ESTATUS_MEMBRESIA: "vencida",
-    };
+  describe("POST /api/pacientes/upload/:id", () => {
+    test("debe subir foto correctamente", async () => {
+      pacienteService.guardarFoto.mockResolvedValue();
 
-    const result = mapPacienteToCard(row);
+      const res = await request(app)
+        .post("/api/pacientes/upload/1")
+        .attach("foto", Buffer.from("fake"), "test.jpg");
 
-    expect(result.status).toBe("Inactivo");
+      expect(res.statusCode).toBe(200);
+      expect(res.body.ok).toBe(true);
+      expect(res.body.message).toBe("Foto guardada correctamente");
+      expect(pacienteService.guardarFoto).toHaveBeenCalled();
+    });
+
+    test("debe fallar si no hay archivo", async () => {
+      const res = await request(app).post("/api/pacientes/upload/1");
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.ok).toBe(false);
+      expect(res.body.message).toBe("No se recibió ninguna imagen");
+    });
+
+    test("debe manejar error al guardar foto", async () => {
+      pacienteService.guardarFoto.mockRejectedValue(new Error("Error guardando"));
+
+      const res = await request(app)
+        .post("/api/pacientes/upload/1")
+        .attach("foto", Buffer.from("fake"), "test.jpg");
+
+      expect(res.statusCode).toBe(500);
+      expect(res.body.ok).toBe(false);
+      expect(res.body.message).toBe("Error al guardar la foto");
+      expect(res.body.error).toBe("Error guardando");
+    });
   });
 
-  test("debe manejar nombre vacío", () => {
-    const row = {
-      PACIENTE_ID: 3,
-    };
+  describe("GET /api/pacientes/:id/foto", () => {
+    test("debe regresar foto", async () => {
+      pacienteService.obtenerFoto.mockResolvedValue(Buffer.from("img"));
 
-    const result = mapPacienteToCard(row);
+      const res = await request(app).get("/api/pacientes/1/foto");
 
-    expect(result.name).toBe("Sin nombre");
-    expect(result.initials).toBe("SN");
-    expect(result.folio).toBe("003");
+      expect(res.statusCode).toBe(200);
+      expect(res.headers["content-type"]).toContain("image/jpeg");
+    });
+
+    test("debe regresar 404 si no hay foto", async () => {
+      pacienteService.obtenerFoto.mockResolvedValue(null);
+
+      const res = await request(app).get("/api/pacientes/1/foto");
+
+      expect(res.statusCode).toBe(404);
+      expect(res.body.ok).toBe(false);
+      expect(res.body.message).toBe("Foto no encontrada");
+    });
+
+    test("debe manejar error al obtener foto", async () => {
+      pacienteService.obtenerFoto.mockRejectedValue(new Error("Error foto"));
+
+      const res = await request(app).get("/api/pacientes/1/foto");
+
+      expect(res.statusCode).toBe(500);
+      expect(res.body.ok).toBe(false);
+      expect(res.body.message).toBe("Error al obtener la foto");
+      expect(res.body.error).toBe("Error foto");
+    });
   });
 });

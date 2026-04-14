@@ -40,16 +40,18 @@ function VisualizarInfo() {
   return (
     <div className="card-paciente">
 
-      <div className="paciente-header">
-        <img className="avatar" src={paciente.foto
-        ? `http://localhost:3001${paciente.foto}`
-        : placeholederPic} 
-        alt={paciente.NOMBRE} />
-        <div>
-          <h2>{paciente.NOMBRE}</h2>
+        <div className="paciente-header">
+          <img
+            className="avatar"
+            src={paciente.foto
+              ? `http://localhost:3001${paciente.foto}`
+              : placeholederPic}
+            alt={`${paciente.NOMBRE} ${paciente.APELLIDO}`} 
+          />
+          <div>
+            <h2>{paciente.NOMBRE} {paciente.APELLIDO}</h2>
+          </div>
         </div>
-      </div>
-
       <div className="paciente-info">
         <p><Mail size={16}/> {paciente.EMAIL}</p>
         <p><Phone size={16}/> {paciente.EMERGENCIA_TELEFONO}</p>
