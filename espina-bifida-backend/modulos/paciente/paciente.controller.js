@@ -1,4 +1,4 @@
-import { getPacienteCards, getPacienteDetail } from "../paciente/paciente.service.js";
+import { getPacienteCards, getPacienteDetail, getPacienteCredencial, getPacienteDetalle } from "../paciente/paciente.service.js";
 
 export async function listarPacienteCards(req, res) {
   try {
@@ -39,6 +39,60 @@ export async function obtenerPacientePorId(req, res) {
     res.status(500).json({
       ok: false,
       message: "Error al obtener el paciente"
+    });
+  }
+}
+
+export async function obtenerPacienteCredencial(req, res) {
+  try {
+    const { pacienteId } = req.params;
+
+    const credencial = await getPacienteCredencial(Number(pacienteId));
+
+    if (!credencial) {
+      return res.status(404).json({
+        ok: false,
+        message: "Paciente no encontrado",
+      });
+    }
+
+    res.json({
+      ok: true,
+      data: credencial,
+    });
+  } catch (error) {
+    console.error("Error al obtener credencial:", error);
+    res.status(500).json({
+      ok: false,
+      message: "Error interno del servidor",
+      error: error.message,
+    });
+  }
+
+  
+}
+
+export async function obtenerPacienteDetalle(req, res) {
+  try {
+    const { id } = req.params;
+    const paciente = await getPacienteDetalle(id);
+
+    if (!paciente) {
+      return res.status(404).json({
+        ok: false,
+        message: "Paciente no encontrado"
+      });
+    }
+
+    res.json({
+      ok: true,
+      data: paciente
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      ok: false,
+      message: error.message
     });
   }
 }

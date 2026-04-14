@@ -13,7 +13,7 @@ import AEBNLogo from "../../assets/logo_AEBNL.png";
 import { Link, useLocation } from "react-router-dom";
 
 const menuItems = [
-  { name: "Usuarios", icon: Users, path: "/" },
+  { name: "Usuarios", icon: Users, path: "/usuarios" },
   { name: "Historial", icon: ClipboardList, path: "/historial" },
   { name: "Registro", icon: PenBoxIcon, path: "/registro" },
   { name: "Inventario", icon: Boxes, path: "/inventario" },

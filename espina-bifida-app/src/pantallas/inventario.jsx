@@ -1,8 +1,11 @@
 import React, { useState } from "react";
-import TabNav from '../componentes/tabnav/tabnav'; // 
+import TabNav from '../componentes/tabnav/tabnav';
 import RegistrarConsulta from '../componentes/registrocitas/registrocitas';
+import Medicamentos from '../componentes/medicamentos/medicamentos';
+import EquipoMedico from '../componentes/equipomedico/equipomedico';
+import VisualizarInfo from '../componentes/detallepaciente/detallepaciente';
 import { FileText, Pill, Users } from "lucide-react";
-
+import "./inventario.css";
 
 const tabs = [
   { id: "citas", label: "Citas", icon: <FileText size={16} /> },
@@ -14,14 +17,22 @@ function ServiciosPanel() {
   const [activeTab, setActiveTab] = useState("citas");
 
   return (
-    <div>
-      <TabNav tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+    <div className="inventario-contenedor">
 
-      <div className="tab-content">
-        {activeTab === "citas" &&  <RegistrarConsulta />}
-        {activeTab === "medicamentos" && <div>Contenido de Medicamentos</div>}
-        {activeTab === "equipo" && <div>Contenido de Equipo médico</div>}
+      <div className="inventario-izq">
+        <VisualizarInfo /> 
       </div>
+
+      <div className="inventario-derecho">
+        <TabNav tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+
+        <div className="tab-content">
+          {activeTab === "citas" && <RegistrarConsulta />}
+          {activeTab === "medicamentos" && <Medicamentos />}
+          {activeTab === "equipo" && <EquipoMedico />}
+        </div>
+      </div>
+
     </div>
   );
 }

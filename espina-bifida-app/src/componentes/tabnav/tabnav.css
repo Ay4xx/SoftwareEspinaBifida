@@ -1,7 +1,7 @@
 .tab-nav {
     display: flex;
     gap: 8px;
-    background: #e5e7eb; /* gris de fondo */
+    background: #e5e7eb;
     border-radius: 12px;
     padding: 8px;
     width: fit-content;
@@ -15,7 +15,7 @@
     padding: 10px 20px;
     border: none;
     border-radius: 8px;
-    background: transparent; /* transparente = se ve el gris del contenedor */
+    background: transparent;
     color: #6b7280;
     font-size: 14px;
     font-weight: 500;
@@ -25,13 +25,13 @@
   }
   
   .tab-btn:hover {
-    background: #ffffff; /* blanco al pasar */
+    background: #ffffff; 
     color: #1f2937;
   }
   
   .tab-btn.active {
-    background: #ffffff; /* blanco al seleccionar */
-    color: #083a99;      /* texto azul para diferenciarlo del hover */
+    background: #ffffff; 
+    color: #083a99;      
     font-weight: 600;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   }

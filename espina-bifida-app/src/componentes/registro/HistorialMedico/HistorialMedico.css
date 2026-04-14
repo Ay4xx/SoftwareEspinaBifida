@@ -38,6 +38,55 @@
   gap: 24px;
 }
 
+.hm-fila {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.hm-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hm-campo label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.hm-campo input,
+.hm-campo select {
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1e293b;
+  outline: none;
+  background: white;
+  transition: border-color 0.2s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.hm-campo select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
+.hm-campo input:focus,
+.hm-campo select:focus {
+  border-color: #083a99;
+}
+
+.hm-campo input::placeholder {
+  color: #9ca3af;
+}
+
 .hm-campo-full {
   display: flex;
   flex-direction: column;
@@ -101,31 +150,61 @@
   font-weight: 600;
 }
 
-/* Tipo de Espina Bífida */
-.hm-espina-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+/* ¿Usa Válvula? */
+.hm-valvula-opciones {
+  display: flex;
   gap: 12px;
 }
 
-.hm-espina-btn {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 14px 16px;
+.hm-valvula-btn {
+  padding: 8px 28px;
   border: 1px solid #d1d5db;
-  border-radius: 10px;
+  border-radius: 8px;
+  background: white;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.hm-valvula-btn:hover {
+  border-color: #083a99;
+  color: #083a99;
+}
+
+.hm-valvula-btn.activo {
+  background-color: #083a99;
+  border-color: #083a99;
+  color: white;
+  font-weight: 600;
+}
+
+/* Padecimiento */
+.hm-padecimiento-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hm-padecimiento-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
   background: white;
   cursor: pointer;
   text-align: left;
   transition: 0.2s;
 }
 
-.hm-espina-btn:hover {
+.hm-padecimiento-btn:hover {
   border-color: #083a99;
 }
 
-.hm-espina-btn.activo {
+.hm-padecimiento-btn.activo {
   border-color: #083a99;
   background-color: #eff6ff;
 }
@@ -139,11 +218,10 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  margin-top: 2px;
   transition: border-color 0.2s;
 }
 
-.hm-espina-btn.activo .hm-espina-radio {
+.hm-padecimiento-btn.activo .hm-espina-radio {
   border-color: #083a99;
 }
 
@@ -159,19 +237,46 @@
   background: #083a99;
 }
 
-.hm-espina-texto {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.hm-espina-nombre {
+.hm-padecimiento-nombre {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   color: #1e293b;
 }
 
-.hm-espina-desc {
-  font-size: 12px;
-  color: #6b7280;
+.hm-otros-input {
+  padding: 10px 14px;
+  border: 1px solid #083a99;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1e293b;
+  outline: none;
+  background: #eff6ff;
+  transition: border-color 0.2s;
+  margin-top: 4px;
+}
+
+.hm-otros-input::placeholder {
+  color: #9ca3af;
+}
+
+/* Textarea notas */
+.hm-textarea {
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1e293b;
+  outline: none;
+  background: white;
+  transition: border-color 0.2s;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.hm-textarea:focus {
+  border-color: #083a99;
+}
+
+.hm-textarea::placeholder {
+  color: #9ca3af;
 }

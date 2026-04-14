@@ -1,0 +1,194 @@
+.ht-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.ht-seccion {
+  padding: 0 32px;
+}
+
+.ht-seccion-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.ht-icono {
+  width: 34px;
+  height: 34px;
+  background-color: #083a99;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ht-seccion-titulo {
+  font-size: 16px;
+  font-weight: 700;
+  color: #083a99;
+}
+
+.ht-divisor {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 0 0 24px;
+}
+
+.ht-formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ht-fila {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.ht-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ht-campo-full {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ht-campo label,
+.ht-campo-full label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.ht-campo input,
+.ht-campo select {
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1e293b;
+  outline: none;
+  background: white;
+  transition: border-color 0.2s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.ht-campo select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
+.ht-campo input:focus,
+.ht-campo select:focus {
+  border-color: #083a99;
+}
+
+.ht-campo input::placeholder {
+  color: #9ca3af;
+}
+
+/* Parentesco */
+.ht-parentesco-opciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ht-parentesco-btn {
+  padding: 8px 20px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.ht-parentesco-btn:hover {
+  border-color: #083a99;
+  color: #083a99;
+}
+
+.ht-parentesco-btn.activo {
+  background-color: #eff6ff;
+  border-color: #083a99;
+  color: #083a99;
+  font-weight: 600;
+}
+
+/* Textarea */
+.ht-textarea {
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1e293b;
+  outline: none;
+  background: white;
+  transition: border-color 0.2s;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.ht-textarea:focus {
+  border-color: #083a99;
+}
+
+.ht-textarea::placeholder {
+  color: #9ca3af;
+}
+
+.ht-mensaje-info {
+  font-size: 13px;
+  color: #6b7280;
+  background-color: #eff6ff;
+  border-left: 3px solid #083a99;
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin: 0 0 8px;
+}
+
+/* Toggle Sí/No */
+.ht-toggle-opciones {
+  display: flex;
+  gap: 12px;
+}
+
+.ht-toggle-btn {
+  padding: 8px 28px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.ht-toggle-btn:hover {
+  border-color: #083a99;
+  color: #083a99;
+}
+
+.ht-toggle-btn.activo {
+  background-color: #083a99;
+  border-color: #083a99;
+  color: white;
+  font-weight: 600;
+}

@@ -16,18 +16,17 @@ function getMinDate() {
 function RegistrarConsulta() {
   const [medicos, setMedicos] = useState([]);
   const [form, setForm] = useState({
-    fecha: "",
+    fecha: getMinDate(), 
     hora: "",
     medico_id: "",
     especialidad: "",
   });
 
   useEffect(() => {
-    fetch("http://localhost:4000/api/medicos")
+    fetch("http://localhost:3001/api/medicos")
       .then((r) => r.json())
-      .then((data) => {
-        // por si Oracle devuelve objeto en lugar de array
-        const lista = Array.isArray(data) ? data : [];
+      .then((res) => {
+        const lista = Array.isArray(res.data) ? res.data : []; 
         setMedicos(lista);
       })
       .catch(console.error);
@@ -54,6 +53,7 @@ function RegistrarConsulta() {
   };
 
   return (
+    <div className="consulta-wrapper">
     <div className="consulta-card">
       <h3 className="consulta-title">
         <CalendarDays size={18} /> Registrar Consulta
@@ -84,7 +84,7 @@ function RegistrarConsulta() {
 
       <div className="consulta-row">
         <div className="consulta-field">
-          <label>Médico Tratante</label>
+          <label>Médico</label>
           <select name="medico_id" value={form.medico_id} onChange={handleMedicoChange}>
             <option value="">Seleccionar</option>
             {medicos.map((m) => (
@@ -101,7 +101,7 @@ function RegistrarConsulta() {
             type="text"
             value={form.especialidad}
             readOnly
-            placeholder="Se llena al elegir médico"
+            placeholder=""
           />
         </div>
       </div>
@@ -109,6 +109,7 @@ function RegistrarConsulta() {
       <button className="consulta-btn" onClick={handleSubmit}>
         Registrar Consulta
       </button>
+    </div>
     </div>
   );
 }
