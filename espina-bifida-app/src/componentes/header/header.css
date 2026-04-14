@@ -65,3 +65,22 @@
 .header {
   background-color: #ffffff; /* blanco */
 }
+
+/* NARANJA CUANDO HAY PENDIENTES */
+.icon-btn.con-pendientes {
+  background-color: #fde8cc;
+  color: #d35400;
+}
+
+.icon-btn.con-pendientes svg {
+  stroke: #d35400;
+}
+
+.icon-btn.activo {
+  background-color: #fde8cc;
+  color: #d35400;
+}
+
+.icon-btn.activo svg {
+  stroke: #d35400
+}
