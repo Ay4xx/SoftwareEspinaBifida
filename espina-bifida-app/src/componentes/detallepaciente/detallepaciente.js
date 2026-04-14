@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Mail, Phone, MapPin, Calendar, Clock } from "lucide-react";
 import "./detallepaciente.css";
+import placeholederPic from "../../assets/placeholder.png";
 
 function VisualizarInfo() {
   const { pacienteId } = useParams();
+  const navigate = useNavigate();
   const [paciente, setPaciente] = useState(null);
 
   useEffect(() => {
@@ -39,7 +41,10 @@ function VisualizarInfo() {
     <div className="card-paciente">
 
       <div className="paciente-header">
-        <div className="avatar">{iniciales}</div>
+        <img className="avatar" src={paciente.foto
+        ? `http://localhost:3001${paciente.foto}`
+        : placeholederPic} 
+        alt={paciente.NOMBRE} />
         <div>
           <h2>{paciente.NOMBRE}</h2>
         </div>
@@ -66,7 +71,10 @@ function VisualizarInfo() {
         </span>
       </div>
 
-      <button className="btn-credencial">Ver Credencial</button>
+      <button className="btn-credencial" 
+              onClick={() => navigate(`/credencial/${pacienteId}`)}>
+                Ver Credencial
+      </button>
 
     </div>
   );

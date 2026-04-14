@@ -16,6 +16,7 @@ function UsuariosPage() {
         );
         const data = await res.json();
         console.log("Respuesta backend:", data);
+        console.log(data.data);
         setPatients(data.data || []);
       } catch (error) {
         console.error("Error cargando pacientes:", error);

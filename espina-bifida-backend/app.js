@@ -6,7 +6,7 @@ import medicamentoRouter from "./modulos/fiorella/medicamentos/medicamentos.rout
 import equipoRouter from "./modulos/fiorella/equipomedico/equipomedico.route.js";
 import notificacionesRoutes from "./modulos/notificaciones/notificaciones.routes.js";
 
-import detallePaRouter from "./modulos/fiorella/detallepaciente/detallepaciente.router.js";
+import detallePaRouter from "./modulos/fiorella/detallepaciente/detallepaciente.routes.js";
 
 
 const app = express();
