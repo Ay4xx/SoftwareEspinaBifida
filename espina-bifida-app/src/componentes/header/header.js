@@ -7,7 +7,15 @@ import { useNotificaciones } from "../../pantallas/notificacionesContext";
 function Header() {
   const location = useLocation();
   const navigate = useNavigate();
-  const {pendientesCount} = useNotificaciones();
+  const { pendientesCount } = useNotificaciones();
+
+  const token = localStorage.getItem("token");
+  const isGuest = localStorage.getItem("guest") === "true";
+  const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
+
+  if (!token || isGuest) {
+    return null;
+  }
 
   const getTitle = () => {
     switch (location.pathname) {
@@ -15,6 +23,8 @@ function Header() {
         return "Módulo de Usuarios";
       case "/historial":
         return "Módulo de Historial";
+      case "/usuarios":
+        return "Módulo de Usuarios";
       case "/inventario":
         return "Módulo de Inventario";
       case "/estadisticas":
@@ -28,6 +38,25 @@ function Header() {
     }
   };
 
+  const getInitials = () => {
+    if (!usuario) return "US";
+
+    if (usuario.username) {
+      return usuario.username.substring(0, 2).toUpperCase();
+    }
+
+    if (usuario.nombre) {
+      return usuario.nombre
+        .split(" ")
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((p) => p[0].toUpperCase())
+        .join("");
+    }
+
+    return "US";
+  };
+
   return (
     <div className="header">
       <div className="header-left">
@@ -36,14 +65,16 @@ function Header() {
 
       <div className="header-right">
         <div
-          className={`icon-btn ${pendientesCount > 0 ? "con-pendientes" : ""} ${location.pathname === "/notificaciones" ? "activo" : ""}`}
+          className={`icon-btn ${pendientesCount > 0 ? "con-pendientes" : ""} ${
+            location.pathname === "/notificaciones" ? "activo" : ""
+          }`}
           onClick={() => navigate("/notificaciones")}
           style={{ cursor: "pointer" }}
         >
           <Bell size={18} />
         </div>
 
-        <div className="avatar">AB</div>
+        <div className="avatar">{getInitials()}</div>
       </div>
     </div>
   );

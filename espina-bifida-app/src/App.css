@@ -42,3 +42,26 @@ body,
   padding: 20px;
   width: 100%;
 }
+
+/* Guest mode */
+.guest-layout {
+  display: block;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.guest-main {
+  margin-left: 0;
+  margin-top: 0;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  background-color: #f4f8fa;
+}
+
+.guest-content {
+  padding: 0;
+  width: 100%;
+}
