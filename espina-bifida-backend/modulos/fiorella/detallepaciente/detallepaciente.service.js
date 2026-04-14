@@ -11,7 +11,7 @@ export async function getPacienteDetalle(pacienteId) {
       `SELECT 
           p.PACIENTE_ID,
           p.NOMBRE,
-          p.APELLIDO
+          p.APELLIDO,
           p.EMAIL,
           p.EMERGENCIA_TELEFONO,
           p.ESTADO_RESIDENCIA,

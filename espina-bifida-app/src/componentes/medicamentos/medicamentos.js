@@ -1,13 +1,16 @@
 import React, { useState } from "react";
 import "./medicamentos.css";
+import { useParams } from "react-router-dom";
 import { Paperclip, X, Search } from "lucide-react";
 
 function Medicamentos() {
+  const { pacienteId } = useParams(); // 
   const [medicamentos, setMedicamentos] = useState([]);
   const [disponibles, setDisponibles] = useState([]);
   const [seleccionados, setSeleccionados] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
   const [busqueda, setBusqueda] = useState("");
+  const [popup, setPopup] = useState(null); //
 
   const abrirPopup = async () => {
     const ids = medicamentos.map((m) => m.MEDICINA_ID).join(",");
@@ -70,6 +73,30 @@ function Medicamentos() {
     d.DESCRIPCION.toLowerCase().includes(busqueda.toLowerCase())
   );
 
+  const guardarConsulta = async () => {
+    if (medicamentos.length === 0) {
+      setPopup("vacio");
+      return;
+    }
+  
+    try {
+      const res = await fetch("http://localhost:3001/api/medicamentos/guardar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pacienteId, medicamentos }),
+      });
+      const json = await res.json();
+      if (json.ok) {
+        setMedicamentos([]);
+        setPopup("exito");
+      } else {
+        alert("Error: " + json.message);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <div className="med-wrapper">
       <div className="med-card">
@@ -114,11 +141,40 @@ function Medicamentos() {
         )}
 
         <div className="med-footer">
-        <button className="med-cancelar" onClick={cancelarLista}>Cancelar</button>
-          <button className="med-guardar"> Guardar Consulta</button>
+          <button className="med-cancelar" onClick={cancelarLista}>Cancelar</button>
+          <button className="med-guardar" onClick={guardarConsulta}> Guardar Consulta</button>
         </div>
       </div>
 
+      {/* Popup éxito */}
+      {popup === "exito" && (
+        <div className="med-overlay" onClick={() => setPopup(null)}>
+          <div className="med-popup-msg" onClick={(e) => e.stopPropagation()}>
+            <div className="med-popup-msg-icon"></div>
+            <h4>¡Registro guardado!</h4>
+            <p>La consulta fue registrada exitosamente.</p>
+            <button className="med-popup-confirmar" onClick={() => setPopup(null)}>
+              Aceptar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Popup vacío */}
+      {popup === "vacio" && (
+        <div className="med-overlay" onClick={() => setPopup(null)}>
+          <div className="med-popup-msg" onClick={(e) => e.stopPropagation()}>
+            <div className="med-popup-msg-icon"></div>
+            <h4>¡Sin medicamentos!</h4>
+            <p>Debes seleccionar al menos un medicamento antes de guardar.</p>
+            <button className="med-popup-confirmar" onClick={() => setPopup(null)}>
+              Entendido
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Popup selección */}
       {showPopup && (
         <div className="med-overlay" onClick={() => setShowPopup(false)}>
           <div className="med-popup" onClick={(e) => e.stopPropagation()}>
@@ -130,7 +186,6 @@ function Medicamentos() {
               </button>
             </div>
 
-            {/* Buscador */}
             <div className="med-search">
               <Search size={16} className="med-search-icon" />
               <input
@@ -142,7 +197,6 @@ function Medicamentos() {
               />
             </div>
 
-            {/* Lista con checklist */}
             <div className="med-popup-list">
               {disponiblesFiltrados.length === 0 ? (
                 <p className="med-empty">No se encontraron medicamentos.</p>
@@ -170,7 +224,6 @@ function Medicamentos() {
               )}
             </div>
 
-            {/* Botones */}
             <div className="med-popup-footer">
               <button className="med-popup-cancelar" onClick={cancelarPopup}>
                 Cancelar

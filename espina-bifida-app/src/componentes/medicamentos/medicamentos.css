@@ -320,3 +320,33 @@
     background: #9ca3af;
     cursor: not-allowed;
   }
+
+  .med-popup-msg {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 32px 24px;
+    width: 320px;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .med-popup-msg-icon {
+    font-size: 40px;
+  }
+  
+  .med-popup-msg h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+  }
+  
+  .med-popup-msg p {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+  }
