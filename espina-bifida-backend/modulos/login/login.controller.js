@@ -20,15 +20,18 @@ export async function loginPaciente(req, res) {
       });
     }
 
+    const token = `token-${data.id}-${Date.now()}`;
+
     res.json({
       ok: true,
+      token,
       data,
     });
   } catch (error) {
-    console.error("Error real en loginPaciente:", error);
+    console.error("Error en loginPaciente:", error);
     res.status(500).json({
       ok: false,
-      message: error.message || "Error al iniciar sesión",
+      message: "Error al iniciar sesión",
     });
   }
 }

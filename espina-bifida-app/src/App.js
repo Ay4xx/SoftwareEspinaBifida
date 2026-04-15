@@ -1,31 +1,35 @@
-import React from 'react';
-import Sidebar from './componentes/sidebar/sidebar';
-import Header from './componentes/header/header';
-import './App.css';
-import Tabnav from './componentes/tabnav/tabnav';
+import React from "react";
+import Sidebar from "./componentes/sidebar/sidebar";
+import Header from "./componentes/header/header";
+import "./App.css";
 
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   useLocation,
-  Navigate
-} from 'react-router-dom';
+  Navigate,
+} from "react-router-dom";
 
-import UsuariosPage from './pantallas/usuario/usuario';
-import HistorialPage from './pantallas/historial';
-import NotificacionesPage from './pantallas/notificaciones';
-import RegistroPage from './pantallas/registro';
-import Login from './pantallas/login';
-import ServiciosPanel from './pantallas/inventario';
-import Credencial from './componentes/credencial/credencial';
-import { NotificacionesProvider } from './pantallas/notificacionesContext';
-//import Login from './pages/login';
+import UsuariosPage from "./pantallas/usuario/usuario";
+import HistorialPage from "./pantallas/historial";
+import NotificacionesPage from "./pantallas/notificaciones";
+import RegistroPage from "./pantallas/registro";
+import Login from "./pantallas/login";
+import ServiciosPanel from "./pantallas/inventario";
+import Credencial from "./componentes/credencial/credencial";
+import { NotificacionesProvider } from "./pantallas/notificacionesContext";
 
 function AppContent() {
   const location = useLocation();
-  const isLogin = location.pathname === '/login';
 
+  const token = localStorage.getItem("token");
+  const isGuest = localStorage.getItem("guest") === "true";
+
+  const showBars = !!token && !isGuest;
+  const isLogin = location.pathname === "/login";
+
+  // Login page without sidebar/header
   if (isLogin) {
     return (
       <Routes>
@@ -35,27 +39,39 @@ function AppContent() {
   }
 
   return (
-    <div className="layout">
-      <Sidebar />
+    <div className={showBars ? "layout" : "layout guest-layout"}>
+      {/* Sidebar only for authenticated users */}
+      {showBars && <Sidebar />}
 
-      <div className="main">
-        <Header />
-          <div className="content">
-            <Routes>
-              <Route path="/" element={<UsuariosPage />} />
-              <Route path="/credencial/:pacienteId" element={<Credencial />} />
-              <Route path="/inventario/:pacienteId" element={<ServiciosPanel />} />
-              <Route path="/historial/:pacienteId" element={<HistorialPage />} />
-            </Routes>
-          </div>
+      <div className={showBars ? "main" : "main guest-main"}>
+        {/* Header only for authenticated users */}
+        {showBars && <Header />}
 
-        <div className="content">
+        <div className={showBars ? "content" : "content guest-content"}>
           <Routes>
+            {/* Redirect root */}
             <Route path="/" element={<Navigate to="/login" />} />
+
+            {/* Main routes */}
             <Route path="/usuarios" element={<UsuariosPage />} />
-            <Route path="/historial" element={<HistorialPage />} />
-            <Route path="/notificaciones" element={<NotificacionesPage />} />
             <Route path="/registro" element={<RegistroPage />} />
+            <Route path="/notificaciones" element={<NotificacionesPage />} />
+            <Route path="/historial" element={<HistorialPage />} />
+            <Route path="/inventario" element={<ServiciosPanel />} />
+
+            {/* Dynamic routes */}
+            <Route path="/credencial/:pacienteId" element={<Credencial />} />
+            <Route
+              path="/inventario/:pacienteId"
+              element={<ServiciosPanel />}
+            />
+            <Route
+              path="/historial/:pacienteId"
+              element={<HistorialPage />}
+            />
+
+            {/* Fallback */}
+            <Route path="*" element={<Navigate to="/login" />} />
           </Routes>
         </div>
       </div>
@@ -72,7 +88,6 @@ function App() {
         </Routes>
       </Router>
     </NotificacionesProvider>
-    
   );
 }
 
