@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Mail, Phone, MapPin, Calendar, Clock } from "lucide-react";
 import "./detallepaciente.css";
+import placeholederPic from "../../assets/placeholder.png";
 
 function VisualizarInfo() {
   const { pacienteId } = useParams();
+  const navigate = useNavigate();
   const [paciente, setPaciente] = useState(null);
 
   useEffect(() => {
@@ -35,22 +37,42 @@ function VisualizarInfo() {
       });
     };
 
+    // Función utilitaria
+    const mostrarDato = (valor) => {
+      if (!valor) return "Sin contacto";
+      if (valor.toLowerCase() === "n/a" || valor== 'null') return "Sin contacto";
+      return valor;
+    };
+    
+
+
   return (
     <div className="card-paciente">
 
-      <div className="paciente-header">
-        <div className="avatar">{iniciales}</div>
-        <div>
-          <h2>{paciente.NOMBRE}</h2>
+        <div className="paciente-header">
+          <img
+            className="avatar"
+            src={paciente.foto
+              ? `http://localhost:3001${paciente.foto}`
+              : placeholederPic}
+            alt={`${paciente.NOMBRE} ${paciente.APELLIDO}`} 
+          />
+          <div>
+            <h2>{paciente.NOMBRE} {paciente.APELLIDO}</h2>
+          </div>
         </div>
-      </div>
-
-      <div className="paciente-info">
-        <p><Mail size={16}/> {paciente.EMAIL}</p>
-        <p><Phone size={16}/> {paciente.EMERGENCIA_TELEFONO}</p>
-        <p><MapPin size={16}/> {paciente.ESTADO_RESIDENCIA}</p>
-        <p><Calendar size={16}/> Registro: {formatearFecha(paciente.FECHA_ALTA)}</p>
-      </div>
+        <div className="paciente-info">
+            {(!paciente.EMAIL && !paciente.TELEFONO_CELULAR) ? (
+              <p><Phone size={16}/> Sin contacto</p>
+            ) : (
+              <>
+                <p><Mail size={16}/> {mostrarDato(paciente.EMAIL)}</p>
+                <p><Phone size={16}/> {mostrarDato(paciente.TELEFONO_CELULAR)}</p>
+              </>
+            )}
+            <p><MapPin size={16}/> {paciente.ESTADO_RESIDENCIA}</p>
+            <p><Calendar size={16}/> Registro: {formatearFecha(paciente.FECHA_ALTA)}</p>
+          </div>
 
       <div className="paciente-estado">
         <span>Estado</span>
@@ -66,7 +88,10 @@ function VisualizarInfo() {
         </span>
       </div>
 
-      <button className="btn-credencial">Ver Credencial</button>
+      <button className="btn-credencial" 
+              onClick={() => navigate(`/credencial/${pacienteId}`)}>
+                Ver Credencial
+      </button>
 
     </div>
   );

@@ -19,6 +19,7 @@ import RegistroPage from './pantallas/registro';
 import Login from './pantallas/login';
 import ServiciosPanel from './pantallas/inventario';
 import Credencial from './componentes/credencial/credencial';
+import { NotificacionesProvider } from './pantallas/notificacionesContext';
 //import Login from './pages/login';
 
 function AppContent() {
@@ -64,11 +65,14 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="*" element={<AppContent />} />
-      </Routes>
-    </Router>
+    <NotificacionesProvider>
+      <Router>
+        <Routes>
+          <Route path="*" element={<AppContent />} />
+        </Routes>
+      </Router>
+    </NotificacionesProvider>
+    
   );
 }
 

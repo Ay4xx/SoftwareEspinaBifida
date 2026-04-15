@@ -2,10 +2,12 @@ import React from "react";
 import "./header.css";
 import { Bell } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useNotificaciones } from "../../pantallas/notificacionesContext";
 
 function Header() {
   const location = useLocation();
   const navigate = useNavigate();
+  const {pendientesCount} = useNotificaciones();
 
   const getTitle = () => {
     switch (location.pathname) {
@@ -34,7 +36,7 @@ function Header() {
 
       <div className="header-right">
         <div
-          className="icon-btn"
+          className={`icon-btn ${pendientesCount > 0 ? "con-pendientes" : ""} ${location.pathname === "/notificaciones" ? "activo" : ""}`}
           onClick={() => navigate("/notificaciones")}
           style={{ cursor: "pointer" }}
         >

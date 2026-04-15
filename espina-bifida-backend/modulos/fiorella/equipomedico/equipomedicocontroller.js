@@ -1,4 +1,4 @@
-import { getEquipoMedico, getEquipoDisponibles } from "./equipomedicoservice.js";
+import { getEquipoMedico, getEquipoDisponibles, guardarEventoEquipoMedico } from "./equipomedicoservice.js";
 
 export async function listarEquipo(req, res) {
     try {
@@ -21,5 +21,16 @@ export async function listarEquipoMDisponibles(req, res) {
   } catch (error) {
     console.error(error);
     res.status(500).json({ ok: false, message: "Error al obtener equipo medico disponibles" });
+  }
+}
+
+export async function guardarConsultaEquipo(req, res) {
+  try {
+    const { pacienteId, equipos } = req.body;
+    const result = await guardarEventoEquipoMedico(pacienteId, equipos);
+    res.json({ ok: true, eventoId: result.eventoId });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ ok: false, message: error.message });
   }
 }
