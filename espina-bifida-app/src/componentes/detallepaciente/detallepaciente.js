@@ -37,6 +37,15 @@ function VisualizarInfo() {
       });
     };
 
+    // Función utilitaria
+    const mostrarDato = (valor) => {
+      if (!valor) return "Sin contacto";
+      if (valor.toLowerCase() === "n/a" || valor== 'null') return "Sin contacto";
+      return valor;
+    };
+    
+
+
   return (
     <div className="card-paciente">
 
@@ -52,12 +61,18 @@ function VisualizarInfo() {
             <h2>{paciente.NOMBRE} {paciente.APELLIDO}</h2>
           </div>
         </div>
-      <div className="paciente-info">
-        <p><Mail size={16}/> {paciente.EMAIL}</p>
-        <p><Phone size={16}/> {paciente.EMERGENCIA_TELEFONO}</p>
-        <p><MapPin size={16}/> {paciente.ESTADO_RESIDENCIA}</p>
-        <p><Calendar size={16}/> Registro: {formatearFecha(paciente.FECHA_ALTA)}</p>
-      </div>
+        <div className="paciente-info">
+            {(!paciente.EMAIL && !paciente.TELEFONO_CELULAR) ? (
+              <p><Phone size={16}/> Sin contacto</p>
+            ) : (
+              <>
+                <p><Mail size={16}/> {mostrarDato(paciente.EMAIL)}</p>
+                <p><Phone size={16}/> {mostrarDato(paciente.TELEFONO_CELULAR)}</p>
+              </>
+            )}
+            <p><MapPin size={16}/> {paciente.ESTADO_RESIDENCIA}</p>
+            <p><Calendar size={16}/> Registro: {formatearFecha(paciente.FECHA_ALTA)}</p>
+          </div>
 
       <div className="paciente-estado">
         <span>Estado</span>
