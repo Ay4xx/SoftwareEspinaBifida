@@ -36,7 +36,10 @@ const Login = () => {
       const data = await response.json();
 
       if (data.ok) {
+        localStorage.setItem("token", data.token);
         localStorage.setItem("usuario", JSON.stringify(data.data));
+        localStorage.removeItem("guest");
+
         navigate("/usuarios");
       } else {
         setErrorMessage(data.message || "Credenciales incorrectas");
@@ -50,7 +53,10 @@ const Login = () => {
   };
 
   const handleGuestLogin = () => {
-    navigate("/usuarios");
+    localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
+    localStorage.setItem("guest", "true");
+    navigate("/registro");
   };
 
   return (
