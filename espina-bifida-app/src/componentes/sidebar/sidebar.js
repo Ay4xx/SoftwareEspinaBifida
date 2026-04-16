@@ -2,27 +2,40 @@ import React from "react";
 import "./sidebar.css";
 import {
   Users,
-  ClipboardList,
   Boxes,
   BarChart3,
   LogOut,
   PenBoxIcon,
 } from "lucide-react";
-import AEBNLogo from "../../assets/logo_AEBNL.png";
-
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const menuItems = [
   { name: "Usuarios", icon: Users, path: "/usuarios" },
-  { name: "Historial", icon: ClipboardList, path: "/historial" },
   { name: "Registro", icon: PenBoxIcon, path: "/registro" },
   { name: "Inventario", icon: Boxes, path: "/inventario" },
-  { name: "Estadisticas", icon: BarChart3, path: "/estadisticas" },
+  { name: "Estadísticas", icon: BarChart3, path: "/estadisticas" },
 ];
-
 
 function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Detect if current user is guest
+  const token = localStorage.getItem("token");
+  const isGuest = localStorage.getItem("guest") === "true";
+
+  // Hide sidebar completely if guest or not logged in
+  if (!token || isGuest) {
+    return null;
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
+    localStorage.removeItem("guest");
+
+    navigate("/");
+  };
 
   return (
     <aside className="sidebar">
@@ -60,7 +73,7 @@ function Sidebar() {
       <div className="sidebar-footer">
         <p className="menu-title">Sistema</p>
 
-        <div className="menu-item logout">
+        <div className="menu-item logout" onClick={handleLogout}>
           <LogOut size={18} />
           <span>Cerrar sesión</span>
         </div>

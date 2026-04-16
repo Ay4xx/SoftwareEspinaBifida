@@ -10,17 +10,6 @@ const tabs = [
   { id: "historial", label: "Historial", icon: <Pill size={16} /> },
 ];
 
-const pacientee = {
-  nombre: "María García López",
-  iniciales: "MG",
-  curp: "MAGL031599MNL",
-  email: "maria.garcia@email.com",
-  telefono: "81 1234 5678",
-  ubicacion: "Nuevo León",
-  registro: "2022-03-15",
-  estado: "Activo",
-  vencimiento: "30-03-2026"
-};
 
 function HistorialPage() {
   const [activeTab, setActiveTab] = useState("historial");
@@ -28,7 +17,7 @@ function HistorialPage() {
   return (
     <div className="contenedor">
       <div className="lado-izq">
-        <VisualizarInfo paciente={pacientee} />
+        <VisualizarInfo />
 
       </div>
 

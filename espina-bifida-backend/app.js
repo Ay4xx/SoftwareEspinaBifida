@@ -8,6 +8,8 @@ import equipoRouter from "./modulos/fiorella/equipomedico/equipomedico.route.js"
 import notificacionesRoutes from "./modulos/notificaciones/notificaciones.routes.js";
 import detallePaRouter from "./modulos/fiorella/detallepaciente/detallepaciente.routes.js";
 import loginRoutes from "./modulos/login/login.routes.js";
+import historialRoutes from "./modulos/historial/historial.route.js";
+
 
 const app = express();
 
@@ -22,5 +24,6 @@ app.use("/api/medicamentos", medicamentoRouter);
 app.use("/api/equipomedico", equipoRouter);
 app.use("/api/detallepaciente", detallePaRouter);
 app.use("/api/notificaciones", notificacionesRoutes);
+app.use("/api/historial", historialRoutes);
 
 export default app;
