@@ -13,7 +13,8 @@ export async function iniciarSesionPaciente(username, password) {
       SELECT
         u.USUARIO_ID,
         u.USERNAME,
-        u.PASSWORD
+        u.PASSWORD,
+        u.TIPO_USUARIO
       FROM USUARIO u
       WHERE LOWER(u.USERNAME) = LOWER(:username)
     `;
