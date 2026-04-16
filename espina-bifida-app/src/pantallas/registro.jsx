@@ -6,6 +6,7 @@ import Contacto from "../componentes/registro/Contacto/Contacto";
 import HistorialMedico from "../componentes/registro/HistorialMedico/HistorialMedico";
 import HistorialTutor from "../componentes/registro/HistorialTutor/HistorialTutor";
 import Fotografia from "../componentes/registro/Fotografia/Fotografia";
+import { crearPacientePaso1, actualizarPaso2, actualizarPaso3, actualizarPaso4, actualizarPaso5 } from "../services/registroService";
 
 const TOTAL_PASOS = 5;
 
@@ -77,52 +78,65 @@ function RegistroPage() {
     if (paso > 1) setPaso(paso - 1);
   };
 
-  const handleSubmit = () => {
-    console.log("Registro completado:", formData);
-    // TODO: enviar al backend
-    setGuardado(true);
-    setTimeout(() => {
-      setGuardado(false);
-      setPaso(1);
-      setFormData({
-        nombres: "",
-        apellidoPaterno: "",
-        apellidoMaterno: "",
-        nombrePadreMadre: "",
-        genero: "",
-        fechaNacimiento: "",
-        curp: "",
-        direccion: "",
-        ciudad: "",
-        codigoPostal: "",
-        estado: "",
-        telefonoCasa: "",
-        telefonoCelular: "",
-        correo: "",
-        emergenciaContacto: "",
-        emergenciaTelefono: "",
-        ciudadNacimiento: "",
-        estadoNacimiento: "",
-        hospitalNacimiento: "",
-        tipoSangre: "",
-        usaValvula: "",
-        tipoEspinaBifida: "",
-        otrosPadecimiento: "",
-        notas: "",
-        tutorNombre: "",
-        tutorEdad: "",
-        tutorLugarNacimiento: "",
-        tutorOcupacion: "",
-        tutorEscolaridad: "",
-        tutorSeguroMedico: "",
-        tutorParentesco: "",
-        cdEmbarazo: "",
-        citasControl: "",
-        madreSeguroMedico: "",
-        acidoFolico: "",
-        foto: null,
-      });
-    }, 2000);
+  const handleSubmit = async () => {
+    try {
+      const resultado = await crearPacientePaso1(formData);
+      const id = resultado.data.pacienteId;
+
+      await actualizarPaso2(id, formData);
+      await actualizarPaso3(id, formData);
+      await actualizarPaso4(id, formData);
+
+      if (formData.foto) {
+        await actualizarPaso5(id, formData.foto);
+      }
+
+      setGuardado(true);
+      setTimeout(() => {
+        setGuardado(false);
+        setPaso(1);
+        setFormData({
+          nombres: "",
+          apellidoPaterno: "",
+          apellidoMaterno: "",
+          nombrePadreMadre: "",
+          genero: "",
+          fechaNacimiento: "",
+          curp: "",
+          direccion: "",
+          ciudad: "",
+          codigoPostal: "",
+          estado: "",
+          telefonoCasa: "",
+          telefonoCelular: "",
+          correo: "",
+          emergenciaContacto: "",
+          emergenciaTelefono: "",
+          ciudadNacimiento: "",
+          estadoNacimiento: "",
+          hospitalNacimiento: "",
+          tipoSangre: "",
+          usaValvula: "",
+          tipoEspinaBifida: "",
+          otrosPadecimiento: "",
+          notas: "",
+          tutorNombre: "",
+          tutorEdad: "",
+          tutorLugarNacimiento: "",
+          tutorOcupacion: "",
+          tutorEscolaridad: "",
+          tutorSeguroMedico: "",
+          tutorParentesco: "",
+          cdEmbarazo: "",
+          citasControl: "",
+          madreSeguroMedico: "",
+          acidoFolico: "",
+          foto: null,
+        });
+      }, 2000);
+    } catch (error) {
+      setErrorPaso("Error al guardar el registro. Intenta de nuevo.");
+    }
   };
 
   const porcentaje = paso * 20;
