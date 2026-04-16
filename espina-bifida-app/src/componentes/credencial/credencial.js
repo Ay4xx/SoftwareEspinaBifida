@@ -134,7 +134,10 @@ function Credencial() {
             </div>
 
             <div className="fila foto-info">
-              <img src={datosMostrados.fotoMini || placeholederPic} alt="Foto mini" className="foto-mini" />
+              <img src={`http://localhost:3001/api/pacientes/${pacienteId}/foto`
+              || placeholederPic} 
+              alt="Foto mini" className="foto-mini" 
+              />
               <div className="bloque-texto">
                 <div><strong>Tel. Casa:</strong> {datosMostrados.telCasa}</div>
                 <div><strong>Nombre de padres:</strong> {datosMostrados.padres}</div>
@@ -177,7 +180,7 @@ function Credencial() {
 
         <div className="credencial-inferior">
           <img
-            src={datosMostrados.fotoPrincipal || placeholederPic}
+            src={`http://localhost:3001/api/pacientes/${pacienteId}/foto` || placeholederPic}
             alt="Foto principal"
             className="foto-principal"
           />
