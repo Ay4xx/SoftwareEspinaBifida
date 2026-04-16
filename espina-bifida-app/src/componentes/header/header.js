@@ -72,6 +72,11 @@ function Header() {
           style={{ cursor: "pointer" }}
         >
           <Bell size={18} />
+          {pendientesCount > 0 && (
+            <span className="notificacion-badge">
+              {pendientesCount > 99 ? "99+" : pendientesCount}
+            </span>
+          )}
         </div>
 
         <div className="avatar">{getInitials()}</div>
