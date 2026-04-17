@@ -69,9 +69,7 @@ export async function getPacienteCredencial(id) {
         p.email AS correo,
         TO_CHAR(p.fecha_nacimiento, 'DD/MM/YYYY') AS fechaNacimiento,
         p.lugar_nacimiento AS lugarNacimiento,
-        p.hospital_nacimiento AS hospital,
-        p.fotografia AS fotoPrincipal,
-        p.fotografia AS fotoMini
+        p.hospital_nacimiento AS hospital
       FROM PACIENTE p
       WHERE p.paciente_id = :pacienteId
     `;
@@ -94,9 +92,7 @@ export async function getPacienteCredencial(id) {
       correo: row.CORREO,
       fechaNacimiento: row.FECHANACIMIENTO,
       lugarNacimiento: row.LUGARNACIMIENTO,
-      hospital: row.HOSPITAL,
-      fotoPrincipal: row.FOTOPRINCIPAL,
-      fotoMini: row.FOTOMINI,
+      hospital: row.HOSPITAL
     };
   } catch (error) {
     console.error("Error en getPacienteCredencial:", error);
