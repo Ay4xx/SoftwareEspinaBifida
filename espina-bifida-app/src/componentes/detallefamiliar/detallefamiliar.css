@@ -1,0 +1,46 @@
+.card-familiar {
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 16px;
+  padding: 1.5rem;
+  width: 100%;
+  margin-top: 20px;
+  box-sizing: border-box;
+}
+
+.fam-header { margin-bottom: 1.25rem; }
+.fam-header h3 { font-weight: 500; margin: 0; color: #111; }
+
+.padres-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.section-card {
+  background: #f7f7f7;
+  border: 1px solid #ebebeb;
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+}
+
+.section-card h4 {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0 0 10px;
+}
+
+.field-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid #ebebeb;
+}
+
+.field-row:last-child { border-bottom: none; }
+
+.field-label { font-size: 12px; color: #3b3b3b; white-space: nowrap; }
+.field-value { font-size: 13px; color: #111; font-weight: 500; text-align: right; }

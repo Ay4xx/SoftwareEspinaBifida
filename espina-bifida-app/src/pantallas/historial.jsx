@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import TabNav from "../componentes/tabnav/tabnav";
 import VisualizarHistorial from '../componentes/historial/historial';
-import VisualizarInfo from '../componentes/detallepaciente/detallepaciente'
+import VisualizarInfo from '../componentes/detallepaciente/detallepaciente';
+import VisualizarFamiliar from '../componentes/detallefamiliar/detallefamiliar';
 import { FileText, Pill } from "lucide-react";
 import "./historialp.css";
 
 const tabs = [
-  { id: "infopaciente", label: "Información General", icon: <FileText size={16} /> },
+  { id: "infopaciente", label: "Información Familiar", icon: <FileText size={16} /> },
   { id: "historial", label: "Historial", icon: <Pill size={16} /> },
 ];
 
@@ -26,7 +27,7 @@ function HistorialPage() {
 
         <div className="tab-content">
           {activeTab === "historial" &&  <VisualizarHistorial />}
-          {activeTab === "infopaciente" && <div> pendiente por ahora</div>}
+          {activeTab === "infopaciente" && <VisualizarFamiliar />}
         </div>
       </div>
 
