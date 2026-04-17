@@ -17,6 +17,7 @@ export function mapNotificacionToCard(row) {
         .filter(Boolean)
         .join(", "),
       telefono: row.TELEFONO_CELULAR || row.TELEFONO_CASA || "",
+      foto: row.PACIENTE_ID ? `http://localhost:3001/api/pacientes/${row.PACIENTE_ID}/foto` : null,
     },
   };
 }
