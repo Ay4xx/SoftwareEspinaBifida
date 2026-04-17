@@ -314,3 +314,7 @@
 .registro-nav-contenedor:has(> .revision-nav-derecha:only-child) {
   justify-content: flex-end;
 }
+
+.btn-siguiente {
+  margin-left: auto;
+}
