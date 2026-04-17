@@ -4,9 +4,15 @@
 
 .foto-seccion-header {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.foto-header-izquierda {
+  display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 12px;
 }
 
 .foto-icono {
@@ -92,9 +98,58 @@
   margin: 0;
 }
 
+.foto-preview-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .foto-preview {
   max-width: 100%;
   max-height: 300px;
   border-radius: 10px;
   object-fit: contain;
+  display: block;
+}
+
+.foto-cambiar-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 27, 77, 0.45);
+  color: white;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  padding: 16px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.foto-preview-wrapper:hover .foto-cambiar-overlay {
+  opacity: 1;
+}
+
+.btn-guardar-cambios-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  background: #001b4d;
+  color: white;
+  transition: background 0.2s;
+}
+
+.btn-guardar-cambios-header:hover {
+  background: #002a75;
 }

@@ -4,10 +4,8 @@ import { mapPacienteToCard } from "../paciente/paciente.mapper.js";
 
 export async function getPacienteCards(search = "") {
   let conn;
-
   try {
     conn = await getConnection();
-
     const sql = `
       SELECT
         p.paciente_id,
@@ -21,18 +19,13 @@ export async function getPacienteCards(search = "") {
         m.estatus AS estatus_membresia,
         NVL(ev.total_consultas, 0) AS total_consultas
       FROM PACIENTE p
-      LEFT JOIN MEMBRESIA m
-        ON p.paciente_id = m.paciente_id
+      LEFT JOIN MEMBRESIA m ON p.paciente_id = m.paciente_id
       LEFT JOIN (
-        SELECT
-          paciente_id,
-          COUNT(evento_id) AS total_consultas
+        SELECT paciente_id, COUNT(evento_id) AS total_consultas
         FROM EVENTO_VISITA
         GROUP BY paciente_id
-      ) ev
-        ON p.paciente_id = ev.paciente_id
-      INNER JOIN NOTIFICACION n
-        ON p.paciente_id = n.paciente_id
+      ) ev ON p.paciente_id = ev.paciente_id
+      INNER JOIN NOTIFICACION n ON p.paciente_id = n.paciente_id
       WHERE n.estado_proceso = 'aprobado'
         AND (
           :search IS NULL
@@ -41,16 +34,12 @@ export async function getPacienteCards(search = "") {
           OR LOWER(p.nombre || ' ' || p.apellido) LIKE '%' || LOWER(:search) || '%'
         )
       ORDER BY p.paciente_id DESC
-      `;
-
-    const binds = {
-      search: search?.trim() ? search.trim() : null,
-    };
-
-    const result = await conn.execute(sql, binds, {
-      outFormat: oracledb.OUT_FORMAT_OBJECT,
-    });
-
+    `;
+    const result = await conn.execute(
+      sql,
+      { search: search?.trim() ? search.trim() : null },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
     return result.rows.map(mapPacienteToCard);
   } catch (error) {
     console.error("Error en getPacienteCards:", error);
@@ -62,10 +51,8 @@ export async function getPacienteCards(search = "") {
 
 export async function getPacienteCredencial(id) {
   let conn;
-
   try {
     conn = await getConnection();
-
     const sql = `
       SELECT
         LPAD(p.paciente_id, 3, '0') AS folio,
@@ -76,10 +63,7 @@ export async function getPacienteCredencial(id) {
         p.emergencia_contacto AS padres,
         TO_CHAR(p.fecha_alta, 'DD/MM/RR') AS fechaExpedicion,
         p.sangre_tipo AS tipoSangre,
-        CASE
-          WHEN p.valvula = 'SI' THEN 'Sí'
-          ELSE 'No'
-        END AS valvula,
+        CASE WHEN p.valvula = 'SI' THEN 'Sí' ELSE 'No' END AS valvula,
         p.emergencia_contacto AS accidenteAvisar,
         p.emergencia_telefono AS telefonoEmergencia,
         p.email AS correo,
@@ -89,19 +73,9 @@ export async function getPacienteCredencial(id) {
       FROM PACIENTE p
       WHERE p.paciente_id = :pacienteId
     `;
-
-    const result = await conn.execute(
-      sql,
-      { pacienteId: id },
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
-
-    if (!result.rows || result.rows.length === 0) {
-      return null;
-    }
-
+    const result = await conn.execute(sql, { pacienteId: id }, { outFormat: oracledb.OUT_FORMAT_OBJECT });
+    if (!result.rows || result.rows.length === 0) return null;
     const row = result.rows[0];
-
     return {
       folio: row.FOLIO,
       nombre: row.NOMBRE,
@@ -130,46 +104,25 @@ export async function getPacienteCredencial(id) {
 
 export async function getPacienteDetail(id) {
   let conn;
-
   try {
     conn = await getConnection();
-
     const sql = `
       SELECT
-        p.paciente_id,
-        p.nombre,
-        p.apellido,
-        p.fotografia,
-        p.ciudad_residencia,
-        p.estado_residencia,
-        p.fecha_ultima_visita,
-        p.etapa_vida,
+        p.paciente_id, p.nombre, p.apellido, p.fotografia,
+        p.ciudad_residencia, p.estado_residencia,
+        p.fecha_ultima_visita, p.etapa_vida,
         m.estatus AS estatus_membresia,
         NVL(ev.total_consultas, 0) AS total_consultas
       FROM PACIENTE p
-      LEFT JOIN MEMBRESIA m
-        ON p.paciente_id = m.paciente_id
+      LEFT JOIN MEMBRESIA m ON p.paciente_id = m.paciente_id
       LEFT JOIN (
-        SELECT
-          paciente_id,
-          COUNT(evento_id) AS total_consultas
-        FROM EVENTO_VISITA
-        GROUP BY paciente_id
-      ) ev
-        ON p.paciente_id = ev.paciente_id
+        SELECT paciente_id, COUNT(evento_id) AS total_consultas
+        FROM EVENTO_VISITA GROUP BY paciente_id
+      ) ev ON p.paciente_id = ev.paciente_id
       WHERE p.paciente_id = :id
     `;
-
-    const result = await conn.execute(
-      sql,
-      { id: Number(id) },
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
-
-    if (!result.rows || result.rows.length === 0) {
-      return null;
-    }
-
+    const result = await conn.execute(sql, { id: Number(id) }, { outFormat: oracledb.OUT_FORMAT_OBJECT });
+    if (!result.rows || result.rows.length === 0) return null;
     return mapPacienteToCard(result.rows[0]);
   } catch (error) {
     console.error("Error en getPacienteDetail:", error);
@@ -181,37 +134,20 @@ export async function getPacienteDetail(id) {
 
 export async function getPacienteDetalle(pacienteId) {
   let conn;
-
   try {
     conn = await getConnection();
-
     const result = await conn.execute(
-      `
-      SELECT
-        p.PACIENTE_ID,
-        p.NOMBRE,
-        p.APELLIDO,
-        p.EMAIL,
-        p.TELEFONO_CELULAR,
-        p.ESTADO_RESIDENCIA,
-        p.FECHA_ALTA,
-        p.VIVE,
-        m.FECHA_INICIO,
-        m.FECHA_FIN
-      FROM PACIENTE p
-      LEFT JOIN MEMBRESIA m ON p.PACIENTE_ID = m.PACIENTE_ID
-      WHERE p.PACIENTE_ID = :pacienteId
-      `,
+      `SELECT p.PACIENTE_ID, p.NOMBRE, p.APELLIDO, p.EMAIL,
+        p.TELEFONO_CELULAR, p.ESTADO_RESIDENCIA, p.FECHA_ALTA,
+        p.VIVE, m.FECHA_INICIO, m.FECHA_FIN
+        FROM PACIENTE p
+        LEFT JOIN MEMBRESIA m ON p.PACIENTE_ID = m.PACIENTE_ID
+        WHERE p.PACIENTE_ID = :pacienteId`,
       { pacienteId: Number(pacienteId) },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
-
-    if (!result.rows || result.rows.length === 0) {
-      return null;
-    }
-
+    if (!result.rows || result.rows.length === 0) return null;
     const row = result.rows[0];
-
     return {
       PACIENTE_ID: row.PACIENTE_ID ?? null,
       NOMBRE: row.NOMBRE ?? null,
@@ -236,20 +172,11 @@ export async function getPacienteDetalle(pacienteId) {
 
 export async function guardarFoto(id, buffer) {
   let conn;
-
   try {
     conn = await getConnection();
-
     await conn.execute(
-      `
-      UPDATE PACIENTE
-      SET FOTOGRAFIA = :foto
-      WHERE PACIENTE_ID = :id
-      `,
-      {
-        foto: buffer,
-        id: Number(id),
-      },
+      `UPDATE PACIENTE SET FOTOGRAFIA = :foto WHERE PACIENTE_ID = :id`,
+      { foto: buffer, id: Number(id) },
       { autoCommit: true }
     );
   } catch (error) {
@@ -262,32 +189,17 @@ export async function guardarFoto(id, buffer) {
 
 export async function obtenerFoto(id) {
   let conn;
-
   try {
     conn = await getConnection();
-
     const result = await conn.execute(
-      `
-      SELECT FOTOGRAFIA
-      FROM PACIENTE
-      WHERE PACIENTE_ID = :id
-      `,
+      `SELECT FOTOGRAFIA FROM PACIENTE WHERE PACIENTE_ID = :id`,
       { id: Number(id) },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
-
-    if (!result.rows || result.rows.length === 0) {
-      return null;
-    }
-
+    if (!result.rows || result.rows.length === 0) return null;
     const lob = result.rows[0].FOTOGRAFIA;
-
-    if (!lob) {
-      return null;
-    }
-
+    if (!lob) return null;
     const chunks = [];
-
     return await new Promise((resolve, reject) => {
       lob.on("data", (chunk) => chunks.push(chunk));
       lob.on("end", () => resolve(Buffer.concat(chunks)));
@@ -295,6 +207,68 @@ export async function obtenerFoto(id) {
     });
   } catch (error) {
     console.error("Error en obtenerFoto:", error);
+    throw error;
+  } finally {
+    if (conn) await conn.close();
+  }
+}
+
+export async function updatePaciente(pacienteId, datos = {}, archivo = null) {
+  let conn;
+  try {
+    conn = await getConnection();
+    const valvula = datos.usaValvula === "Sí" ? "SI" : datos.usaValvula === "No" ? "NO" : null;
+    if (archivo) {
+      await guardarFoto(pacienteId, archivo.buffer);
+    }
+    await conn.execute(
+      `UPDATE PACIENTE SET
+        NOMBRE               = :nombre,
+        APELLIDO             = :apellido,
+        CURP                 = :curp,
+        GENERO               = :genero,
+        FECHA_NACIMIENTO     = TO_DATE(:fechaNacimiento, 'YYYY-MM-DD'),
+        DIRECCION            = :direccion,
+        CIUDAD_RESIDENCIA    = :ciudad,
+        ESTADO_RESIDENCIA    = :estado,
+        CODIGO_POSTAL        = :codigoPostal,
+        TELEFONO_CASA        = :telefonoCasa,
+        TELEFONO_CELULAR     = :telefonoCelular,
+        EMAIL                = :correo,
+        EMERGENCIA_CONTACTO  = :emergenciaContacto,
+        EMERGENCIA_TELEFONO  = :emergenciaTelefono,
+        LUGAR_NACIMIENTO     = :lugarNacimiento,
+        HOSPITAL_NACIMIENTO  = :hospitalNacimiento,
+        SANGRE_TIPO          = :tipoSangre,
+        VALVULA              = :valvula,
+        NOTAS_ADICIONALES    = :notas
+      WHERE PACIENTE_ID = :pacienteId`,
+      {
+        nombre:             datos.nombre             || null,
+        apellido:           datos.apellido           || null,
+        curp:               datos.curp               || null,
+        genero:             datos.genero             || null,
+        fechaNacimiento:    datos.fechaNacimiento     || null,
+        direccion:          datos.direccion           || null,
+        ciudad:             datos.ciudad              || null,
+        estado:             datos.estado              || null,
+        codigoPostal:       datos.codigoPostal        || null,
+        telefonoCasa:       datos.telefonoCasa        || null,
+        telefonoCelular:    datos.telefonoCelular     || null,
+        correo:             datos.correo              || null,
+        emergenciaContacto: datos.emergenciaContacto  || null,
+        emergenciaTelefono: datos.emergenciaTelefono  || null,
+        lugarNacimiento:    datos.lugarNacimiento     || null,
+        hospitalNacimiento: datos.hospitalNacimiento  || null,
+        tipoSangre:         datos.tipoSangre          || null,
+        valvula,
+        notas:              datos.notas               || null,
+        pacienteId,
+      },
+      { autoCommit: true }
+    );
+  } catch (error) {
+    console.error("Error en updatePaciente:", error);
     throw error;
   } finally {
     if (conn) await conn.close();
