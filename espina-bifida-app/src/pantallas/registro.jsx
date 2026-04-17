@@ -331,15 +331,6 @@ function RegistroPage() {
   return (
     <div className="registro-wrapper">
       <div className="registro-card">
-        {modoRevision && (
-          <button
-            className="registro-btn-regresar-notificaciones"
-            onClick={() => navigate("/notificaciones")}
-          >
-            <ArrowLeft size={16} /> Volver a notificaciones
-          </button>
-        )}
-
         <div className="registro-progreso-barra">
           <div
             className="registro-progreso-relleno"
