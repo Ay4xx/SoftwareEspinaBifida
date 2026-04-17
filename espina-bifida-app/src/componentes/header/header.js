@@ -17,6 +17,8 @@ function Header() {
     return null;
   }
 
+  const esAdmin = usuario?.tipoUsuario?.trim().toUpperCase() === "ADMINISTRADOR";
+
   const getTitle = () => {
     switch (location.pathname) {
       case "/":
@@ -64,6 +66,7 @@ function Header() {
       </div>
 
       <div className="header-right">
+        {!esAdmin && (
         <div
           className={`icon-btn ${pendientesCount > 0 ? "con-pendientes" : ""} ${
             location.pathname === "/notificaciones" ? "activo" : ""
@@ -72,8 +75,13 @@ function Header() {
           style={{ cursor: "pointer" }}
         >
           <Bell size={18} />
+          {pendientesCount > 0 && (
+            <span className="notificacion-badge">
+              {pendientesCount > 99 ? "99+" : pendientesCount}
+            </span>
+          )}
         </div>
-
+        )}
         <div className="avatar">{getInitials()}</div>
       </div>
     </div>

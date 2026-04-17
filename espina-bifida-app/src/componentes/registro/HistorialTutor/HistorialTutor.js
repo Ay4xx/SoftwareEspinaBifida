@@ -110,16 +110,16 @@ function HistorialTutor({ datos, onChange }) {
           </div>
 
           <div className="ht-campo-full">
-            <label>Parentesco</label>
-            <div className="ht-parentesco-opciones">
-              {PARENTESCO.map((p) => (
+            <label>Parentesco con la pareja</label>
+            <div className="ht-toggle-opciones">
+              {["Sí", "No"].map((opcion) => (
                 <button
-                  key={p.valor}
+                  key={opcion}
                   type="button"
-                  className={`ht-parentesco-btn ${datos.tutorParentesco === p.valor ? "activo" : ""}`}
-                  onClick={() => onChange({ tutorParentesco: datos.tutorParentesco === p.valor ? "" : p.valor })}
+                  className={`ht-toggle-btn ${datos.tutorParentesco === opcion ? "activo" : ""}`}
+                  onClick={() => onChange({ tutorParentesco: datos.tutorParentesco === opcion ? "" : opcion })}
                 >
-                  {p.label}
+                  {opcion}
                 </button>
               ))}
             </div>
@@ -156,11 +156,12 @@ function HistorialTutor({ datos, onChange }) {
             <div className="ht-campo">
               <label>Citas de Control (durante embarazo)</label>
               <input
-                type="text"
+                type="number"
                 name="citasControl"
                 value={datos.citasControl}
                 onChange={handleInput}
-                placeholder="Ej. 8 citas, irregular..."
+                placeholder="Ej. 8"
+                min={0}
               />
             </div>
             <div className="ht-campo">
