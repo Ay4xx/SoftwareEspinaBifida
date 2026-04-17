@@ -16,12 +16,10 @@ function calcularEtapaVida(edad) {
   return "Adulto";
 }
 
-export async function crearPacientePaso1({ nombre, apellido, genero, fechaNacimiento, curp }) {
+export async function crearPacientePaso1({ nombre, apellido, genero, fechaNacimiento, curp, usuarioId }) {
   const edad = calcularEdad(fechaNacimiento);
   const etapaVida = calcularEtapaVida(edad);
-
   let conn;
-
   try {
     conn = await getConnection();
 
@@ -41,22 +39,95 @@ export async function crearPacientePaso1({ nombre, apellido, genero, fechaNacimi
         'N/A', 'N/A', 'N/A'
       ) RETURNING PACIENTE_ID INTO :id`,
       {
-        nombre,
-        apellido,
-        curp,
-        fechaNacimiento,
-        genero,
-        edad,
-        etapaVida,
+        nombre, apellido, curp, fechaNacimiento,
+        genero, edad, etapaVida,
         id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
       },
       { autoCommit: true }
     );
 
     const pacienteId = result.outBinds.id[0];
+
+    if (usuarioId) {
+      await conn.execute(
+        `DELETE FROM NOTIFICACION
+         WHERE paciente_id = :pacienteId
+         AND estado_proceso = 'pendiente'`,
+        { pacienteId },
+        { autoCommit: true }
+      );
+    }
+
     return { pacienteId };
   } catch (error) {
     console.error("Error en crearPacientePaso1:", error);
+    throw error;
+  } finally {
+    if (conn) await conn.close();
+  }
+}
+
+export async function actualizarPaso2(pacienteId, {
+  direccion, ciudad, estado, codigoPostal,
+  emergenciaContacto, emergenciaTelefono,
+  telefonoCasa, telefonoCelular, correo,
+}) {
+  let conn;
+  try {
+    conn = await getConnection();
+    await conn.execute(
+      `UPDATE PACIENTE SET
+        DIRECCION            = :direccion,
+        CIUDAD_RESIDENCIA    = :ciudad,
+        ESTADO_RESIDENCIA    = :estado,
+        CODIGO_POSTAL        = :codigoPostal,
+        EMERGENCIA_CONTACTO  = :emergenciaContacto,
+        EMERGENCIA_TELEFONO  = :emergenciaTelefono,
+        TELEFONO_CASA        = :telefonoCasa,
+        TELEFONO_CELULAR     = :telefonoCelular,
+        EMAIL                = :correo
+      WHERE PACIENTE_ID = :pacienteId`,
+      {
+        direccion, ciudad, estado, codigoPostal,
+        emergenciaContacto, emergenciaTelefono,
+        telefonoCasa:    telefonoCasa    || null,
+        telefonoCelular: telefonoCelular || null,
+        correo:          correo          || null,
+        pacienteId,
+      },
+      { autoCommit: true }
+    );
+  } catch (error) {
+    console.error("Error en actualizarPaso2:", error);
+    throw error;
+  } finally {
+    if (conn) await conn.close();
+  }
+}
+
+export async function actualizarPaso3(pacienteId, {
+  lugarNacimiento, hospitalNacimiento, tipoSangre, usaValvula, notas,
+}) {
+  let conn;
+  try {
+    conn = await getConnection();
+    const valvula = usaValvula === "Sí" ? "SI" : usaValvula === "No" ? "NO" : null;
+    await conn.execute(
+      `UPDATE PACIENTE SET
+        LUGAR_NACIMIENTO    = :lugarNacimiento,
+        HOSPITAL_NACIMIENTO = :hospitalNacimiento,
+        SANGRE_TIPO         = :tipoSangre,
+        VALVULA             = :valvula,
+        NOTAS_ADICIONALES   = :notas
+      WHERE PACIENTE_ID = :pacienteId`,
+      {
+        lugarNacimiento, hospitalNacimiento, tipoSangre,
+        valvula, notas: notas || null, pacienteId,
+      },
+      { autoCommit: true }
+    );
+  } catch (error) {
+    console.error("Error en actualizarPaso3:", error);
     throw error;
   } finally {
     if (conn) await conn.close();
@@ -68,10 +139,8 @@ export async function actualizarPaso4(pacienteId, {
   tutorParentesco, madreSeguroMedico, cdEmbarazo, acidoFolico, citasControl,
 }) {
   let conn;
-
   try {
     conn = await getConnection();
-
     await conn.execute(
       `INSERT INTO HISTORIAL_MADRE (
         MADRE_ID, PACIENTE_ID,
@@ -105,102 +174,17 @@ export async function actualizarPaso4(pacienteId, {
   }
 }
 
-export async function actualizarPaso3(pacienteId, {
-  lugarNacimiento, hospitalNacimiento, tipoSangre, usaValvula, notas,
-}) {
-  let conn;
-
-  try {
-    conn = await getConnection();
-
-    const valvula = usaValvula === "Sí" ? "SI" : usaValvula === "No" ? "NO" : null;
-
-    await conn.execute(
-      `UPDATE PACIENTE SET
-        LUGAR_NACIMIENTO    = :lugarNacimiento,
-        HOSPITAL_NACIMIENTO = :hospitalNacimiento,
-        SANGRE_TIPO         = :tipoSangre,
-        VALVULA             = :valvula,
-        NOTAS_ADICIONALES   = :notas
-      WHERE PACIENTE_ID = :pacienteId`,
-      {
-        lugarNacimiento,
-        hospitalNacimiento,
-        tipoSangre,
-        valvula,
-        notas: notas || null,
-        pacienteId,
-      },
-      { autoCommit: true }
-    );
-  } catch (error) {
-    console.error("Error en actualizarPaso3:", error);
-    throw error;
-  } finally {
-    if (conn) await conn.close();
-  }
-}
-
 export async function actualizarPaso5(pacienteId, fotoBuffer) {
   let conn;
-
   try {
     conn = await getConnection();
-
     await conn.execute(
       `UPDATE PACIENTE SET FOTOGRAFIA = :foto WHERE PACIENTE_ID = :pacienteId`,
-      {
-        foto: fotoBuffer,
-        pacienteId,
-      },
+      { foto: fotoBuffer, pacienteId },
       { autoCommit: true }
     );
   } catch (error) {
     console.error("Error en actualizarPaso5:", error);
-    throw error;
-  } finally {
-    if (conn) await conn.close();
-  }
-}
-
-export async function actualizarPaso2(pacienteId, {
-  direccion, ciudad, estado, codigoPostal,
-  emergenciaContacto, emergenciaTelefono,
-  telefonoCasa, telefonoCelular, correo,
-}) {
-  let conn;
-
-  try {
-    conn = await getConnection();
-
-    await conn.execute(
-      `UPDATE PACIENTE SET
-        DIRECCION          = :direccion,
-        CIUDAD_RESIDENCIA  = :ciudad,
-        ESTADO_RESIDENCIA  = :estado,
-        CODIGO_POSTAL      = :codigoPostal,
-        EMERGENCIA_CONTACTO  = :emergenciaContacto,
-        EMERGENCIA_TELEFONO  = :emergenciaTelefono,
-        TELEFONO_CASA      = :telefonoCasa,
-        TELEFONO_CELULAR   = :telefonoCelular,
-        EMAIL              = :correo
-      WHERE PACIENTE_ID = :pacienteId`,
-      {
-        direccion,
-        ciudad,
-        estado,
-        codigoPostal,
-        emergenciaContacto,
-        emergenciaTelefono,
-        telefonoCasa:    telefonoCasa    || null,
-        telefonoCelular: telefonoCelular || null,
-        correo:          correo          || null,
-        pacienteId,
-      },
-      { autoCommit: true }
-    );
-  } catch (error) {
-    console.error("Error en actualizarPaso2:", error);
     throw error;
   } finally {
     if (conn) await conn.close();
