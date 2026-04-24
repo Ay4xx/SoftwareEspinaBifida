@@ -3,7 +3,7 @@ import { getMedicos, getServiciosByMedico, guardarEventoServicio, getMedicosConS
 export async function listarMedicos(req, res) {
   try {
     const data = await getMedicosConServicios();
-  //  console.log("Medicos con servicios:", data); // 👀 log en terminal
+  //  console.log("Medicos con servicios:", data); //
     res.json({ ok: true, data });
   } catch (error) {
     console.error("Error en listarMedicos:", error);
@@ -17,7 +17,7 @@ export async function listarServiciosPorMedico(req, res) {
     const data = await getServiciosByMedico(req.params.medicoId);
     res.json({ ok: true, data });
   } catch (error) {
-    console.error("ERROR REAL:", error); // 👈 AGREGA ESTO
+    console.error("ERROR REAL:", error); //
     res.json({ ok: false, message: "Error al obtener servicios" });
   }
 }

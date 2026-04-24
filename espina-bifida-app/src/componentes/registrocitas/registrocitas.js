@@ -53,7 +53,7 @@ function RegistrarConsulta() {
 
   const handleSubmit = async () => {
     const { fecha, hora, medico_id, servicio_id } = form;
-    console.log("Valores del formulario:", form); // 👀 log en navegador
+    console.log("Valores del formulario:", form); //  log en navegador
   
     if (!fecha || !hora || !medico_id || !servicio_id) {
       setPopup("vacio");
