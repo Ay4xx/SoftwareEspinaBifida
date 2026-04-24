@@ -126,6 +126,10 @@
   padding: 28px 32px 8px;
 }
 
+.registro-nav-contenedor:has(> .revision-nav-derecha:only-child) {
+  justify-content: flex-end;
+}
+
 .registro-btn-nav {
   width: 50px;
   height: 50px;
@@ -144,7 +148,6 @@
   transform: scale(1.06);
 }
 
-
 .btn-regresar {
   background: #64748b;
 }
@@ -155,6 +158,7 @@
 
 .btn-siguiente {
   background: #f97316;
+  margin-left: auto;
 }
 
 .btn-siguiente:hover {
@@ -187,65 +191,6 @@
 
 .registro-btn-regresar-notificaciones:hover {
   color: #001b4d;
-}
-
-.revision-acciones {
-  display: flex;
-  gap: 10px;
-}
-
-.btn-aprobar-revision {
-  border: none;
-  border-radius: 10px;
-  padding: 10px 18px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  background: #69c6c9;
-  color: white;
-}
-
-.btn-rechazar-revision {
-  border: none;
-  border-radius: 10px;
-  padding: 10px 18px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  background: #f2dada;
-  color: #b24b4b;
-}
-
-.revision-ya-resuelta {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #d6f0df;
-  color: #237a52;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 6px 14px;
-  border-radius: 999px;
-  margin: 0 0 0 12px;
-}
-
-.btn-guardar-cambios {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  border: none;
-  border-radius: 10px;
-  padding: 10px 18px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  background: #001b4d;
-  color: white;
-  transition: background 0.2s;
-}
-
-.btn-guardar-cambios:hover {
-  background: #002a75;
 }
 
 .revision-nav-derecha {
@@ -287,6 +232,37 @@
   color: #b24b4b;
 }
 
+.btn-guardar-revision {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  background: #001b4d;
+  color: white;
+  transition: background 0.2s;
+}
+
+.btn-guardar-revision:hover {
+  background: #002a75;
+}
+
+.revision-ya-resuelta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #d6f0df;
+  color: #237a52;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 999px;
+}
+
 .revision-guardar-contenedor {
   display: flex;
   justify-content: flex-end;
@@ -310,11 +286,4 @@
 
 .btn-guardar-cambios:hover {
   background: #002a75;
-}
-.registro-nav-contenedor:has(> .revision-nav-derecha:only-child) {
-  justify-content: flex-end;
-}
-
-.btn-siguiente {
-  margin-left: auto;
 }
