@@ -79,6 +79,7 @@ function RegistroPage() {
         if (!result.ok) return;
 
         const p = result.data;
+
         setNotificacionEstado(p.ESTADO_PROCESO);
         setPacienteId(p.PACIENTE_ID);
 
@@ -103,7 +104,7 @@ function RegistroPage() {
           tipoSangre: p.SANGRE_TIPO || "",
           usaValvula: p.VALVULA === "SI" ? "Sí" : p.VALVULA === "NO" ? "No" : "",
           notas: p.NOTAS_ADICIONALES || "",
-          foto: p.FOTO_URL || p.FOTO || null,
+          foto: p.FOTO || null,
         }));
       })
       .catch((err) => console.error("Error cargando notificación:", err));
@@ -283,11 +284,7 @@ function RegistroPage() {
           <Fotografia
             datos={formData}
             onChange={handleChange}
-            onGuardar={
-              modoRevision && notificacionEstado === "pendiente"
-                ? handleGuardarCambios
-                : null
-            }
+            onGuardar={modoRevision ? handleGuardarCambios : null}
             cambiosGuardados={cambiosGuardados}
           />
         );
@@ -367,14 +364,24 @@ function RegistroPage() {
 
           {modoRevision ? (
             <div className="revision-nav-derecha">
-              {paso === TOTAL_PASOS && notificacionEstado === "pendiente" && (
+              {paso === TOTAL_PASOS && (
                 <div className="revision-acciones">
-                  <button className="btn-rechazar-revision" onClick={handleRechazar}>
-                    <X size={16} /> Rechazar
-                  </button>
-                  <button className="btn-aprobar-revision" onClick={handleAprobar}>
-                    <Check size={16} /> Aprobar
-                  </button>
+                  {notificacionEstado === "rechazado" && (
+                    <button className="btn-aprobar-revision" onClick={handleAprobar}>
+                      <Check size={16} /> Aprobar
+                    </button>
+                  )}
+
+                  {notificacionEstado === "pendiente" && (
+                    <>
+                      <button className="btn-rechazar-revision" onClick={handleRechazar}>
+                        <X size={16} /> Rechazar
+                      </button>
+                      <button className="btn-aprobar-revision" onClick={handleAprobar}>
+                        <Check size={16} /> Aprobar
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
 
@@ -386,9 +393,7 @@ function RegistroPage() {
             </div>
           ) : (
             <button
-              className={`registro-btn-nav ${
-                paso === TOTAL_PASOS ? "btn-finalizar" : "btn-siguiente"
-              }`}
+              className={`registro-btn-nav ${paso === TOTAL_PASOS ? "btn-finalizar" : "btn-siguiente"}`}
               onClick={paso === TOTAL_PASOS ? handleSubmit : siguientePaso}
             >
               {paso === TOTAL_PASOS ? <Check size={22} /> : <ArrowRight size={22} />}

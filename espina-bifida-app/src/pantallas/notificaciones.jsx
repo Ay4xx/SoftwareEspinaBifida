@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import "./notificaciones.css";
-import { UserRound, MapPin, Phone, IdCard, Check, Bell } from "lucide-react";
+import { UserRound, MapPin, Phone, IdCard, Check, Bell, Search } from "lucide-react";
 import { useNotificaciones } from "./notificacionesContext";
 import { useNavigate } from "react-router-dom";
 
@@ -8,6 +8,7 @@ const API_URL = "http://localhost:3001/api/notificaciones";
 
 function NotificacionesPage() {
   const [filtro, setFiltro] = useState("todas");
+  const [busqueda, setBusqueda] = useState("");
   const [notificaciones, setNotificaciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -31,11 +32,9 @@ function NotificacionesPage() {
       const response = await fetch(API_URL);
       const result = await response.json();
       if (!response.ok || !result.ok) throw new Error(result.message || "No se pudieron cargar las notificaciones");
-      const dataMapeada = (result.data || []).map((item) => {
-      console.log("fechaCreacion:", item.fechaCreacion);
-      return {
+      const dataMapeada = (result.data || []).map((item) => ({
         id: item.id,
-        nombre: item.paciente?.nombre || "Sin nombre",
+        nombre: `${item.paciente?.nombre || ""} ${item.paciente?.apellido || ""}`.trim() || "Sin nombre",
         curp: item.paciente?.curp || "",
         ciudad: item.paciente?.ubicacion || "",
         telefono: item.paciente?.telefono || "",
@@ -44,8 +43,7 @@ function NotificacionesPage() {
         tiempo: formatearTiempo(item.fechaCreacion),
         fechaCreacionRaw: item.fechaCreacion,
         leida: (item.estado || "pendiente").toLowerCase() !== "pendiente",
-      };
-    });
+      }));
       setNotificaciones(dataMapeada);
       const count = dataMapeada.filter((n) => n.estado === "pendiente").length;
       setPendientesCount(count);
@@ -75,29 +73,29 @@ function NotificacionesPage() {
   }
 
   function parseFechaBackend(fechaTexto) {
-  if (!fechaTexto) return null;
-  const match = /^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}))?$/.exec(fechaTexto);
-  if (!match) return null;
-  const [, dd, mm, yyyy, hh = "00", mi = "00"] = match;
-  // Crear fecha como UTC y convertir a local
-  return new Date(Date.UTC(
-    Number(yyyy),
-    Number(mm) - 1,
-    Number(dd),
-    Number(hh),
-    Number(mi)
-  ));
-}
+    if (!fechaTexto) return null;
+    const match = /^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}))?$/.exec(fechaTexto);
+    if (!match) return null;
+    const [, dd, mm, yyyy, hh = "00", mi = "00"] = match;
+    return new Date(Date.UTC(Number(yyyy), Number(mm) - 1, Number(dd), Number(hh), Number(mi)));
+  }
 
   const pendientesCount = useMemo(() => {
     return notificaciones.filter((n) => n.estado === "pendiente").length;
   }, [notificaciones]);
 
   const notificacionesFiltradas = useMemo(() => {
-    if (filtro === "pendientes") return notificaciones.filter((n) => n.estado === "pendiente");
-    if (filtro === "resueltas") return notificaciones.filter((n) => n.estado !== "pendiente");
-    return notificaciones;
-  }, [filtro, notificaciones]);
+    let resultado = notificaciones;
+    if (filtro === "pendientes") resultado = resultado.filter((n) => n.estado === "pendiente");
+    if (filtro === "resueltas") resultado = resultado.filter((n) => n.estado !== "pendiente");
+    if (busqueda.trim()) {
+      const b = busqueda.toLowerCase();
+      resultado = resultado.filter(
+        (n) => n.nombre.toLowerCase().includes(b) || n.curp.toLowerCase().includes(b)
+      );
+    }
+    return resultado;
+  }, [filtro, busqueda, notificaciones]);
 
   const nuevas = notificacionesFiltradas.filter((n) => !n.leida);
   const anteriores = notificacionesFiltradas.filter((n) => n.leida);
@@ -181,32 +179,61 @@ function NotificacionesPage() {
   return (
     <div className="notificaciones-page">
       <div className="notificaciones-topbar">
-        <div>
-          <h1>Notificaciones</h1>
-          <p>{pendientesCount} solicitudes pendientes de revisión</p>
-        </div>
         <div className="filtros">
-          <button className={filtro === "todas" ? "activo" : ""} onClick={() => setFiltro("todas")}>Todas</button>
-          <button className={filtro === "pendientes" ? "activo" : ""} onClick={() => setFiltro("pendientes")}>Pendientes</button>
-          <button className={filtro === "resueltas" ? "activo" : ""} onClick={() => setFiltro("resueltas")}>Resueltas</button>
+          <button className={filtro === "todas" ? "activo" : ""} onClick={() => setFiltro("todas")}>
+            Todas <span>{notificaciones.length}</span>
+          </button>
+          <button className={filtro === "pendientes" ? "activo" : ""} onClick={() => setFiltro("pendientes")}>
+            Pendientes <span>{notificaciones.filter((n) => n.estado === "pendiente").length}</span>
+          </button>
+          <button className={filtro === "resueltas" ? "activo" : ""} onClick={() => setFiltro("resueltas")}>
+            Resueltas <span>{notificaciones.filter((n) => n.estado !== "pendiente").length}</span>
+          </button>
+        </div>
+
+        <div className="noti-search">
+          <Search size={18} />
+          <input
+            type="text"
+            placeholder="Buscar notificación"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+          />
         </div>
       </div>
-      <div className="seccion-notis">
-        <h4>Nuevas</h4>
-        {nuevas.length > 0 ? (
-          nuevas.map((item) => <TarjetaNotificacion key={item.id} item={item} />)
-        ) : (
-          <div className="sin-notificaciones"><Bell size={20} /><span>No hay notificaciones nuevas</span></div>
-        )}
-      </div>
-      <div className="seccion-notis">
-        <h4>Anteriores</h4>
-        {anteriores.length > 0 ? (
-          anteriores.map((item) => <TarjetaNotificacion key={item.id} item={item} />)
-        ) : (
-          <div className="sin-notificaciones"><Bell size={20} /><span>No hay notificaciones anteriores</span></div>
-        )}
-      </div>
+
+      {filtro === "todas" ? (
+        <>
+          <div className="seccion-notis">
+            <h4>Nuevas</h4>
+            {nuevas.length > 0 ? (
+              nuevas.map((item) => <TarjetaNotificacion key={item.id} item={item} />)
+            ) : (
+              <div className="sin-notificaciones"><Bell size={20} /><span>No hay notificaciones nuevas</span></div>
+            )}
+          </div>
+          <div className="seccion-notis">
+            <h4>Anteriores</h4>
+            {anteriores.length > 0 ? (
+              anteriores.map((item) => <TarjetaNotificacion key={item.id} item={item} />)
+            ) : (
+              <div className="sin-notificaciones"><Bell size={20} /><span>No hay notificaciones anteriores</span></div>
+            )}
+          </div>
+        </>
+      ) : (
+        <div className="seccion-notis">
+          <h4>{filtro === "resueltas" ? "Resueltas" : "Pendientes"}</h4>
+          {notificacionesFiltradas.length > 0 ? (
+            notificacionesFiltradas.map((item) => <TarjetaNotificacion key={item.id} item={item} />)
+          ) : (
+            <div className="sin-notificaciones">
+              <Bell size={20} />
+              <span>No hay notificaciones {filtro === "resueltas" ? "resueltas" : "pendientes"}</span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

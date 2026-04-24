@@ -16,6 +16,7 @@ export async function getNotificaciones(estado = null) {
         n.estado_proceso,
         TO_CHAR(n.fecha_creacion, 'DD/MM/YYYY HH24:MI') AS fecha_creacion,
         p.nombre,
+        p.apellido,
         p.curp,
         p.ciudad_residencia,
         p.estado_residencia,
@@ -69,7 +70,8 @@ export async function getNotificacionById(notificacionId) {
         p.sangre_tipo,
         p.valvula,
         p.etapa_vida,
-        p.notas_adicionales
+        p.notas_adicionales,
+        p.fotografia
       FROM NOTIFICACION n
       INNER JOIN PACIENTE p ON n.paciente_id = p.paciente_id
       WHERE n.notificacion_id = :notificacionId
@@ -81,31 +83,46 @@ export async function getNotificacionById(notificacionId) {
     );
     if (!result.rows || result.rows.length === 0) return null;
     const row = result.rows[0];
+
+    // Convertir BLOB a base64
+    let fotoBase64 = null;
+    if (row.FOTOGRAFIA) {
+      const chunks = [];
+      await new Promise((resolve, reject) => {
+        row.FOTOGRAFIA.on("data", (chunk) => chunks.push(chunk));
+        row.FOTOGRAFIA.on("end", resolve);
+        row.FOTOGRAFIA.on("error", reject);
+      });
+      const buffer = Buffer.concat(chunks);
+      fotoBase64 = `data:image/jpeg;base64,${buffer.toString("base64")}`;
+    }
+
     return {
-      NOTIFICACION_ID: row.NOTIFICACION_ID ?? null,
-      ESTADO_PROCESO: row.ESTADO_PROCESO ?? null,
-      FECHA_CREACION: row.FECHA_CREACION ?? null,
-      PACIENTE_ID: row.PACIENTE_ID ?? null,
-      NOMBRE: row.NOMBRE ?? null,
-      APELLIDO: row.APELLIDO ?? null,
-      CURP: row.CURP ?? null,
-      GENERO: row.GENERO ?? null,
-      FECHA_NACIMIENTO: row.FECHA_NACIMIENTO ?? null,
-      DIRECCION: row.DIRECCION ?? null,
-      CIUDAD_RESIDENCIA: row.CIUDAD_RESIDENCIA ?? null,
-      ESTADO_RESIDENCIA: row.ESTADO_RESIDENCIA ?? null,
-      CODIGO_POSTAL: row.CODIGO_POSTAL ?? null,
-      TELEFONO_CASA: row.TELEFONO_CASA ?? null,
-      TELEFONO_CELULAR: row.TELEFONO_CELULAR ?? null,
-      EMAIL: row.EMAIL ?? null,
-      EMERGENCIA_CONTACTO: row.EMERGENCIA_CONTACTO ?? null,
-      EMERGENCIA_TELEFONO: row.EMERGENCIA_TELEFONO ?? null,
-      LUGAR_NACIMIENTO: row.LUGAR_NACIMIENTO ?? null,
-      HOSPITAL_NACIMIENTO: row.HOSPITAL_NACIMIENTO ?? null,
-      SANGRE_TIPO: row.SANGRE_TIPO ?? null,
-      VALVULA: row.VALVULA ?? null,
-      ETAPA_VIDA: row.ETAPA_VIDA ?? null,
-      NOTAS_ADICIONALES: row.NOTAS_ADICIONALES ?? null,
+      NOTIFICACION_ID:     row.NOTIFICACION_ID     ?? null,
+      ESTADO_PROCESO:      row.ESTADO_PROCESO       ?? null,
+      FECHA_CREACION:      row.FECHA_CREACION       ?? null,
+      PACIENTE_ID:         row.PACIENTE_ID          ?? null,
+      NOMBRE:              row.NOMBRE               ?? null,
+      APELLIDO:            row.APELLIDO             ?? null,
+      CURP:                row.CURP                 ?? null,
+      GENERO:              row.GENERO               ?? null,
+      FECHA_NACIMIENTO:    row.FECHA_NACIMIENTO     ?? null,
+      DIRECCION:           row.DIRECCION            ?? null,
+      CIUDAD_RESIDENCIA:   row.CIUDAD_RESIDENCIA    ?? null,
+      ESTADO_RESIDENCIA:   row.ESTADO_RESIDENCIA    ?? null,
+      CODIGO_POSTAL:       row.CODIGO_POSTAL        ?? null,
+      TELEFONO_CASA:       row.TELEFONO_CASA        ?? null,
+      TELEFONO_CELULAR:    row.TELEFONO_CELULAR     ?? null,
+      EMAIL:               row.EMAIL                ?? null,
+      EMERGENCIA_CONTACTO: row.EMERGENCIA_CONTACTO  ?? null,
+      EMERGENCIA_TELEFONO: row.EMERGENCIA_TELEFONO  ?? null,
+      LUGAR_NACIMIENTO:    row.LUGAR_NACIMIENTO     ?? null,
+      HOSPITAL_NACIMIENTO: row.HOSPITAL_NACIMIENTO  ?? null,
+      SANGRE_TIPO:         row.SANGRE_TIPO          ?? null,
+      VALVULA:             row.VALVULA              ?? null,
+      ETAPA_VIDA:          row.ETAPA_VIDA           ?? null,
+      NOTAS_ADICIONALES:   row.NOTAS_ADICIONALES    ?? null,
+      FOTO:                fotoBase64,
     };
   } catch (error) {
     console.error("Error en getNotificacionById:", error);
