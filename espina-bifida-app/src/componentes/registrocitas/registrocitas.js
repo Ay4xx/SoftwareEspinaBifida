@@ -24,6 +24,7 @@ function RegistrarConsulta() {
     medico_id: "",
     especialidad: "",
     servicio_id: "",
+    cuota: 0,
   });
 
   useEffect(() => {
@@ -45,6 +46,7 @@ function RegistrarConsulta() {
       medico_id: medicoId,
       especialidad: medicoSeleccionado?.ESPECIALIDAD || "",
       servicio_id: medicoSeleccionado?.SERVICIO_ID || "",
+      cuota: medicoSeleccionado?.COSTO|| "",
     }));
   };
   const handleChange = (e) => {
@@ -52,7 +54,7 @@ function RegistrarConsulta() {
   };
 
   const handleSubmit = async () => {
-    const { fecha, hora, medico_id, servicio_id } = form;
+    const { fecha, hora, medico_id, servicio_id, cuota } = form;
     console.log("Valores del formulario:", form); //  log en navegador
   
     if (!fecha || !hora || !medico_id || !servicio_id) {
@@ -67,7 +69,7 @@ function RegistrarConsulta() {
         body: JSON.stringify({
           pacienteId,
           fechaEvento: fecha,
-          cuota: 500,
+          cuota: cuota,
           servicioId: servicio_id,
           horaCita: hora,
         }),
@@ -77,7 +79,7 @@ function RegistrarConsulta() {
       const data = await response.json();
       if (data.ok) {
         setPopup("exito");
-        setForm({ fecha: getMinDate(), hora: "", medico_id: "", especialidad: "", servicio_id: "" });
+        setForm({ fecha: getMinDate(), hora: "", medico_id: "", especialidad: "", servicio_id: "", cuota:0 });
       } else {
         setPopup("error");
       }
