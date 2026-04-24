@@ -74,7 +74,7 @@ export async function getMedicosConServicios() {
          m.NOMBRE,
          m.APELLIDO,
          m.ESPECIALIDAD,
-         s.SERVICIO_ID
+         s.SERVICIO_ID,
          s.COSTO, 
        FROM MEDICO m
        LEFT JOIN SERVICIOS s 
