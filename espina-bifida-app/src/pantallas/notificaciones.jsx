@@ -69,7 +69,7 @@ function NotificacionesPage() {
     if (diffHoras < 24) return `Hace ${diffHoras} hora${diffHoras > 1 ? "s" : ""}`;
     if (diffDias === 1) return "Ayer";
     if (diffDias < 7) return `Hace ${diffDias} días`;
-    return fecha.toLocaleDateString();
+    return fecha.toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" });
   }
 
   function parseFechaBackend(fechaTexto) {
@@ -77,7 +77,7 @@ function NotificacionesPage() {
     const match = /^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}))?$/.exec(fechaTexto);
     if (!match) return null;
     const [, dd, mm, yyyy, hh = "00", mi = "00"] = match;
-    return new Date(Date.UTC(Number(yyyy), Number(mm) - 1, Number(dd), Number(hh), Number(mi)));
+    return new Date(Number(yyyy), Number(mm) - 1, Number(dd), Number(hh), Number(mi));
   }
 
   const pendientesCount = useMemo(() => {

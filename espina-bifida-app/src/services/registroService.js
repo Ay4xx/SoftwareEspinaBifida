@@ -20,6 +20,14 @@ export async function crearPacientePaso1(formData) {
   });
 
   const data = await response.json();
+
+  // ✅ CURP duplicado
+  if (response.status === 409) {
+    const err = new Error(data.message || "Ya existe un paciente registrado con ese CURP.");
+    err.code = "CURP_DUPLICADO";
+    throw err;
+  }
+
   if (!response.ok) throw new Error(data.message || "Error al registrar el paciente.");
   return data;
 }

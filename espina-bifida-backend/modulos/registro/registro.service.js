@@ -23,6 +23,17 @@ export async function crearPacientePaso1({ nombre, apellido, genero, fechaNacimi
   try {
     conn = await getConnection();
 
+    const check = await conn.execute(
+      `SELECT COUNT(*) AS TOTAL FROM PACIENTE WHERE CURP = :curp`,
+      { curp }
+    );
+    if (Number(check.rows[0][0]) > 0) {
+      throw Object.assign(
+        new Error("Ya existe un paciente registrado con ese CURP."),
+        { code: "CURP_DUPLICADO" }
+      );
+    }
+
     const result = await conn.execute(
       `INSERT INTO PACIENTE (
         PACIENTE_ID, NOMBRE, APELLIDO, CURP, FECHA_NACIMIENTO, GENERO, EDAD, ETAPA_VIDA,
@@ -51,8 +62,8 @@ export async function crearPacientePaso1({ nombre, apellido, genero, fechaNacimi
     if (usuarioId) {
       await conn.execute(
         `DELETE FROM NOTIFICACION
-         WHERE paciente_id = :pacienteId
-         AND estado_proceso = 'pendiente'`,
+        WHERE paciente_id = :pacienteId
+        AND estado_proceso = 'pendiente'`,
         { pacienteId },
         { autoCommit: true }
       );

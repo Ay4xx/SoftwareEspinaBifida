@@ -10,6 +10,11 @@ export async function registrarPaciente(req, res) {
     res.status(201).json({ ok: true, data: resultado });
   } catch (error) {
     console.error("Error en registrarPaciente:", error);
+
+    if (error.code === "CURP_DUPLICADO" || error.errorNum === 1) {
+      return res.status(409).json({ ok: false, message: "Ya existe un paciente registrado con ese CURP." });
+    }
+
     res.status(500).json({ ok: false, message: "Error al registrar el paciente." });
   }
 }
