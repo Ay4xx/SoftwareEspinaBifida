@@ -2,31 +2,66 @@ import React from "react";
 import "./sidebar.css";
 import {
   Users,
-  ClipboardList,
   Boxes,
   BarChart3,
   LogOut,
   PenBoxIcon,
 } from "lucide-react";
-import AEBNLogo from "../../assets/logo_AEBNL.png";
-
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const menuItems = [
-  { name: "Usuarios", icon: Users, path: "/usuarios" },
-  { name: "Historial", icon: ClipboardList, path: "/historial" },
-  { name: "Registro", icon: PenBoxIcon, path: "/registro" },
-  { name: "Inventario", icon: Boxes, path: "/inventario" },
-  { name: "Estadisticas", icon: BarChart3, path: "/estadisticas" },
+  {
+    name: "Usuarios",
+    icon: Users,
+    path: "/usuarios",
+    roles: ["ADMINISTRADOR", "COORDINADOR"],
+  },
+  {
+    name: "Registro",
+    icon: PenBoxIcon,
+    path: "/registro",
+    roles: ["COORDINADOR"],
+  },
+  {
+    name: "Inventario",
+    icon: Boxes,
+    path: "/inventario",
+    roles: ["ADMINISTRADOR", "COORDINADOR"],
+  },
+  {
+    name: "Estadísticas",
+    icon: BarChart3,
+    path: "/estadisticas",
+    roles: ["ADMINISTRADOR"],
+  },
 ];
-
 
 function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const token = localStorage.getItem("token");
+  const isGuest = localStorage.getItem("guest") === "true";
+  const usuario = JSON.parse(localStorage.getItem("usuario"));
+  const tipoUsuario = usuario?.tipoUsuario?.trim().toUpperCase();
+
+  if (!token || isGuest) {
+    return null;
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
+    localStorage.removeItem("guest");
+    navigate("/");
+  };
+
+  const filteredMenuItems = menuItems.filter((item) =>
+    item.roles.includes(tipoUsuario)
+  );
 
   return (
     <aside className="sidebar">
-      {/* Header */}
       <div className="sidebar-header">
         <div className="logo">AE</div>
         <div>
@@ -35,11 +70,10 @@ function Sidebar() {
         </div>
       </div>
 
-      {/* Menu */}
       <div className="sidebar-menu">
         <p className="menu-title">Menú Principal</p>
 
-        {menuItems.map((item, index) => {
+        {filteredMenuItems.map((item, index) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
 
@@ -56,11 +90,10 @@ function Sidebar() {
         })}
       </div>
 
-      {/* Footer */}
       <div className="sidebar-footer">
         <p className="menu-title">Sistema</p>
 
-        <div className="menu-item logout">
+        <div className="menu-item logout" onClick={handleLogout}>
           <LogOut size={18} />
           <span>Cerrar sesión</span>
         </div>

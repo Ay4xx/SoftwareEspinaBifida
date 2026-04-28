@@ -1,13 +1,24 @@
 import React from "react";
 import "./header.css";
-import { Bell } from "lucide-react";
+import { Bell, ArrowLeft } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useNotificaciones } from "../../pantallas/notificacionesContext";
 
 function Header() {
   const location = useLocation();
   const navigate = useNavigate();
-  const {pendientesCount} = useNotificaciones();
+  const { pendientesCount } = useNotificaciones();
+
+  const token = localStorage.getItem("token");
+  const isGuest = localStorage.getItem("guest") === "true";
+  const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
+
+  if (!token || isGuest) {
+    return null;
+  }
+
+  const esAdmin = usuario?.tipoUsuario?.trim().toUpperCase() === "ADMINISTRADOR";
+  const modoRevision = location.pathname === "/registro" && location.state?.modoRevision;
 
   const getTitle = () => {
     switch (location.pathname) {
@@ -15,35 +26,75 @@ function Header() {
         return "Módulo de Usuarios";
       case "/historial":
         return "Módulo de Historial";
+      case "/usuarios":
+        return "Módulo de Usuarios";
       case "/inventario":
         return "Módulo de Inventario";
       case "/estadisticas":
         return "Módulo de Estadísticas";
       case "/registro":
-        return "Módulo de Registro";
+        return modoRevision ? "Volver a solicitudes" : "Módulo de Registro";
       case "/notificaciones":
-        return "Notificaciones";
+        return "Solicitudes";
       default:
         return "Sistema";
     }
   };
 
+  const getInitials = () => {
+    if (!usuario) return "US";
+
+    if (usuario.username) {
+      return usuario.username.substring(0, 2).toUpperCase();
+    }
+
+    if (usuario.nombre) {
+      return usuario.nombre
+        .split(" ")
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((p) => p[0].toUpperCase())
+        .join("");
+    }
+
+    return "US";
+  };
+
   return (
     <div className="header">
       <div className="header-left">
-        <h1>{getTitle()}</h1>
+        {modoRevision ? (
+          <div
+            className="header-back-title"
+            onClick={() => navigate("/notificaciones")}
+            style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }}
+          >
+            <ArrowLeft size={22} />
+            <h1 style={{ margin: 0 }}>{getTitle()}</h1>
+          </div>
+        ) : (
+          <h1>{getTitle()}</h1>
+        )}
       </div>
 
       <div className="header-right">
-        <div
-          className={`icon-btn ${pendientesCount > 0 ? "con-pendientes" : ""} ${location.pathname === "/notificaciones" ? "activo" : ""}`}
-          onClick={() => navigate("/notificaciones")}
-          style={{ cursor: "pointer" }}
-        >
-          <Bell size={18} />
-        </div>
-
-        <div className="avatar">AB</div>
+        {!esAdmin && (
+          <div
+            className={`icon-btn ${pendientesCount > 0 ? "con-pendientes" : ""} ${
+              location.pathname === "/notificaciones" ? "activo" : ""
+            }`}
+            onClick={() => navigate("/notificaciones")}
+            style={{ cursor: "pointer" }}
+          >
+            <Bell size={18} />
+            {pendientesCount > 0 && (
+              <span className="notificacion-badge">
+                {pendientesCount > 99 ? "99+" : pendientesCount}
+              </span>
+            )}
+          </div>
+        )}
+        <div className="avatar">{getInitials()}</div>
       </div>
     </div>
   );

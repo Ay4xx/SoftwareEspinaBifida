@@ -51,7 +51,7 @@ export async function guardarEventoServicio(pacienteId, fechaEvento, cuota, serv
       {
         pacienteId: parseInt(pacienteId),
         fechaEvento: new Date(fechaEvento),
-        cuota,
+        cuota: parseInt(cuota),
         servicioId: parseInt(servicioId),
         horaCita
       }
@@ -74,7 +74,8 @@ export async function getMedicosConServicios() {
          m.NOMBRE,
          m.APELLIDO,
          m.ESPECIALIDAD,
-         s.SERVICIO_ID
+         s.SERVICIO_ID,
+         s.COSTO
        FROM MEDICO m
        LEFT JOIN SERVICIOS s 
          ON m.MEDICO_ID = s.MEDICO_ID`,

@@ -4,9 +4,15 @@
 
 .foto-seccion-header {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.foto-header-izquierda {
+  display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 12px;
 }
 
 .foto-icono {
@@ -92,9 +98,123 @@
   margin: 0;
 }
 
+.foto-preview-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .foto-preview {
   max-width: 100%;
   max-height: 300px;
   border-radius: 10px;
   object-fit: contain;
+  display: block;
+}
+
+.foto-cambiar-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 27, 77, 0.45);
+  color: white;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  padding: 16px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.foto-preview-wrapper:hover .foto-cambiar-overlay {
+  opacity: 1;
+}
+
+.btn-guardar-cambios-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  background: #001b4d;
+  color: white;
+  transition: background 0.2s;
+}
+
+.btn-guardar-cambios-header:hover {
+  background: #002a75;
+}
+
+/* ── Dos columnas cuando hay foto previa ── */
+
+.foto-dos-columnas {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  min-height: 280px;
+}
+
+.foto-columna-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+  margin-bottom: 10px;
+}
+
+.foto-columna-actual {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 24px 16px 0;
+}
+
+.foto-actual-wrapper {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f9fafb;
+}
+
+.foto-actual-img {
+  width: 100%;
+  height: 100%;
+  max-height: 260px;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.foto-divisor-vertical {
+  width: 1px;
+  background: #e5e7eb;
+  margin: 0 8px;
+  align-self: stretch;
+}
+
+.foto-columna-nueva {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 0 16px 24px;
+}
+
+.foto-zona-compacta {
+  flex: 1;
+  min-height: unset;
 }

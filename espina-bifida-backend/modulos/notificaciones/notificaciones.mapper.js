@@ -1,5 +1,6 @@
 export function mapNotificacionToCard(row) {
   const nombre = row.NOMBRE || "Sin nombre";
+  const apellido = row.APELLIDO || "";
 
   return {
     id: row.NOTIFICACION_ID,
@@ -12,11 +13,13 @@ export function mapNotificacionToCard(row) {
 
     paciente: {
       nombre,
+      apellido,
       curp: row.CURP || "",
       ubicacion: [row.CIUDAD_RESIDENCIA, row.ESTADO_RESIDENCIA]
         .filter(Boolean)
         .join(", "),
       telefono: row.TELEFONO_CELULAR || row.TELEFONO_CASA || "",
+      foto: row.PACIENTE_ID ? `http://localhost:3001/api/pacientes/${row.PACIENTE_ID}/foto` : null,
     },
   };
 }

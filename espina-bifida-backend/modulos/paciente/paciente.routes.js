@@ -7,6 +7,7 @@ import {
   obtenerPacienteDetalle,
   subirFoto,
   obtenerFoto,
+  actualizarPaciente,
 } from "../paciente/paciente.controller.js";
 
 const router = Router();
@@ -16,6 +17,7 @@ router.get("/credencial/:pacienteId", obtenerPacienteCredencial);
 router.get("/detalle/:id", obtenerPacienteDetalle);
 router.get("/:id/foto", obtenerFoto);
 router.post("/upload/:id", upload.single("foto"), subirFoto);
+router.put("/:id", upload.single("foto"), actualizarPaciente);
 router.get("/:id", obtenerPacientePorId);
 
 export default router;

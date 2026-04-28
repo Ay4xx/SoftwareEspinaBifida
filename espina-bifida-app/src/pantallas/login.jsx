@@ -35,9 +35,22 @@ const Login = () => {
 
       const data = await response.json();
 
+      console.log("LOGIN RESPONSE:", data);
+
       if (data.ok) {
+        localStorage.setItem("token", data.token);
         localStorage.setItem("usuario", JSON.stringify(data.data));
-        navigate("/usuarios");
+        localStorage.removeItem("guest");
+
+        const tipoUsuario = data.data?.tipoUsuario?.trim().toUpperCase();
+
+        console.log("TIPO USUARIO:", tipoUsuario);
+
+        if (tipoUsuario === "ADMINISTRADOR") {
+          navigate("/usuarios");
+        } else if (tipoUsuario === "COORDINADOR") {
+          navigate("/usuarios");
+        }
       } else {
         setErrorMessage(data.message || "Credenciales incorrectas");
       }
@@ -50,7 +63,10 @@ const Login = () => {
   };
 
   const handleGuestLogin = () => {
-    navigate("/usuarios");
+    localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
+    localStorage.setItem("guest", "true");
+    navigate("/registro");
   };
 
   return (
