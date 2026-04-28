@@ -25,6 +25,7 @@ export async function getNotificaciones(estado = null) {
       FROM NOTIFICACION n
       INNER JOIN PACIENTE p ON n.paciente_id = p.paciente_id
       WHERE (:estado IS NULL OR LOWER(n.estado_proceso) = LOWER(:estado))
+        AND LOWER(n.estado_proceso) != 'aprobado'
       ORDER BY n.fecha_creacion DESC
     `;
     const result = await conn.execute(
@@ -164,6 +165,26 @@ export async function rechazarNotificacion(notificacionId, usuarioId) {
     return result.rowsAffected > 0;
   } catch (error) {
     console.error("Error en rechazarNotificacion:", error);
+    throw error;
+  } finally {
+    if (conn) await conn.close();
+  }
+}
+
+export async function eliminarNotificacionesAntiguas() {
+  let conn;
+  try {
+    conn = await getConnection();
+    const result = await conn.execute(
+      `DELETE FROM NOTIFICACION
+      WHERE TRUNC(fecha_creacion) <= TRUNC(SYSDATE) - 14`,
+      {},
+      { autoCommit: true }
+    );
+    console.log(`[Limpieza] Eliminadas ${result.rowsAffected} notificaciones antiguas`);
+    return result.rowsAffected;
+  } catch (error) {
+    console.error("Error en eliminarNotificacionesAntiguas:", error);
     throw error;
   } finally {
     if (conn) await conn.close();
