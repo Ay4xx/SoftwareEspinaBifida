@@ -157,3 +157,21 @@
   cursor: pointer;
   color: #6b7280;
 }
+
+.btn-editar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  color: #888;
+  transition: color 0.2s, background 0.2s;
+}
+
+.btn-editar:hover {
+  color: #f59e0b;
+  background: #fef3c7;
+}

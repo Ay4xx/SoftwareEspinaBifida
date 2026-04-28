@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 
+
 import pacienteRoutes from "./modulos/paciente/paciente.routes.js";
 import registroRoutes from "./modulos/registro/registro.routes.js";
 import medicoRouter from "./modulos/fiorella/medico.route.js";

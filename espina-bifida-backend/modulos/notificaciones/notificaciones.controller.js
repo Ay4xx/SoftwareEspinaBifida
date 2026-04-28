@@ -4,6 +4,7 @@ import {
   rechazarNotificacion,
   getNotificacionById,
 } from "./notificaciones.service.js";
+import { enviarCorreoAprobacion, enviarCorreoRechazo } from "../email/email.service.js";
 
 export async function listarNotificaciones(req, res) {
   try {
@@ -20,10 +21,27 @@ export async function aprobarNotificacionController(req, res) {
   try {
     const { id } = req.params;
     const { usuarioId } = req.body;
+
+    // 1. Primero aprobar (operación crítica)
     const actualizado = await aprobarNotificacion(id, usuarioId);
     if (!actualizado) {
       return res.status(404).json({ ok: false, message: "Notificación no encontrada o ya fue resuelta" });
     }
+
+    // 2. Luego intentar enviar correo (no crítico, no interrumpe el flujo)
+    try {
+      const notificacion = await getNotificacionById(id);
+      if (notificacion?.EMAIL) {
+        await enviarCorreoAprobacion({
+          nombre:   notificacion.NOMBRE   || "",
+          apellido: notificacion.APELLIDO || "",
+          correo:   notificacion.EMAIL,
+        });
+      }
+    } catch (mailErr) {
+      console.error("Error al enviar correo de aprobación:", mailErr);
+    }
+
     res.json({ ok: true, message: "Notificación aprobada correctamente" });
   } catch (error) {
     console.error(error);
@@ -35,10 +53,27 @@ export async function rechazarNotificacionController(req, res) {
   try {
     const { id } = req.params;
     const { usuarioId } = req.body;
+
+    // 1. Primero rechazar (operación crítica)
     const actualizado = await rechazarNotificacion(id, usuarioId);
     if (!actualizado) {
       return res.status(404).json({ ok: false, message: "Notificación no encontrada o ya fue resuelta" });
     }
+
+    // 2. Luego intentar enviar correo (no crítico, no interrumpe el flujo)
+    try {
+      const notificacion = await getNotificacionById(id);
+      if (notificacion?.EMAIL) {
+        await enviarCorreoRechazo({
+          nombre:   notificacion.NOMBRE   || "",
+          apellido: notificacion.APELLIDO || "",
+          correo:   notificacion.EMAIL,
+        });
+      }
+    } catch (mailErr) {
+      console.error("Error al enviar correo de rechazo:", mailErr);
+    }
+
     res.json({ ok: true, message: "Notificación rechazada correctamente" });
   } catch (error) {
     console.error(error);

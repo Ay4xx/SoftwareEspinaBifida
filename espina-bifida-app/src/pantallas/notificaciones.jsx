@@ -21,7 +21,7 @@ function NotificacionesPage() {
       setNotificaciones((prev) =>
         prev.map((n) => ({ ...n, tiempo: formatearTiempo(n.fechaCreacionRaw) }))
       );
-    }, 60000);
+    }, 10000);
     return () => clearInterval(intervalo);
   }, []);
 
@@ -32,18 +32,24 @@ function NotificacionesPage() {
       const response = await fetch(API_URL);
       const result = await response.json();
       if (!response.ok || !result.ok) throw new Error(result.message || "No se pudieron cargar las notificaciones");
-      const dataMapeada = (result.data || []).map((item) => ({
-        id: item.id,
-        nombre: `${item.paciente?.nombre || ""} ${item.paciente?.apellido || ""}`.trim() || "Sin nombre",
-        curp: item.paciente?.curp || "",
-        ciudad: item.paciente?.ubicacion || "",
-        telefono: item.paciente?.telefono || "",
-        foto: item.paciente?.foto || null,
-        estado: (item.estado || "pendiente").toLowerCase(),
-        tiempo: formatearTiempo(item.fechaCreacion),
-        fechaCreacionRaw: item.fechaCreacion,
-        leida: (item.estado || "pendiente").toLowerCase() !== "pendiente",
-      }));
+      const dataMapeada = (result.data || [])
+        .map((item) => ({
+          id: item.id,
+          nombre: `${item.paciente?.nombre || ""} ${item.paciente?.apellido || ""}`.trim() || "Sin nombre",
+          curp: item.paciente?.curp || "",
+          ciudad: item.paciente?.ubicacion || "",
+          telefono: item.paciente?.telefono || "",
+          foto: item.paciente?.foto || null,
+          estado: (item.estado || "pendiente").toLowerCase(),
+          tiempo: formatearTiempo(item.fechaCreacion),
+          fechaCreacionRaw: item.fechaCreacion,
+          leida: (item.estado || "pendiente").toLowerCase() !== "pendiente",
+        }))
+        .sort((a, b) => {
+          const fa = parseFechaBackend(a.fechaCreacionRaw);
+          const fb = parseFechaBackend(b.fechaCreacionRaw);
+          return fb - fa;
+        });
       setNotificaciones(dataMapeada);
       const count = dataMapeada.filter((n) => n.estado === "pendiente").length;
       setPendientesCount(count);
@@ -64,11 +70,9 @@ function NotificacionesPage() {
     const diffMin = Math.floor(diffMs / 60000);
     const diffHoras = Math.floor(diffMs / 3600000);
     const diffDias = Math.floor(diffMs / 86400000);
-    if (diffMin < 1) return "Hace un momento";
-    if (diffMin < 60) return `Hace ${diffMin} min`;
+    if (diffMin < 60)  return `Hace ${diffMin} minuto${diffMin !== 1 ? "s" : ""}`;
     if (diffHoras < 24) return `Hace ${diffHoras} hora${diffHoras > 1 ? "s" : ""}`;
-    if (diffDias === 1) return "Ayer";
-    if (diffDias < 7) return `Hace ${diffDias} días`;
+    if (diffDias < 7)   return `Hace ${diffDias} día${diffDias > 1 ? "s" : ""}`;
     return fecha.toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" });
   }
 
@@ -77,7 +81,8 @@ function NotificacionesPage() {
     const match = /^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}))?$/.exec(fechaTexto);
     if (!match) return null;
     const [, dd, mm, yyyy, hh = "00", mi = "00"] = match;
-    return new Date(Number(yyyy), Number(mm) - 1, Number(dd), Number(hh), Number(mi));
+    const utc = Date.UTC(Number(yyyy), Number(mm) - 1, Number(dd), Number(hh), Number(mi));
+    return new Date(utc);
   }
 
   const pendientesCount = useMemo(() => {
@@ -120,6 +125,7 @@ function NotificacionesPage() {
 
   function TarjetaNotificacion({ item }) {
     const handleClick = () => {
+      if (item.estado === "aprobado") return;
       navigate("/registro", { state: { notificacionId: item.id, modoRevision: true } });
     };
 
@@ -187,7 +193,7 @@ function NotificacionesPage() {
             Pendientes <span>{notificaciones.filter((n) => n.estado === "pendiente").length}</span>
           </button>
           <button className={filtro === "resueltas" ? "activo" : ""} onClick={() => setFiltro("resueltas")}>
-            Resueltas <span>{notificaciones.filter((n) => n.estado !== "pendiente").length}</span>
+            Rechazadas <span>{notificaciones.filter((n) => n.estado !== "pendiente").length}</span>
           </button>
         </div>
 
