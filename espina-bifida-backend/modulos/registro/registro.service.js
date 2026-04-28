@@ -24,10 +24,10 @@ export async function crearPacientePaso1({ nombre, apellido, genero, fechaNacimi
     conn = await getConnection();
 
     const check = await conn.execute(
-      `SELECT COUNT(*) AS TOTAL FROM PACIENTE WHERE CURP = :curp`,
+      `SELECT COUNT(*) FROM PACIENTE WHERE CURP = :curp`,
       { curp }
     );
-    if (Number(check.rows[0][0]) > 0) {
+    if (check.rows[0][0] > 0) {
       throw Object.assign(
         new Error("Ya existe un paciente registrado con ese CURP."),
         { code: "CURP_DUPLICADO" }

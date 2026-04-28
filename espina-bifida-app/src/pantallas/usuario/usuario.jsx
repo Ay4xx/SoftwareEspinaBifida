@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Search } from "lucide-react";
+import { useLocation } from "react-router-dom";
 import PatientCard from "../../componentes/patientCard/patientCard";
 import "./usuario.css";
 
 function UsuariosPage() {
+  const location = useLocation();
   const [patients, setPatients] = useState([]);
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("todos");
@@ -24,7 +26,7 @@ function UsuariosPage() {
     };
 
     fetchPatients();
-  }, [search]);
+  }, [search, location.key]); // 👈 se re-ejecuta cada vez que navegas a esta página
 
   const filteredPatients = patients.filter((p) => {
     if (tab === "activos") return p.status === "Activo";

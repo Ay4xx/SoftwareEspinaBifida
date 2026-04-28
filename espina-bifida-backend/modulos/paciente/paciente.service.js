@@ -25,8 +25,8 @@ export async function getPacienteCards(search = "") {
         FROM EVENTO_VISITA
         GROUP BY paciente_id
       ) ev ON p.paciente_id = ev.paciente_id
-      INNER JOIN NOTIFICACION n ON p.paciente_id = n.paciente_id
-      WHERE n.estado_proceso = 'aprobado'
+      LEFT JOIN NOTIFICACION n ON p.paciente_id = n.paciente_id
+      WHERE (n.estado_proceso = 'aprobado' OR n.notificacion_id IS NULL)
         AND (
           :search IS NULL
           OR LOWER(p.nombre) LIKE '%' || LOWER(:search) || '%'
@@ -269,6 +269,57 @@ export async function updatePaciente(pacienteId, datos = {}, archivo = null) {
     );
   } catch (error) {
     console.error("Error en updatePaciente:", error);
+    throw error;
+  } finally {
+    if (conn) await conn.close();
+  }
+}
+
+export async function getPacienteCompleto(id) {
+  let conn;
+  try {
+    conn = await getConnection();
+    const result = await conn.execute(
+      `SELECT
+        p.PACIENTE_ID, p.NOMBRE, p.APELLIDO, p.CURP, p.GENERO,
+        TO_CHAR(p.FECHA_NACIMIENTO, 'YYYY-MM-DD') AS FECHA_NACIMIENTO,
+        p.DIRECCION, p.CIUDAD_RESIDENCIA, p.ESTADO_RESIDENCIA, p.CODIGO_POSTAL,
+        p.TELEFONO_CASA, p.TELEFONO_CELULAR, p.EMAIL,
+        p.EMERGENCIA_CONTACTO, p.EMERGENCIA_TELEFONO,
+        p.LUGAR_NACIMIENTO, p.HOSPITAL_NACIMIENTO,
+        p.SANGRE_TIPO, p.VALVULA, p.NOTAS_ADICIONALES
+      FROM PACIENTE p
+      WHERE p.PACIENTE_ID = :id`,
+      { id: Number(id) },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    if (!result.rows || result.rows.length === 0) return null;
+    const p = result.rows[0];
+    return {
+      PACIENTE_ID:         p.PACIENTE_ID,
+      NOMBRE:              p.NOMBRE,
+      APELLIDO:            p.APELLIDO,
+      CURP:                p.CURP,
+      GENERO:              p.GENERO,
+      FECHA_NACIMIENTO:    p.FECHA_NACIMIENTO,
+      DIRECCION:           p.DIRECCION,
+      CIUDAD_RESIDENCIA:   p.CIUDAD_RESIDENCIA,
+      ESTADO_RESIDENCIA:   p.ESTADO_RESIDENCIA,
+      CODIGO_POSTAL:       p.CODIGO_POSTAL,
+      TELEFONO_CASA:       p.TELEFONO_CASA,
+      TELEFONO_CELULAR:    p.TELEFONO_CELULAR,
+      EMAIL:               p.EMAIL,
+      EMERGENCIA_CONTACTO: p.EMERGENCIA_CONTACTO,
+      EMERGENCIA_TELEFONO: p.EMERGENCIA_TELEFONO,
+      LUGAR_NACIMIENTO:    p.LUGAR_NACIMIENTO,
+      HOSPITAL_NACIMIENTO: p.HOSPITAL_NACIMIENTO,
+      SANGRE_TIPO:         p.SANGRE_TIPO,
+      VALVULA:             p.VALVULA,
+      NOTAS_ADICIONALES:   p.NOTAS_ADICIONALES,
+      FOTO:                `/api/pacientes/${p.PACIENTE_ID}/foto`,
+    };
+  } catch (error) {
+    console.error("Error en getPacienteCompleto:", error);
     throw error;
   } finally {
     if (conn) await conn.close();

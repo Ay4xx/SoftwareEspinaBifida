@@ -3,6 +3,7 @@ import {
   getPacienteDetail,
   getPacienteCredencial,
   getPacienteDetalle,
+  getPacienteCompleto,
   guardarFoto,
   obtenerFoto as obtenerFotoService,
   updatePaciente,
@@ -22,7 +23,7 @@ export async function listarPacienteCards(req, res) {
 export async function obtenerPacientePorId(req, res) {
   try {
     const { id } = req.params;
-    const paciente = await getPacienteDetail(id);
+    const paciente = await getPacienteCompleto(id);
     if (!paciente) return res.status(404).json({ ok: false, message: "Paciente no encontrado" });
     res.json({ ok: true, data: paciente });
   } catch (error) {

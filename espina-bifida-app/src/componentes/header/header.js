@@ -33,9 +33,9 @@ function Header() {
       case "/estadisticas":
         return "Módulo de Estadísticas";
       case "/registro":
-        return modoRevision ? "Volver a notificaciones" : "Módulo de Registro";
+        return modoRevision ? "Volver a solicitudes" : "Módulo de Registro";
       case "/notificaciones":
-        return "Notificaciones";
+        return "Solicitudes";
       default:
         return "Sistema";
     }

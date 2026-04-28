@@ -21,7 +21,6 @@ export async function crearPacientePaso1(formData) {
 
   const data = await response.json();
 
-  // ✅ CURP duplicado
   if (response.status === 409) {
     const err = new Error(data.message || "Ya existe un paciente registrado con ese CURP.");
     err.code = "CURP_DUPLICADO";
@@ -33,6 +32,9 @@ export async function crearPacientePaso1(formData) {
 }
 
 export async function actualizarPaso2(pacienteId, formData) {
+  const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
+  const esInvitado = localStorage.getItem("guest") === "true";
+
   const body = {
     direccion:           formData.direccion,
     ciudad:              formData.ciudad,
@@ -43,7 +45,12 @@ export async function actualizarPaso2(pacienteId, formData) {
     telefonoCasa:        formData.telefonoCasa,
     telefonoCelular:     formData.telefonoCelular,
     correo:              formData.correo,
+    // Para saber si mandar correo de pre-registro o no
+    usuarioId:           esInvitado ? null : usuario?.id,
+    nombre:              formData.nombres,
+    apellido:            formData.apellidoPaterno,
   };
+
   const response = await fetch(`${API_URL}/${pacienteId}/paso2`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -94,9 +101,18 @@ export async function actualizarPaso4(pacienteId, formData) {
   return data;
 }
 
-export async function actualizarPaso5(pacienteId, foto) {
+export async function actualizarPaso5(pacienteId, foto, formData) {
+  const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
+  const esInvitado = localStorage.getItem("guest") === "true";
+
   const body = new FormData();
   body.append("foto", foto);
+  // Para saber si mandar correo de alta manual o no
+  body.append("usuarioId", esInvitado ? "" : usuario?.id || "");
+  body.append("nombre",    formData?.nombres          || "");
+  body.append("apellido",  formData?.apellidoPaterno  || "");
+  body.append("correo",    formData?.correo           || "");
+
   const response = await fetch(`${API_URL}/${pacienteId}/paso5`, {
     method: "PUT",
     body,
