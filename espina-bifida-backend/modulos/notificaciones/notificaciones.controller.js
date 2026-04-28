@@ -3,6 +3,7 @@ import {
   aprobarNotificacion,
   rechazarNotificacion,
   getNotificacionById,
+  eliminarNotificacionesAntiguas,
 } from "./notificaciones.service.js";
 import { enviarCorreoAprobacion, enviarCorreoRechazo } from "../email/email.service.js";
 
@@ -103,5 +104,15 @@ export async function getNotificacionByIdController(req, res) {
   } catch (error) {
     console.error(error);
     res.status(500).json({ ok: false, message: "Error al obtener la notificación" });
+  }
+}
+
+export async function limpiarNotificacionesAntiguasController(req, res) {
+  try {
+    const eliminadas = await eliminarNotificacionesAntiguas();
+    res.json({ ok: true, eliminadas });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ ok: false, message: "Error al limpiar notificaciones antiguas" });
   }
 }
