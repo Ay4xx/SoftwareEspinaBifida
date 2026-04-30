@@ -23,13 +23,13 @@ export async function aprobarNotificacionController(req, res) {
     const { id } = req.params;
     const { usuarioId } = req.body;
 
-    // 1. Primero aprobar (operación crítica)
+    
     const actualizado = await aprobarNotificacion(id, usuarioId);
     if (!actualizado) {
       return res.status(404).json({ ok: false, message: "Notificación no encontrada o ya fue resuelta" });
     }
 
-    // 2. Luego intentar enviar correo (no crítico, no interrumpe el flujo)
+    
     try {
       const notificacion = await getNotificacionById(id);
       if (notificacion?.EMAIL) {
@@ -55,13 +55,13 @@ export async function rechazarNotificacionController(req, res) {
     const { id } = req.params;
     const { usuarioId } = req.body;
 
-    // 1. Primero rechazar (operación crítica)
+    
     const actualizado = await rechazarNotificacion(id, usuarioId);
     if (!actualizado) {
       return res.status(404).json({ ok: false, message: "Notificación no encontrada o ya fue resuelta" });
     }
 
-    // 2. Luego intentar enviar correo (no crítico, no interrumpe el flujo)
+    
     try {
       const notificacion = await getNotificacionById(id);
       if (notificacion?.EMAIL) {

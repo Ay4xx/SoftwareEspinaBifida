@@ -11,9 +11,9 @@ export function iniciarJobLimpieza() {
   // Repetir cada 24 horas
   setInterval(() => {
     eliminarNotificacionesAntiguas().catch((err) =>
-      console.error("[Job] Error en limpieza periódica:", err)
+      console.error("Error en limpieza periódica:", err)
     );
   }, UN_DIA_MS);
 
-  console.log("[Job] Limpieza automática de notificaciones iniciada");
+  console.log("Limpieza automática de notificaciones iniciada");
 }
