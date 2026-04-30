@@ -325,3 +325,80 @@ export async function getPacienteCompleto(id) {
     if (conn) await conn.close();
   }
 }
+
+export async function updateHistorialMadre(pacienteId, datos = {}) {
+  let conn;
+  try {
+    conn = await getConnection();
+    const parentesco = datos.tutorParentesco === "Sí" ? "S" : datos.tutorParentesco === "No" ? "N" : null;
+    const acidoFolico = datos.acidoFolico === "Sí" ? "S" : datos.acidoFolico === "No" ? "N" : null;
+
+    const check = await conn.execute(
+      `SELECT COUNT(*) AS total FROM HISTORIAL_MADRE WHERE paciente_id = :pacienteId`,
+      { pacienteId: Number(pacienteId) },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+
+    const existe = check.rows[0].TOTAL > 0;
+
+    if (existe) {
+      await conn.execute(
+        `UPDATE HISTORIAL_MADRE SET
+          LUGAR_NACIMIENTO = :lugarNacimiento,
+          EDAD             = :edad,
+          OCUPACION        = :ocupacion,
+          ESCOLARIDAD      = :escolaridad,
+          PARENTESCO       = :parentesco,
+          SEGURO_MEDICO    = :seguroMedico,
+          CD_EMBARAZO      = :cdEmbarazo,
+          ACIDO_FOLICO     = :acidoFolico,
+          CITAS_CONTROL    = :citasControl
+        WHERE PACIENTE_ID = :pacienteId`,
+        {
+          lugarNacimiento: datos.tutorLugarNacimiento || null,
+          edad:            Number(datos.tutorEdad)    || null,
+          ocupacion:       datos.tutorOcupacion       || null,
+          escolaridad:     datos.tutorEscolaridad     || null,
+          parentesco,
+          seguroMedico:    datos.madreSeguroMedico    || null,
+          cdEmbarazo:      datos.cdEmbarazo           || null,
+          acidoFolico,
+          citasControl:    Number(datos.citasControl) || null,
+          pacienteId:      Number(pacienteId),
+        },
+        { autoCommit: true }
+      );
+    } else {
+      await conn.execute(
+        `INSERT INTO HISTORIAL_MADRE (
+          MADRE_ID, PACIENTE_ID,
+          LUGAR_NACIMIENTO, ESCOLARIDAD, OCUPACION, EDAD, PARENTESCO,
+          SEGURO_MEDICO, CD_EMBARAZO, ACIDO_FOLICO, CITAS_CONTROL
+        ) VALUES (
+          (SELECT NVL(MAX(MADRE_ID), 0) + 1 FROM HISTORIAL_MADRE),
+          :pacienteId,
+          :lugarNacimiento, :escolaridad, :ocupacion, :edad, :parentesco,
+          :seguroMedico, :cdEmbarazo, :acidoFolico, :citasControl
+        )`,
+        {
+          pacienteId:      Number(pacienteId),
+          lugarNacimiento: datos.tutorLugarNacimiento || 'N/A',
+          escolaridad:     datos.tutorEscolaridad     || 'N/A',
+          ocupacion:       datos.tutorOcupacion       || 'N/A',
+          edad:            Number(datos.tutorEdad)    || 0,
+          parentesco:      parentesco                 || 'N',
+          seguroMedico:    datos.madreSeguroMedico    || 'N/A',
+          cdEmbarazo:      datos.cdEmbarazo           || 'N/A',
+          acidoFolico:     acidoFolico                || 'N',
+          citasControl:    Number(datos.citasControl) || 0,
+        },
+        { autoCommit: true }
+      );
+    }
+  } catch (error) {
+    console.error("Error en updateHistorialMadre:", error);
+    throw error;
+  } finally {
+    if (conn) await conn.close();
+  }
+}

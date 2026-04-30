@@ -72,9 +72,19 @@ export async function getNotificacionById(notificacionId) {
         p.valvula,
         p.etapa_vida,
         p.notas_adicionales,
-        p.fotografia
+        p.fotografia,
+        m.lugar_nacimiento   AS tutor_lugar_nacimiento,
+        m.edad               AS tutor_edad,
+        m.ocupacion          AS tutor_ocupacion,
+        m.escolaridad        AS tutor_escolaridad,
+        m.parentesco         AS tutor_parentesco,
+        m.seguro_medico      AS madre_seguro_medico,
+        m.cd_embarazo        AS cd_embarazo,
+        m.acido_folico       AS acido_folico,
+        m.citas_control      AS citas_control
       FROM NOTIFICACION n
       INNER JOIN PACIENTE p ON n.paciente_id = p.paciente_id
+      LEFT JOIN HISTORIAL_MADRE m ON m.paciente_id = p.paciente_id  
       WHERE n.notificacion_id = :notificacionId
     `;
     const result = await conn.execute(
@@ -124,6 +134,15 @@ export async function getNotificacionById(notificacionId) {
       ETAPA_VIDA:          row.ETAPA_VIDA           ?? null,
       NOTAS_ADICIONALES:   row.NOTAS_ADICIONALES    ?? null,
       FOTO:                fotoBase64,
+      TUTOR_LUGAR_NACIMIENTO: row.TUTOR_LUGAR_NACIMIENTO ?? null,
+      TUTOR_EDAD:             row.TUTOR_EDAD             ?? null,
+      TUTOR_OCUPACION:        row.TUTOR_OCUPACION        ?? null,
+      TUTOR_ESCOLARIDAD:      row.TUTOR_ESCOLARIDAD      ?? null,
+      TUTOR_PARENTESCO:       row.TUTOR_PARENTESCO       ?? null,
+      MADRE_SEGURO_MEDICO:    row.MADRE_SEGURO_MEDICO    ?? null,
+      CD_EMBARAZO:            row.CD_EMBARAZO            ?? null,
+      ACIDO_FOLICO:           row.ACIDO_FOLICO            ?? null,
+      CITAS_CONTROL:          row.CITAS_CONTROL           ?? null,
     };
   } catch (error) {
     console.error("Error en getNotificacionById:", error);
@@ -175,14 +194,35 @@ export async function eliminarNotificacionesAntiguas() {
   let conn;
   try {
     conn = await getConnection();
-    const result = await conn.execute(
-      `DELETE FROM NOTIFICACION
-      WHERE TRUNC(fecha_creacion) <= TRUNC(SYSDATE) - 14`,
+
+    const pacientes = await conn.execute(
+      `SELECT DISTINCT paciente_id FROM NOTIFICACION
+      WHERE TRUNC(fecha_creacion) <= TRUNC(SYSDATE) - 14
+      AND LOWER(estado_proceso) != 'aprobado'`,
       {},
-      { autoCommit: true }
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
-    console.log(`[Limpieza] Eliminadas ${result.rowsAffected} notificaciones antiguas`);
-    return result.rowsAffected;
+
+    const ids = pacientes.rows.map((r) => r.PACIENTE_ID);
+
+    if (ids.length === 0) {
+      console.log("No hay notificaciones antiguas que eliminar");
+      return 0;
+    }
+
+    const placeholders = ids.map((_, i) => `:id${i}`).join(",");
+    const binds = Object.fromEntries(ids.map((id, i) => [`id${i}`, id]));
+
+    await conn.execute(`DELETE FROM NOTIFICACION WHERE paciente_id IN (${placeholders})`, binds, { autoCommit: true });
+    await conn.execute(`DELETE FROM PACIENTE_PADECIMIENTO WHERE paciente_id IN (${placeholders})`, binds, { autoCommit: true });
+    await conn.execute(`DELETE FROM HISTORIAL_MADRE WHERE paciente_id IN (${placeholders})`, binds, { autoCommit: true });
+    await conn.execute(`DELETE FROM HISTORIAL_PADRE WHERE paciente_id IN (${placeholders})`, binds, { autoCommit: true });
+    await conn.execute(`DELETE FROM EVENTO_VISITA WHERE paciente_id IN (${placeholders})`, binds, { autoCommit: true });
+    await conn.execute(`DELETE FROM MEMBRESIA WHERE paciente_id IN (${placeholders})`, binds, { autoCommit: true });
+    await conn.execute(`DELETE FROM PACIENTE WHERE paciente_id IN (${placeholders})`, binds, { autoCommit: true });
+
+    console.log(`[Limpieza] Eliminados ${ids.length} pacientes y sus notificaciones antiguas`);
+    return ids.length;
   } catch (error) {
     console.error("Error en eliminarNotificacionesAntiguas:", error);
     throw error;

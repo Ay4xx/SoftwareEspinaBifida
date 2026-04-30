@@ -74,6 +74,7 @@ function RegistroPage() {
 
   const esInvitado = localStorage.getItem("guest") === "true";
 
+  // Carga datos desde notificación (modo revisión por notificacionId)
   useEffect(() => {
     if (!modoRevision || !notificacionId) return;
 
@@ -89,32 +90,42 @@ function RegistroPage() {
 
         setFormData((prev) => ({
           ...prev,
-          nombres: p.NOMBRE || "",
-          apellidoPaterno: p.APELLIDO || "",
-          curp: p.CURP || "",
-          genero: p.GENERO || "",
-          fechaNacimiento: p.FECHA_NACIMIENTO || "",
-          direccion: p.DIRECCION || "",
-          ciudad: p.CIUDAD_RESIDENCIA || "",
-          estado: p.ESTADO_RESIDENCIA || "",
-          codigoPostal: p.CODIGO_POSTAL || "",
-          telefonoCasa: p.TELEFONO_CASA || "",
-          telefonoCelular: p.TELEFONO_CELULAR || "",
-          correo: p.EMAIL || "",
-          emergenciaContacto: p.EMERGENCIA_CONTACTO || "",
-          emergenciaTelefono: p.EMERGENCIA_TELEFONO || "",
-          lugarNacimiento: p.LUGAR_NACIMIENTO || "",
-          hospitalNacimiento: p.HOSPITAL_NACIMIENTO || "",
-          tipoSangre: p.SANGRE_TIPO || "",
-          usaValvula:
-            p.VALVULA === "SI" ? "Sí" : p.VALVULA === "NO" ? "No" : "",
-          notas: p.NOTAS_ADICIONALES || "",
-          foto: p.FOTO || null,
+          nombres:             p.NOMBRE               || "",
+          apellidoPaterno:     p.APELLIDO             || "",
+          curp:                p.CURP                 || "",
+          genero:              p.GENERO               || "",
+          fechaNacimiento:     p.FECHA_NACIMIENTO     || "",
+          direccion:           p.DIRECCION            || "",
+          ciudad:              p.CIUDAD_RESIDENCIA    || "",
+          estado:              p.ESTADO_RESIDENCIA    || "",
+          codigoPostal:        p.CODIGO_POSTAL        || "",
+          telefonoCasa:        p.TELEFONO_CASA        || "",
+          telefonoCelular:     p.TELEFONO_CELULAR     || "",
+          correo:              p.EMAIL                || "",
+          emergenciaContacto:  p.EMERGENCIA_CONTACTO  || "",
+          emergenciaTelefono:  p.EMERGENCIA_TELEFONO  || "",
+          lugarNacimiento:     p.LUGAR_NACIMIENTO     || "",
+          hospitalNacimiento:  p.HOSPITAL_NACIMIENTO  || "",
+          tipoSangre:          p.SANGRE_TIPO          || "",
+          usaValvula:          p.VALVULA === "SI" ? "Sí" : p.VALVULA === "NO" ? "No" : "",
+          notas:               p.NOTAS_ADICIONALES    || "",
+          foto:                p.FOTO                 || null,
+          // Paso 4 — historial tutor/madre
+          tutorLugarNacimiento: p.TUTOR_LUGAR_NACIMIENTO || "",
+          tutorEdad:            String(p.TUTOR_EDAD || ""),
+          tutorOcupacion:       p.TUTOR_OCUPACION        || "",
+          tutorEscolaridad:     p.TUTOR_ESCOLARIDAD      || "",
+          tutorParentesco:      p.TUTOR_PARENTESCO === "S" ? "Sí" : p.TUTOR_PARENTESCO === "N" ? "No" : "",
+          madreSeguroMedico:    p.MADRE_SEGURO_MEDICO    || "",
+          cdEmbarazo:           p.CD_EMBARAZO            || "",
+          acidoFolico:          p.ACIDO_FOLICO === "S" ? "Sí" : p.ACIDO_FOLICO === "N" ? "No" : "",
+          citasControl:         String(p.CITAS_CONTROL || ""),
         }));
       })
       .catch((err) => console.error("Error cargando notificación:", err));
   }, [notificacionId, modoRevision]);
 
+  // Carga datos desde paciente directo (modo revisión por pacienteId)
   useEffect(() => {
     if (!modoRevision || !pacienteIdFromState) return;
 
@@ -130,27 +141,36 @@ function RegistroPage() {
 
         setFormData((prev) => ({
           ...prev,
-          nombres: p.NOMBRE || "",
-          apellidoPaterno: p.APELLIDO || "",
-          curp: p.CURP || "",
-          genero: p.GENERO || "",
-          fechaNacimiento: p.FECHA_NACIMIENTO || "",
-          direccion: p.DIRECCION || "",
-          ciudad: p.CIUDAD_RESIDENCIA || "",
-          estado: p.ESTADO_RESIDENCIA || "",
-          codigoPostal: p.CODIGO_POSTAL || "",
-          telefonoCasa: p.TELEFONO_CASA || "",
-          telefonoCelular: p.TELEFONO_CELULAR || "",
-          correo: p.EMAIL || "",
-          emergenciaContacto: p.EMERGENCIA_CONTACTO || "",
-          emergenciaTelefono: p.EMERGENCIA_TELEFONO || "",
-          lugarNacimiento: p.LUGAR_NACIMIENTO || "",
-          hospitalNacimiento: p.HOSPITAL_NACIMIENTO || "",
-          tipoSangre: p.SANGRE_TIPO || "",
-          usaValvula:
-            p.VALVULA === "SI" ? "Sí" : p.VALVULA === "NO" ? "No" : "",
-          notas: p.NOTAS_ADICIONALES || "",
-          foto: p.FOTO ? `http://localhost:3001${p.FOTO}` : null,
+          nombres:             p.NOMBRE               || "",
+          apellidoPaterno:     p.APELLIDO             || "",
+          curp:                p.CURP                 || "",
+          genero:              p.GENERO               || "",
+          fechaNacimiento:     p.FECHA_NACIMIENTO     || "",
+          direccion:           p.DIRECCION            || "",
+          ciudad:              p.CIUDAD_RESIDENCIA    || "",
+          estado:              p.ESTADO_RESIDENCIA    || "",
+          codigoPostal:        p.CODIGO_POSTAL        || "",
+          telefonoCasa:        p.TELEFONO_CASA        || "",
+          telefonoCelular:     p.TELEFONO_CELULAR     || "",
+          correo:              p.EMAIL                || "",
+          emergenciaContacto:  p.EMERGENCIA_CONTACTO  || "",
+          emergenciaTelefono:  p.EMERGENCIA_TELEFONO  || "",
+          lugarNacimiento:     p.LUGAR_NACIMIENTO     || "",
+          hospitalNacimiento:  p.HOSPITAL_NACIMIENTO  || "",
+          tipoSangre:          p.SANGRE_TIPO          || "",
+          usaValvula:          p.VALVULA === "SI" ? "Sí" : p.VALVULA === "NO" ? "No" : "",
+          notas:               p.NOTAS_ADICIONALES    || "",
+          foto:                p.FOTO ? `http://localhost:3001${p.FOTO}` : null,
+          // Paso 4 — historial tutor/madre
+          tutorLugarNacimiento: p.TUTOR_LUGAR_NACIMIENTO || "",
+          tutorEdad:            String(p.TUTOR_EDAD || ""),
+          tutorOcupacion:       p.TUTOR_OCUPACION        || "",
+          tutorEscolaridad:     p.TUTOR_ESCOLARIDAD      || "",
+          tutorParentesco:      p.TUTOR_PARENTESCO === "S" ? "Sí" : p.TUTOR_PARENTESCO === "N" ? "No" : "",
+          madreSeguroMedico:    p.MADRE_SEGURO_MEDICO    || "",
+          cdEmbarazo:           p.CD_EMBARAZO            || "",
+          acidoFolico:          p.ACIDO_FOLICO === "S" ? "Sí" : p.ACIDO_FOLICO === "N" ? "No" : "",
+          citasControl:         String(p.CITAS_CONTROL || ""),
         }));
       })
       .catch((err) => console.error("Error cargando paciente:", err));
@@ -158,7 +178,6 @@ function RegistroPage() {
 
   const handleChange = (nuevosDatos) => {
     setFormData((prev) => ({ ...prev, ...nuevosDatos }));
-
     if (nuevosDatos.curp !== undefined) {
       setErrorPaso(null);
     }
@@ -168,25 +187,34 @@ function RegistroPage() {
     try {
       const form = new FormData();
 
-      form.append("nombre", formData.nombres || "");
-      form.append("apellido", formData.apellidoPaterno || "");
-      form.append("genero", formData.genero || "");
-      form.append("fechaNacimiento", formData.fechaNacimiento || "");
-      form.append("curp", formData.curp || "");
-      form.append("direccion", formData.direccion || "");
-      form.append("ciudad", formData.ciudad || "");
-      form.append("estado", formData.estado || "");
-      form.append("codigoPostal", formData.codigoPostal || "");
-      form.append("telefonoCasa", formData.telefonoCasa || "");
-      form.append("telefonoCelular", formData.telefonoCelular || "");
-      form.append("correo", formData.correo || "");
-      form.append("emergenciaContacto", formData.emergenciaContacto || "");
-      form.append("emergenciaTelefono", formData.emergenciaTelefono || "");
-      form.append("lugarNacimiento", formData.lugarNacimiento || "");
-      form.append("hospitalNacimiento", formData.hospitalNacimiento || "");
-      form.append("tipoSangre", formData.tipoSangre || "");
-      form.append("usaValvula", formData.usaValvula || "");
-      form.append("notas", formData.notas || "");
+      form.append("nombre",              formData.nombres              || "");
+      form.append("apellido",            formData.apellidoPaterno      || "");
+      form.append("genero",              formData.genero               || "");
+      form.append("fechaNacimiento",     formData.fechaNacimiento      || "");
+      form.append("curp",                formData.curp                 || "");
+      form.append("direccion",           formData.direccion            || "");
+      form.append("ciudad",              formData.ciudad               || "");
+      form.append("estado",              formData.estado               || "");
+      form.append("codigoPostal",        formData.codigoPostal         || "");
+      form.append("telefonoCasa",        formData.telefonoCasa         || "");
+      form.append("telefonoCelular",     formData.telefonoCelular      || "");
+      form.append("correo",              formData.correo               || "");
+      form.append("emergenciaContacto",  formData.emergenciaContacto   || "");
+      form.append("emergenciaTelefono",  formData.emergenciaTelefono   || "");
+      form.append("lugarNacimiento",     formData.lugarNacimiento      || "");
+      form.append("hospitalNacimiento",  formData.hospitalNacimiento   || "");
+      form.append("tipoSangre",          formData.tipoSangre           || "");
+      form.append("usaValvula",          formData.usaValvula           || "");
+      form.append("notas",               formData.notas                || "");
+      form.append("tutorLugarNacimiento", formData.tutorLugarNacimiento || "");
+      form.append("tutorEdad",            formData.tutorEdad            || "");
+      form.append("tutorOcupacion",       formData.tutorOcupacion       || "");
+      form.append("tutorEscolaridad",     formData.tutorEscolaridad     || "");
+      form.append("tutorParentesco",      formData.tutorParentesco      || "");
+      form.append("madreSeguroMedico",    formData.madreSeguroMedico    || "");
+      form.append("cdEmbarazo",           formData.cdEmbarazo           || "");
+      form.append("acidoFolico",          formData.acidoFolico          || "");
+      form.append("citasControl",         formData.citasControl         || "");
 
       if (formData.foto instanceof File) {
         form.append("foto", formData.foto);
@@ -199,15 +227,10 @@ function RegistroPage() {
 
       const result = await response.json();
 
-      if (!result.ok) {
-        throw new Error(result.message);
-      }
+      if (!result.ok) throw new Error(result.message);
 
       if (result.data?.fotoUrl) {
-        setFormData((prev) => ({
-          ...prev,
-          foto: result.data.fotoUrl,
-        }));
+        setFormData((prev) => ({ ...prev, foto: result.data.fotoUrl }));
       }
 
       setCambiosGuardados(true);
@@ -221,48 +244,31 @@ function RegistroPage() {
     if (paso === 1) {
       const curp = formData.curp;
 
-      if (!curp) {
-        return "La CURP es obligatoria para continuar.";
-      }
+      if (!curp) return "La CURP es obligatoria para continuar.";
 
       const ESTADOS = ["AS","BC","BS","CC","CL","CM","CS","CH","DF","DG","GT","GR",
         "HG","JC","MC","MN","MS","NT","NL","OC","PL","QT","QR","SP","SL","SR","TC","TS","TL","VZ","YN","ZS","NE"];
 
       const regex = new RegExp(
-        `^[A-Z][AEIOU][A-Z]{2}\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01])[HMX](${ESTADOS.join(
-          "|"
-        )})[B-DF-HJ-NP-TV-Z]{3}[0-9A-Z]\\d$`
+        `^[A-Z][AEIOU][A-Z]{2}\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01])[HMX](${ESTADOS.join("|")})[B-DF-HJ-NP-TV-Z]{3}[0-9A-Z]\\d$`
       );
 
-      if (!regex.test(curp)) {
-        return "La CURP ingresada no tiene un formato válido. Verifica e intenta de nuevo.";
-      }
+      if (!regex.test(curp)) return "La CURP ingresada no tiene un formato válido. Verifica e intenta de nuevo.";
     }
-
     return null;
   };
 
   const siguientePaso = () => {
     if (!modoRevision) {
       const error = validarPaso();
-
-      if (error) {
-        setErrorPaso(error);
-        return;
-      }
-
+      if (error) { setErrorPaso(error); return; }
       setErrorPaso(null);
     }
-
-    if (paso < TOTAL_PASOS) {
-      setPaso(paso + 1);
-    }
+    if (paso < TOTAL_PASOS) setPaso(paso + 1);
   };
 
   const pasoAnterior = () => {
-    if (paso > 1) {
-      setPaso(paso - 1);
-    }
+    if (paso > 1) setPaso(paso - 1);
   };
 
   const handleSubmit = async () => {
@@ -274,9 +280,7 @@ function RegistroPage() {
       await actualizarPaso3(id, formData);
       await actualizarPaso4(id, formData);
 
-      if (formData.foto) {
-        await actualizarPaso5(id, formData.foto);
-      }
+      if (formData.foto) await actualizarPaso5(id, formData.foto);
 
       setGuardado(true);
 
@@ -284,19 +288,14 @@ function RegistroPage() {
         setGuardado(false);
         setPaso(1);
         setFormData(formInicial);
-
-        if (esInvitado) {
-          navigate("/registro");
-        } else {
-          navigate("/usuarios");
-        }
+        if (esInvitado) navigate("/registro");
+        else navigate("/usuarios");
       }, 2000);
     } catch (error) {
       if (error.code === "CURP_DUPLICADO") {
         setErrorPaso("Ya existe un paciente registrado con ese CURP.");
         return;
       }
-
       setErrorPaso("Error al guardar el registro. Intenta de nuevo.");
     }
   };
@@ -308,13 +307,8 @@ function RegistroPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),
       });
-
       const result = await response.json();
-
-      if (!result.ok) {
-        throw new Error(result.message);
-      }
-
+      if (!result.ok) throw new Error(result.message);
       setAccionRealizada("aprobado");
       setTimeout(() => navigate("/notificaciones"), 2000);
     } catch (err) {
@@ -329,13 +323,8 @@ function RegistroPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),
       });
-
       const result = await response.json();
-
-      if (!result.ok) {
-        throw new Error(result.message);
-      }
-
+      if (!result.ok) throw new Error(result.message);
       setAccionRealizada("rechazado");
       setTimeout(() => navigate("/notificaciones"), 2000);
     } catch (err) {
@@ -347,25 +336,19 @@ function RegistroPage() {
 
   const renderPaso = () => {
     switch (paso) {
-      case 1:
-        return <DatosPersonales datos={formData} onChange={handleChange} />;
-      case 2:
-        return <Contacto datos={formData} onChange={handleChange} />;
-      case 3:
-        return <HistorialMedico datos={formData} onChange={handleChange} />;
-      case 4:
-        return <HistorialTutor datos={formData} onChange={handleChange} />;
-      case 5:
-        return (
-          <Fotografia
-            datos={formData}
-            onChange={handleChange}
-            onGuardar={modoRevision ? handleGuardarCambios : null}
-            cambiosGuardados={cambiosGuardados}
-          />
-        );
-      default:
-        return null;
+      case 1: return <DatosPersonales datos={formData} onChange={handleChange} />;
+      case 2: return <Contacto datos={formData} onChange={handleChange} />;
+      case 3: return <HistorialMedico datos={formData} onChange={handleChange} />;
+      case 4: return <HistorialTutor datos={formData} onChange={handleChange} />;
+      case 5: return (
+        <Fotografia
+          datos={formData}
+          onChange={handleChange}
+          onGuardar={modoRevision ? handleGuardarCambios : null}
+          cambiosGuardados={cambiosGuardados}
+        />
+      );
+      default: return null;
     }
   };
 
@@ -376,13 +359,11 @@ function RegistroPage() {
           <div className="registro-exito-icono">
             <Check size={40} color="white" />
           </div>
-
           <h2>
             {accionRealizada === "aprobado"
               ? "¡Paciente aprobado exitosamente!"
               : "Registro rechazado correctamente"}
           </h2>
-
           <p>Regresando a notificaciones...</p>
         </div>
       </div>
@@ -396,9 +377,7 @@ function RegistroPage() {
           <div className="registro-exito-icono">
             <Check size={40} color="white" />
           </div>
-
           <h2>¡Registro guardado exitosamente!</h2>
-
           <p>
             {esInvitado
               ? "Registro enviado correctamente"
@@ -420,17 +399,12 @@ function RegistroPage() {
         </div>
 
         <div className="registro-progreso-info">
-          <span className="registro-paso-badge">
-            Paso {paso} de {TOTAL_PASOS}
-          </span>
-          <span className="registro-porcentaje">
-            {porcentaje} % completado
-          </span>
+          <span className="registro-paso-badge">Paso {paso} de {TOTAL_PASOS}</span>
+          <span className="registro-porcentaje">{porcentaje} % completado</span>
         </div>
 
         <div className="registro-encabezado">
           <h1>Datos del Paciente</h1>
-
           <p>
             {modoRevision
               ? "Revisa y edita la información del paciente antes de aprobar o rechazar."
@@ -444,10 +418,7 @@ function RegistroPage() {
 
         <div className="registro-nav-contenedor">
           {paso > 1 && (
-            <button
-              className="registro-btn-nav btn-regresar"
-              onClick={pasoAnterior}
-            >
+            <button className="registro-btn-nav btn-regresar" onClick={pasoAnterior}>
               <ArrowLeft size={22} />
             </button>
           )}
@@ -457,64 +428,39 @@ function RegistroPage() {
               {paso === TOTAL_PASOS && (
                 <div className="revision-acciones">
                   {notificacionEstado === "rechazado" && (
-                    <button
-                      className="btn-aprobar-revision"
-                      onClick={handleAprobar}
-                    >
+                    <button className="btn-aprobar-revision" onClick={handleAprobar}>
                       <Check size={16} /> Aprobar
                     </button>
                   )}
-
                   {notificacionEstado === "pendiente" && (
                     <>
-                      <button
-                        className="btn-rechazar-revision"
-                        onClick={handleRechazar}
-                      >
+                      <button className="btn-rechazar-revision" onClick={handleRechazar}>
                         <X size={16} /> Rechazar
                       </button>
-
-                      <button
-                        className="btn-aprobar-revision"
-                        onClick={handleAprobar}
-                      >
+                      <button className="btn-aprobar-revision" onClick={handleAprobar}>
                         <Check size={16} /> Aprobar
                       </button>
                     </>
                   )}
-
                   {notificacionEstado === "aprobado" && (
-                    <button
-                      className="btn-aprobar-revision"
-                      onClick={handleGuardarCambios}
-                    >
+                    <button className="btn-aprobar-revision" onClick={handleGuardarCambios}>
                       <Check size={16} /> Guardar cambios
                     </button>
                   )}
                 </div>
               )}
-
               {paso < TOTAL_PASOS && (
-                <button
-                  className="registro-btn-nav btn-siguiente"
-                  onClick={siguientePaso}
-                >
+                <button className="registro-btn-nav btn-siguiente" onClick={siguientePaso}>
                   <ArrowRight size={22} />
                 </button>
               )}
             </div>
           ) : (
             <button
-              className={`registro-btn-nav ${
-                paso === TOTAL_PASOS ? "btn-finalizar" : "btn-siguiente"
-              }`}
+              className={`registro-btn-nav ${paso === TOTAL_PASOS ? "btn-finalizar" : "btn-siguiente"}`}
               onClick={paso === TOTAL_PASOS ? handleSubmit : siguientePaso}
             >
-              {paso === TOTAL_PASOS ? (
-                <Check size={22} />
-              ) : (
-                <ArrowRight size={22} />
-              )}
+              {paso === TOTAL_PASOS ? <Check size={22} /> : <ArrowRight size={22} />}
             </button>
           )}
         </div>

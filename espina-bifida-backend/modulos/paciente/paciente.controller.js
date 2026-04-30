@@ -7,6 +7,7 @@ import {
   guardarFoto,
   obtenerFoto as obtenerFotoService,
   updatePaciente,
+  updateHistorialMadre,
 } from "../paciente/paciente.service.js";
 
 export async function listarPacienteCards(req, res) {
@@ -86,6 +87,7 @@ export async function actualizarPaciente(req, res) {
     const { id } = req.params;
     const datos = req.body;
     await updatePaciente(Number(id), datos, req.file);
+    await updateHistorialMadre(Number(id), datos);
     res.json({ ok: true, message: "Paciente actualizado correctamente" });
   } catch (error) {
     console.error("Error en actualizarPaciente:", error);
