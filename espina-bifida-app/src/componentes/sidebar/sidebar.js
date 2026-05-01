@@ -8,6 +8,7 @@ import {
   PenBoxIcon,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import logoPic from "../../assets/logo_AEBNL.png";
 
 const menuItems = [
   {
@@ -63,7 +64,7 @@ function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
-        <div className="logo">AE</div>
+        <img src={logoPic} alt="Logo" className="logo" />
         <div>
           <h2>AEBNL</h2>
           <p>Espina Bífida NL</p>
