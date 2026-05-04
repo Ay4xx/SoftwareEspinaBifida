@@ -11,7 +11,7 @@ test('Test1: Agregar una consulta médica con datos correctos', async ({ page })
   await page.getByRole('textbox', { name: 'maria.garcia@email.com' }).press('Tab');
   await page.getByRole('textbox', { name: '••••••••' }).fill('1234');
   await page.getByRole('button', { name: '↪ Iniciar sesión' }).click();
-  await expect(page.getByText('Módulo de UsuariosCO')).toBeVisible();
+  await expect(page.getByText('Módulo de Usuarios')).toBeVisible();
   await page.getByRole('button', { name: 'Agregar' }).nth(3).click();
   await expect(page.getByRole('heading', { name: 'Registrar Consulta' })).toBeVisible();
   await page.locator('input[name="fecha"]').fill('2026-05-02');
@@ -32,7 +32,7 @@ test('Test2: Intentar registrar una consulta sin completar los datos', async ({ 
   await page.getByRole('textbox', { name: 'maria.garcia@email.com' }).press('Tab');
   await page.getByRole('textbox', { name: '••••••••' }).fill('1234');
   await page.getByRole('button', { name: '↪ Iniciar sesión' }).click();
-  await expect(page.getByText('Módulo de UsuariosCO')).toBeVisible();
+  await expect(page.getByText('Módulo de Usuarios')).toBeVisible();
   await page.getByRole('button', { name: 'Agregar' }).nth(3).click();
   await page.getByRole('button', { name: 'Registrar Consulta' }).click();
   await expect(page.getByText('Datos incompletosDebes')).toBeVisible();
