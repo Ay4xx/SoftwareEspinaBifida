@@ -16,7 +16,7 @@ export default defineConfig({
         debug: true,
         testops: {
           api: {
-            token: 'TU_TOKEN_AQUI',
+            token: '80c02962b7c8f454476d4e8a78c19b9ec94f5cefddadce007e388df6878b4e5e',
           },
           project: 'HS01',
           run: {
