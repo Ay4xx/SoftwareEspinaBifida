@@ -5,7 +5,7 @@ import Medicamentos from '../componentes/medicamentos/medicamentos';
 import EquipoMedico from '../componentes/equipomedico/equipomedico';
 import VisualizarInfo from '../componentes/detallepaciente/detallepaciente';
 import { FileText, Pill, Users } from "lucide-react";
-import "./inventario.css";
+import "./regservicios.css";
 
 const tabs = [
   { id: "citas", label: "Citas", icon: <FileText size={16} /> },
