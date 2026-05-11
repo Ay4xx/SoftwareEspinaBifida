@@ -1,0 +1,64 @@
+.tabla-inventario-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.tabla-inventario {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.tabla-inventario thead tr {
+  background-color: #dbeafe;
+}
+
+.tabla-inventario th {
+  padding: 14px 18px;
+  text-align: left;
+  font-weight: 600;
+  color: #1e3a5f;
+  font-size: 13px;
+}
+
+.tabla-inventario tbody tr {
+  border-top: 1px solid #e2e8f0;
+  transition: background-color 0.15s;
+}
+
+.tabla-inventario tbody tr:hover {
+  background-color: #f8faff;
+}
+
+.tabla-inventario td {
+  padding: 14px 18px;
+  color: #334155;
+}
+
+/* Badges de estado */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.badge-normal {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.badge-bajo {
+  background-color: #fef9c3;
+  color: #a16207;
+}
+
+.badge-agotado {
+  background-color: #fee2e2;
+  color: #dc2626;
+}

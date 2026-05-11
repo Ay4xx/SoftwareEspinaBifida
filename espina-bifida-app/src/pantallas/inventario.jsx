@@ -1,40 +1,27 @@
 import React, { useState } from "react";
-import TabNav from '../componentes/tabnav/tabnav';
-import RegistrarConsulta from '../componentes/registrocitas/registrocitas';
-import Medicamentos from '../componentes/medicamentos/medicamentos';
-import EquipoMedico from '../componentes/equipomedico/equipomedico';
-import VisualizarInfo from '../componentes/detallepaciente/detallepaciente';
-import { FileText, Pill, Users } from "lucide-react";
+import TablaInventario from "../componentes/tablaInventario/TablaInventario";
 import "./inventario.css";
 
-const tabs = [
-  { id: "citas", label: "Citas", icon: <FileText size={16} /> },
-  { id: "medicamentos", label: "Medicamentos", icon: <Pill size={16} /> },
-  { id: "equipo", label: "Equipo médico", icon: <Users size={16} /> },
+const articulosIniciales = [
+  { nombre: "Catéter nelaton CH12", unidad: "PZA", precio: 200, stock: 150, estado: "Normal" },
+  { nombre: "Silla de ruedas infantil", unidad: "PZA", precio: 1000, stock: 3, estado: "Bajo" },
+  { nombre: "Vendaje elástico", unidad: "ROLLO", precio: 45, stock: 25, estado: "Normal" },
+  { nombre: "Muletas de aluminio", unidad: "PAR", precio: 350, stock: 8, estado: "Normal" },
+  { nombre: "Collarín cervical", unidad: "PZA", precio: 280, stock: 0, estado: "Agotado" },
 ];
 
-function ServiciosPanel() {
-  const [activeTab, setActiveTab] = useState("citas");
+function ModuloInventario() {
+  const [articulos] = useState(articulosIniciales);
 
   return (
-    <div className="inventario-contenedor">
+    <div className="modulo-inventario">
+      <h1 className="modulo-inventario-titulo">Módulo de Inventario</h1>
 
-      <div className="inventario-izq">
-        <VisualizarInfo /> 
-      </div>
+      {/* Área de botones — pendiente compañera */}
 
-      <div className="inventario-derecho">
-        <TabNav tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
-
-        <div className="tab-content">
-          {activeTab === "citas" && <RegistrarConsulta />}
-          {activeTab === "medicamentos" && <Medicamentos />}
-          {activeTab === "equipo" && <EquipoMedico />}
-        </div>
-      </div>
-
+      <TablaInventario articulos={articulos} />
     </div>
   );
 }
 
-export default ServiciosPanel;
+export default ModuloInventario;

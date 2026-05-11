@@ -16,7 +16,8 @@ import HistorialPage from "./pantallas/historial";
 import NotificacionesPage from "./pantallas/notificaciones";
 import RegistroPage from "./pantallas/registro";
 import Login from "./pantallas/login";
-import ServiciosPanel from "./pantallas/inventario";
+import ServiciosPanel from "./pantallas/regservicios";
+import InventarioPage from "./pantallas/inventario";
 import Credencial from "./componentes/credencial/credencial";
 import { NotificacionesProvider } from "./pantallas/notificacionesContext";
 
@@ -57,7 +58,7 @@ function AppContent() {
             <Route path="/registro" element={<RegistroPage />} />
             <Route path="/notificaciones" element={<NotificacionesPage />} />
             <Route path="/historial" element={<HistorialPage />} />
-            <Route path="/inventario" element={<ServiciosPanel />} />
+            <Route path="/inventario" element={<InventarioPage />} />
 
             {/* Dynamic routes */}
             <Route path="/credencial/:pacienteId" element={<Credencial />} />
