@@ -1,0 +1,17 @@
+.inventario-contenedor {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 20px;
+  }
+  
+  .inventario-izq {
+    margin-top: 70px;
+    min-width: 300px;
+    padding-top: 40px;
+  }
+  
+  .inventario-derecho {
+    display: flex;
+    flex-direction: column;
+    padding-top: 40px;
+  }
