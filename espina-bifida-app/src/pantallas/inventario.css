@@ -11,3 +11,28 @@
   color: #1e3a5f;
   margin: 0;
 }
+
+.modulo-botones {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.btn-nuevo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #083a99;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-nuevo:hover {
+  background: #062d7a;
+}

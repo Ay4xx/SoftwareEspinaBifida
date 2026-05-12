@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 import TablaInventario from "../componentes/tablaInventario/TablaInventario";
+import NuevoArticulo from "../componentes/nuevoarticulo/nuevoarticulo";
 import "./inventario.css";
+
+import { Plus } from "lucide-react";
+
+
 
 const articulosIniciales = [
   { nombre: "Catéter nelaton CH12", unidad: "PZA", precio: 200, stock: 150, estado: "Normal" },
@@ -12,14 +17,24 @@ const articulosIniciales = [
 
 function ModuloInventario() {
   const [articulos] = useState(articulosIniciales);
+  const [showNuevo, setShowNuevo] = useState(false);
 
   return (
     <div className="modulo-inventario">
-      <h1 className="modulo-inventario-titulo">Módulo de Inventario</h1>
-
-      {/* Área de botones — pendiente compañera */}
+      <div className="modulo-botones">
+        <button className="btn-nuevo" onClick={() => setShowNuevo(true)}>
+        <Plus size={16} /> Nuevo Artículo
+        </button>
+      </div>
 
       <TablaInventario articulos={articulos} />
+
+      {showNuevo && (
+        <NuevoArticulo
+          onCerrar={() => setShowNuevo(false)}
+          onGuardado={() => setShowNuevo(false)}
+        />
+      )}
     </div>
   );
 }
