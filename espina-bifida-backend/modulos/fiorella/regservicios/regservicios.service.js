@@ -68,8 +68,45 @@ export async function verificarDuplicado(descripcion, tipo) {
       { descripcion },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
-    console.log("Resultado duplicado:", result.rows[0]); // 👈 temporal para ver qué devuelve
+    console.log("Resultado duplicado:", result.rows[0]); 
     return result.rows[0].TOTAL > 0;
+  } finally {
+    if (conn) await conn.close();
+  }
+}
+
+
+export async function actualizarCantidadMedicina(medicinaId, cantidad) {
+  let conn;
+  try {
+    conn = await getConnection();
+    await conn.execute(
+      `BEGIN
+        actualizar_cantidad_medicina(:medicinaId, :cantidad);
+      END;`,
+      {
+        medicinaId: parseInt(medicinaId),
+        cantidad: parseInt(cantidad)
+      }
+    );
+  } finally {
+    if (conn) await conn.close();
+  }
+}
+
+export async function actualizarCantidadEquipo(equipoId, cantidad) {
+  let conn;
+  try {
+    conn = await getConnection();
+    await conn.execute(
+      `BEGIN
+        actualizar_cantidad_equipo(:equipoId, :cantidad);
+      END;`,
+      {
+        equipoId: parseInt(equipoId),
+        cantidad: parseInt(cantidad)
+      }
+    );
   } finally {
     if (conn) await conn.close();
   }

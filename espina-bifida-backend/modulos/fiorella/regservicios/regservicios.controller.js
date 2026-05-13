@@ -1,4 +1,4 @@
-import { insertarMedicina, insertarEquipoMedico, verificarDuplicado } from "./regservicios.service.js";
+import { insertarMedicina, insertarEquipoMedico, verificarDuplicado, actualizarCantidadMedicina, actualizarCantidadEquipo } from "./regservicios.service.js";
 
 export async function crearMedicina(req, res) {
   try {
@@ -38,6 +38,45 @@ export async function crearEquipoMedico(req, res) {
     res.status(201).json({ ok: true, message: "Equipo médico insertado correctamente", data: result });
   } catch (error) {
     console.error("ERROR AL INSERTAR EQUIPO:", error.message);
+    res.status(500).json({ ok: false, message: error.message });
+  }
+}
+
+
+export async function registrarEntradaMedicina(req, res) {
+  try {
+    const { medicinaId, cantidad } = req.body;
+
+    if (!medicinaId || !cantidad) {
+      return res.status(400).json({ ok: false, message: "ID y cantidad son obligatorios" });
+    }
+    if (cantidad <= 0) {
+      return res.status(400).json({ ok: false, message: "La cantidad debe ser mayor a 0" });
+    }
+
+    await actualizarCantidadMedicina(medicinaId, cantidad);
+    res.json({ ok: true, message: "Cantidad actualizada correctamente" });
+  } catch (error) {
+    console.error("ERROR AL ACTUALIZAR MEDICINA:", error.message);
+    res.status(500).json({ ok: false, message: error.message });
+  }
+}
+
+export async function registrarEntradaEquipo(req, res) {
+  try {
+    const { equipoId, cantidad } = req.body;
+
+    if (!equipoId || !cantidad) {
+      return res.status(400).json({ ok: false, message: "ID y cantidad son obligatorios" });
+    }
+    if (cantidad <= 0) {
+      return res.status(400).json({ ok: false, message: "La cantidad debe ser mayor a 0" });
+    }
+
+    await actualizarCantidadEquipo(equipoId, cantidad);
+    res.json({ ok: true, message: "Cantidad actualizada correctamente" });
+  } catch (error) {
+    console.error("ERROR AL ACTUALIZAR EQUIPO:", error.message);
     res.status(500).json({ ok: false, message: error.message });
   }
 }
