@@ -16,7 +16,8 @@ import HistorialPage from "./pantallas/historial";
 import NotificacionesPage from "./pantallas/notificaciones";
 import RegistroPage from "./pantallas/registro";
 import Login from "./pantallas/login";
-import ServiciosPanel from "./pantallas/inventario";
+import ServiciosPanel from "./pantallas/regservicios";
+import InventarioPage from "./pantallas/inventario";
 import Credencial from "./componentes/credencial/credencial";
 import { NotificacionesProvider } from "./pantallas/notificacionesContext";
 import GestionUsuarios from "./pantallas/gestionUsuarios";
@@ -98,7 +99,7 @@ function AppContent() {
               path="/inventario"
               element={
                 <RutaProtegida
-                  element={<ServiciosPanel />}
+                  element={<InventarioPage />}
                   rolesPermitidos={["COORDINADOR", "ADMINISTRADOR", "SUPERADMIN"]}
                 />
               }

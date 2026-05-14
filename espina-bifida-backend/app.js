@@ -1,7 +1,5 @@
 import express from "express";
 import cors from "cors";
-
-
 import pacienteRoutes from "./modulos/paciente/paciente.routes.js";
 import registroRoutes from "./modulos/registro/registro.routes.js";
 import medicoRouter from "./modulos/fiorella/medico.route.js";
@@ -11,16 +9,14 @@ import notificacionesRoutes from "./modulos/notificaciones/notificaciones.routes
 import detallePaRouter from "./modulos/fiorella/detallepaciente/detallepaciente.routes.js";
 import loginRoutes from "./modulos/login/login.routes.js";
 import historialRoutes from "./modulos/historial/historial.route.js";
-import familiarRoutes from "./modulos/detallefamilia/familia.route.js"
+import familiarRoutes from "./modulos/detallefamilia/familia.route.js";
+import inventarioRouter from "./modulos/fiorella/regservicios/regservicios.route.js";
 import gestionUsuarioRoutes from "./modulos/gestionUsuarios/gestionUsuarios.routes.js";
 
-
 const app = express();
-
 app.use(cors());
 app.use(cors({ origin: "http://localhost:3000" }));
 app.use(express.json());
-
 app.use("/api/login", loginRoutes);
 app.use("/api/registro", registroRoutes);
 app.use("/api/pacientes", pacienteRoutes);
@@ -31,6 +27,7 @@ app.use("/api/detallepaciente", detallePaRouter);
 app.use("/api/notificaciones", notificacionesRoutes);
 app.use("/api/historial", historialRoutes);
 app.use("/api/familiar", familiarRoutes);
+app.use("/api/inventario", inventarioRouter);
 app.use("/api/gestion-usuarios", gestionUsuarioRoutes);
 
 export default app;
