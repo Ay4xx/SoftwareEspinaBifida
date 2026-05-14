@@ -55,3 +55,28 @@
 .btn-entrada:hover {
   background: #0c6280;
 }
+
+.modulo-buscador {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 16px;
+  width: 320px;
+  background: white;
+}
+
+.modulo-buscador input {
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: #334155;
+  width: 100%;
+  background: transparent;
+}
+
+.buscador-icono {
+  color: #94a3b8;
+  flex-shrink: 0;
+}

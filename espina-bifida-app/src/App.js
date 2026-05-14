@@ -99,7 +99,7 @@ function AppContent() {
               path="/inventario"
               element={
                 <RutaProtegida
-                  element={<ServiciosPanel />}
+                  element={<InventarioPage />}
                   rolesPermitidos={["COORDINADOR", "ADMINISTRADOR", "SUPERADMIN"]}
                 />
               }
