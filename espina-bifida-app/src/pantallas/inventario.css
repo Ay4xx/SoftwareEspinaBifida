@@ -36,3 +36,22 @@
 .btn-nuevo:hover {
   background: #062d7a;
 }
+
+.btn-entrada {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #0e7490;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-entrada:hover {
+  background: #0c6280;
+}

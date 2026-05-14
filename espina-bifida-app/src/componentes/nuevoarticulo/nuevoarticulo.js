@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import "./nuevoarticulo.css";
 import { X } from "lucide-react";
 
+
+
 const camposIniciales = {
   categoria: "",
   descripcion: "",
@@ -15,6 +17,7 @@ function NuevoArticulo({ onCerrar, onGuardado }) {
   const [form, setForm] = useState(camposIniciales);
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
+  const [exito, setExito] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -49,7 +52,7 @@ function NuevoArticulo({ onCerrar, onGuardado }) {
 
       const json = await res.json();
       if (json.ok) {
-        onGuardado();
+        setExito(true);
       } else {
         setError(json.message);
       }
@@ -118,6 +121,16 @@ function NuevoArticulo({ onCerrar, onGuardado }) {
         </div>
 
       </div>
+      {exito && (
+        <div className="na-overlay">
+            <div className="na-popup-msg" onClick={(e) => e.stopPropagation()}>
+            <div className="na-popup-icon"></div>
+            <h4>Artículo guardado</h4>
+            <p>El artículo fue registrado correctamente.</p>
+            <button className="na-guardar" onClick={onGuardado}>Aceptar</button>
+            </div>
+        </div>
+        )}
     </div>
   );
 }

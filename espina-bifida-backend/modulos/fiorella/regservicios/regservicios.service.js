@@ -111,3 +111,25 @@ export async function actualizarCantidadEquipo(equipoId, cantidad) {
     if (conn) await conn.close();
   }
 }
+
+export async function getInventarioCompleto() {
+  let conn;
+  try {
+    conn = await getConnection();
+    const medicinas = await conn.execute(
+      `SELECT MEDICINA_ID AS ID, DESCRIPCION, UNIDAD, PRECIO, CANTIDAD_TOTAL, 'medicina' AS TIPO
+       FROM INVENTARIO_MEDICINAS`,
+      [],
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    const equipo = await conn.execute(
+      `SELECT EQUIPO_M_ID AS ID, DESCRIPCION, NULL AS UNIDAD, PRECIO, CANTIDAD_TOTAL, 'equipo' AS TIPO
+       FROM INVENTARIO_EQUIPO_MEDICO`,
+      [],
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    return [...medicinas.rows, ...equipo.rows];
+  } finally {
+    if (conn) await conn.close();
+  }
+}

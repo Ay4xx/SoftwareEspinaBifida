@@ -1,11 +1,9 @@
 import React, { useState } from "react";
 import TablaInventario from "../componentes/tablaInventario/TablaInventario";
 import NuevoArticulo from "../componentes/nuevoarticulo/nuevoarticulo";
+import RegistrarEntrada from "../componentes/nuevoarticulo/registrararticulo";
 import "./inventario.css";
-
-import { Plus } from "lucide-react";
-
-
+import { Plus, RefreshCw } from "lucide-react";
 
 const articulosIniciales = [
   { nombre: "Catéter nelaton CH12", unidad: "PZA", precio: 200, stock: 150, estado: "Normal" },
@@ -18,12 +16,16 @@ const articulosIniciales = [
 function ModuloInventario() {
   const [articulos] = useState(articulosIniciales);
   const [showNuevo, setShowNuevo] = useState(false);
+  const [showEntrada, setShowEntrada] = useState(false);
 
   return (
     <div className="modulo-inventario">
       <div className="modulo-botones">
         <button className="btn-nuevo" onClick={() => setShowNuevo(true)}>
-        <Plus size={16} /> Nuevo Artículo
+          <Plus size={16} /> Nuevo Artículo
+        </button>
+        <button className="btn-entrada" onClick={() => setShowEntrada(true)}>
+          <RefreshCw size={16} /> Registrar Entrada
         </button>
       </div>
 
@@ -33,6 +35,13 @@ function ModuloInventario() {
         <NuevoArticulo
           onCerrar={() => setShowNuevo(false)}
           onGuardado={() => setShowNuevo(false)}
+        />
+      )}
+
+      {showEntrada && (
+        <RegistrarEntrada
+          onCerrar={() => setShowEntrada(false)}
+          onGuardado={() => setShowEntrada(false)}
         />
       )}
     </div>

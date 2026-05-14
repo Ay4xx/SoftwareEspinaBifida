@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { crearMedicina, crearEquipoMedico,   registrarEntradaMedicina, registrarEntradaEquipo } from "./regservicios.controller.js";
+import { crearMedicina, crearEquipoMedico,   registrarEntradaMedicina, registrarEntradaEquipo, listarInventario  } from "./regservicios.controller.js";
 
 const router = Router();
 
@@ -10,5 +10,6 @@ router.post("/medicina", crearMedicina);
 router.post("/equipo", crearEquipoMedico);
 router.put("/medicina/cantidad", registrarEntradaMedicina);
 router.put("/equipo/cantidad", registrarEntradaEquipo);
+router.get("/", listarInventario);
 
 export default router;

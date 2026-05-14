@@ -1,4 +1,4 @@
-import { insertarMedicina, insertarEquipoMedico, verificarDuplicado, actualizarCantidadMedicina, actualizarCantidadEquipo } from "./regservicios.service.js";
+import { insertarMedicina, insertarEquipoMedico, verificarDuplicado, actualizarCantidadMedicina, actualizarCantidadEquipo, getInventarioCompleto  } from "./regservicios.service.js";
 
 export async function crearMedicina(req, res) {
   try {
@@ -77,6 +77,16 @@ export async function registrarEntradaEquipo(req, res) {
     res.json({ ok: true, message: "Cantidad actualizada correctamente" });
   } catch (error) {
     console.error("ERROR AL ACTUALIZAR EQUIPO:", error.message);
+    res.status(500).json({ ok: false, message: error.message });
+  }
+}
+
+export async function listarInventario(req, res) {
+  try {
+    const data = await getInventarioCompleto();
+    res.json({ ok: true, data });
+  } catch (error) {
+    console.error("ERROR AL LISTAR INVENTARIO:", error.message);
     res.status(500).json({ ok: false, message: error.message });
   }
 }
