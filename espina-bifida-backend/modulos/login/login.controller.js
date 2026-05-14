@@ -20,7 +20,7 @@ export async function loginPaciente(req, res) {
       });
     }
 
-    const token = `token-${data.id}-${Date.now()}`;
+    const token = `token-${data.id}-${data.tipoUsuario}-${Date.now()}`;
 
     res.json({
       ok: true,

@@ -16,21 +16,48 @@ import HistorialPage from "./pantallas/historial";
 import NotificacionesPage from "./pantallas/notificaciones";
 import RegistroPage from "./pantallas/registro";
 import Login from "./pantallas/login";
-import ServiciosPanel from "./pantallas/inventario";
+import ServiciosPanel from "./pantallas/regservicios";
+import InventarioPage from "./pantallas/inventario";
 import Credencial from "./componentes/credencial/credencial";
 import AgendaCitasPage from "./pantallas/agendacitas";
 import { NotificacionesProvider } from "./pantallas/notificacionesContext";
+import GestionUsuarios from "./pantallas/gestionUsuarios";
+
+
+function getRol() {
+  try {
+    const usuario = JSON.parse(localStorage.getItem("usuario"));
+    return usuario?.tipoUsuario?.toUpperCase() || null;
+  } catch {
+    return null;
+  }
+}
+
+function RutaProtegida({ element, rolesPermitidos }) {
+  const token = localStorage.getItem("token");
+  const rol   = getRol();
+
+  if (!token) return <Navigate to="/login" />;
+
+  if (!rolesPermitidos.includes(rol)) {
+    if (rol === "COORDINADOR") return <Navigate to="/usuarios" />;
+    if (rol === "ADMINISTRADOR") return <Navigate to="/usuarios" />;
+    if (rol === "SUPERADMIN") return <Navigate to="/usuarios" />;
+    return <Navigate to="/login" />;
+  }
+
+  return element;
+}
 
 function AppContent() {
   const location = useLocation();
 
-  const token = localStorage.getItem("token");
+  const token   = localStorage.getItem("token");
   const isGuest = localStorage.getItem("guest") === "true";
 
   const showBars = !!token && !isGuest;
-  const isLogin = location.pathname === "/login";
+  const isLogin  = location.pathname === "/login";
 
-  // Login page without sidebar/header
   if (isLogin) {
     return (
       <Routes>
@@ -41,38 +68,105 @@ function AppContent() {
 
   return (
     <div className={showBars ? "layout" : "layout guest-layout"}>
-      {/* Sidebar only for authenticated users */}
       {showBars && <Sidebar />}
 
       <div className={showBars ? "main" : "main guest-main"}>
-        {/* Header only for authenticated users */}
         {showBars && <Header />}
 
         <div className={showBars ? "content" : "content guest-content"}>
           <Routes>
-            {/* Redirect root */}
             <Route path="/" element={<Navigate to="/login" />} />
 
-            {/* Main routes */}
-            <Route path="/usuarios" element={<UsuariosPage />} />
-            <Route path="/registro" element={<RegistroPage />} />
-            <Route path="/notificaciones" element={<NotificacionesPage />} />
-            <Route path="/historial" element={<HistorialPage />} />
-            <Route path="/inventario" element={<ServiciosPanel />} />
-            <Route path="/agendacitas" element={<AgendaCitasPage />} />
+            {/* Coordinador + Admin + SuperAdmin */}
+            <Route
+              path="/usuarios"
+              element={
+                <RutaProtegida
+                  element={<UsuariosPage />}
+                  rolesPermitidos={["COORDINADOR", "ADMINISTRADOR", "SUPERADMIN"]}
+                />
+              }
+            />
+            <Route
+              path="/historial"
+              element={
+                <RutaProtegida
+                  element={<HistorialPage />}
+                  rolesPermitidos={["COORDINADOR", "ADMINISTRADOR", "SUPERADMIN"]}
+                />
+              }
+            />
+            <Route
+              path="/inventario"
+              element={
+                <RutaProtegida
+                  element={<InventarioPage />}
+                  rolesPermitidos={["COORDINADOR", "ADMINISTRADOR", "SUPERADMIN"]}
+                />
+              }
+            />
 
-            {/* Dynamic routes */}
+            {/* Solo Coordinador + SuperAdmin */}
+            <Route
+              path="/registro"
+              element={
+                <RutaProtegida
+                  element={<RegistroPage />}
+                  rolesPermitidos={["COORDINADOR", "SUPERADMIN"]}
+                />
+              }
+            />
+            <Route
+              path="/notificaciones"
+              element={
+                <RutaProtegida
+                  element={<NotificacionesPage />}
+                  rolesPermitidos={["COORDINADOR", "SUPERADMIN"]}
+                />
+              }
+            />
+            <Route
+              path="/agendacitas"
+              element={
+                <RutaProtegida
+                  element={<AgendaCitasPage />}
+                  rolesPermitidos={["COORDINADOR", "SUPERADMIN"]}
+                />
+              }
+            />
+
+            {/* Solo Admin + SuperAdmin */}
+            <Route
+              path="/gestion-usuarios"
+              element={
+                <RutaProtegida
+                  element={<GestionUsuarios />}
+                  rolesPermitidos={["ADMINISTRADOR", "SUPERADMIN"]}
+                />
+              }
+            />
+
+            {/* Rutas dinámicas */}
             <Route path="/credencial/:pacienteId" element={<Credencial />} />
             <Route
               path="/inventario/:pacienteId"
-              element={<ServiciosPanel />}
+              element={
+                <RutaProtegida
+                  element={<ServiciosPanel />}
+                  rolesPermitidos={["COORDINADOR", "ADMINISTRADOR", "SUPERADMIN"]}
+                />
+              }
             />
             <Route
               path="/historial/:pacienteId"
-              element={<HistorialPage />}
+              element={
+                <RutaProtegida
+                  element={<HistorialPage />}
+                  rolesPermitidos={["COORDINADOR", "ADMINISTRADOR", "SUPERADMIN"]}
+                />
+              }
             />
 
-            {/* Fallback */}
             <Route path="*" element={<Navigate to="/login" />} />
           </Routes>
         </div>

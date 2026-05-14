@@ -7,6 +7,7 @@ import {
   LogOut,
   PenBoxIcon,
   CalendarDays,
+  UserCog
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
@@ -15,19 +16,19 @@ const menuItems = [
     name: "Usuarios",
     icon: Users,
     path: "/usuarios",
-    roles: ["ADMINISTRADOR", "COORDINADOR"],
+    roles: ["ADMINISTRADOR", "COORDINADOR", "SUPERADMIN"],
   },
   {
     name: "Registro",
     icon: PenBoxIcon,
     path: "/registro",
-    roles: ["COORDINADOR"],
+    roles: ["COORDINADOR", "SUPERADMIN"],
   },
   {
     name: "Inventario",
     icon: Boxes,
     path: "/inventario",
-    roles: ["ADMINISTRADOR", "COORDINADOR"],
+    roles: ["ADMINISTRADOR", "COORDINADOR", "SUPERADMIN"],
   },
   {
     name: "Agenda",
@@ -39,7 +40,13 @@ const menuItems = [
     name: "Estadísticas",
     icon: BarChart3,
     path: "/estadisticas",
-    roles: ["ADMINISTRADOR"],
+    roles: ["ADMINISTRADOR", "SUPERADMIN"],
+  },
+  {
+    name: "Gestión de usuarios",
+    icon: UserCog,
+    path: "/gestion-usuarios",
+    roles: ["ADMINISTRADOR", "SUPERADMIN"],
   },
 ];
 
