@@ -6,6 +6,8 @@ import {
   BarChart3,
   LogOut,
   PenBoxIcon,
+  CalendarDays,
+  UserCog
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import logoPic from "../../assets/logo_AEBNL.png";
@@ -15,25 +17,37 @@ const menuItems = [
     name: "Usuarios",
     icon: Users,
     path: "/usuarios",
-    roles: ["ADMINISTRADOR", "COORDINADOR"],
+    roles: ["ADMINISTRADOR", "COORDINADOR", "SUPERADMIN"],
   },
   {
     name: "Registro",
     icon: PenBoxIcon,
     path: "/registro",
-    roles: ["COORDINADOR"],
+    roles: ["COORDINADOR", "SUPERADMIN"],
   },
   {
     name: "Inventario",
     icon: Boxes,
     path: "/inventario",
-    roles: ["ADMINISTRADOR", "COORDINADOR"],
+    roles: ["ADMINISTRADOR", "COORDINADOR", "SUPERADMIN"],
+  },
+  {
+    name: "Agenda",
+    icon: CalendarDays,
+    path: "/agendacitas",
+    roles: ["COORDINADOR"],
   },
   {
     name: "Estadísticas",
     icon: BarChart3,
     path: "/estadisticas",
-    roles: ["ADMINISTRADOR"],
+    roles: ["ADMINISTRADOR", "SUPERADMIN"],
+  },
+  {
+    name: "Gestión de usuarios",
+    icon: UserCog,
+    path: "/gestion-usuarios",
+    roles: ["ADMINISTRADOR", "SUPERADMIN"],
   },
 ];
 

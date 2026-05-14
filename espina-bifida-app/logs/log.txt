@@ -1,0 +1,26 @@
+[2026-05-01T01:12:27.851Z] [DEBUG] qase: Config: {"configDir":"C:\\Users\\mario\\OneDrive\\Escritorio\\Modulo Web\\SoftwareEspinaBifida\\espina-bifida-app","_mode":"test","_commandHash":"chromium-dc89386","mode":"testops","debug":true,"testops":{"api":{"token":"80c****4e5e"},"project":"HS01","run":{"complete":true,"tags":[]},"plan":{},"batch":{}},"frameworkPackage":"@playwright/test","frameworkName":"playwright","reporterName":"playwright-qase-reporter","report":{"connections":{"local":{}}}}
+[2026-05-01T01:12:27.878Z] [DEBUG] qase: Host data: {"system":"windows","machineName":"AsusMarioB","release":"10.0.26200","version":"Microsoft Windows [Version 10.0.26200.8246]","arch":"x64","language":"v24.14.1","packageManager":"11.11.0","framework":"1.59.1","reporter":"2.5.0","commons":"2.7.0","apiClientV1":"1.1.7","apiClientV2":"1.0.7"}
+[2026-05-01T01:12:27.891Z] [DEBUG] qase: Starting test run
+[2026-05-01T01:12:27.891Z] [DEBUG] qase: Creating test run: {"title":"Automated run 2026-05-01T01:12:27.891Z","description":"","is_autotest":true,"cases":[],"start_time":"2026-05-01 01:12:17","tags":[]}
+[2026-05-01T01:12:29.206Z] [ERROR] qase: Unable to start test run in the upstream reporter:
+ Error: Error creating test run: You have reached a limit of active runs. Complete/Abort your active test runs or upgrade to a paid plan.
+    at processError (C:\Users\mario\OneDrive\Escritorio\Modulo Web\SoftwareEspinaBifida\espina-bifida-app\node_modules\qase-javascript-commons\dist\client\services\api-error-handler.js:27:20)
+    at RunService.createRun (C:\Users\mario\OneDrive\Escritorio\Modulo Web\SoftwareEspinaBifida\espina-bifida-app\node_modules\qase-javascript-commons\dist\client\services\run-service.js:58:56)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at TestOpsReporter.checkOrCreateTestRun (C:\Users\mario\OneDrive\Escritorio\Modulo Web\SoftwareEspinaBifida\espina-bifida-app\node_modules\qase-javascript-commons\dist\reporters\testops-reporter.js:89:23)
+    at TestOpsReporter.startTestRun (C:\Users\mario\OneDrive\Escritorio\Modulo Web\SoftwareEspinaBifida\espina-bifida-app\node_modules\qase-javascript-commons\dist\reporters\testops-reporter.js:55:9)
+    at C:\Users\mario\OneDrive\Escritorio\Modulo Web\SoftwareEspinaBifida\espina-bifida-app\node_modules\qase-javascript-commons\dist\qase.js:190:13
+    at FallbackCoordinator.run (C:\Users\mario\OneDrive\Escritorio\Modulo Web\SoftwareEspinaBifida\espina-bifida-app\node_modules\qase-javascript-commons\dist\reporters\shared\fallback-coordinator.js:73:20)
+[2026-05-01T01:15:32.278Z] [DEBUG] qase: Config: {"configDir":"C:\\Users\\mario\\OneDrive\\Escritorio\\Modulo Web\\SoftwareEspinaBifida\\espina-bifida-app","_mode":"test","_commandHash":"chromium-dc89386","mode":"testops","debug":true,"testops":{"api":{"token":"80c****4e5e"},"project":"HS01","run":{"complete":true,"tags":[]},"plan":{},"batch":{}},"frameworkPackage":"@playwright/test","frameworkName":"playwright","reporterName":"playwright-qase-reporter","report":{"connections":{"local":{}}}}
+[2026-05-01T01:15:32.304Z] [DEBUG] qase: Host data: {"system":"windows","machineName":"AsusMarioB","release":"10.0.26200","version":"Microsoft Windows [Version 10.0.26200.8246]","arch":"x64","language":"v24.14.1","packageManager":"11.11.0","framework":"1.59.1","reporter":"2.5.0","commons":"2.7.0","apiClientV1":"1.1.7","apiClientV2":"1.0.7"}
+[2026-05-01T01:15:32.320Z] [DEBUG] qase: Starting test run
+[2026-05-01T01:15:32.321Z] [DEBUG] qase: Creating test run: {"title":"Automated run 2026-05-01T01:15:32.321Z","description":"","is_autotest":true,"cases":[],"start_time":"2026-05-01 01:15:22","tags":[]}
+[2026-05-01T01:15:33.640Z] [ERROR] qase: Unable to start test run in the upstream reporter:
+ Error: Error creating test run: You have reached a limit of active runs. Complete/Abort your active test runs or upgrade to a paid plan.
+    at processError (C:\Users\mario\OneDrive\Escritorio\Modulo Web\SoftwareEspinaBifida\espina-bifida-app\node_modules\qase-javascript-commons\dist\client\services\api-error-handler.js:27:20)
+    at RunService.createRun (C:\Users\mario\OneDrive\Escritorio\Modulo Web\SoftwareEspinaBifida\espina-bifida-app\node_modules\qase-javascript-commons\dist\client\services\run-service.js:58:56)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at TestOpsReporter.checkOrCreateTestRun (C:\Users\mario\OneDrive\Escritorio\Modulo Web\SoftwareEspinaBifida\espina-bifida-app\node_modules\qase-javascript-commons\dist\reporters\testops-reporter.js:89:23)
+    at TestOpsReporter.startTestRun (C:\Users\mario\OneDrive\Escritorio\Modulo Web\SoftwareEspinaBifida\espina-bifida-app\node_modules\qase-javascript-commons\dist\reporters\testops-reporter.js:55:9)
+    at C:\Users\mario\OneDrive\Escritorio\Modulo Web\SoftwareEspinaBifida\espina-bifida-app\node_modules\qase-javascript-commons\dist\qase.js:190:13
+    at FallbackCoordinator.run (C:\Users\mario\OneDrive\Escritorio\Modulo Web\SoftwareEspinaBifida\espina-bifida-app\node_modules\qase-javascript-commons\dist\reporters\shared\fallback-coordinator.js:73:20)

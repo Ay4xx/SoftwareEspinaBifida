@@ -1,0 +1,154 @@
+.na-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.na-popup {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 28px;
+  width: 500px; 
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.na-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.na-guardar {
+  background: #083a99;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 48px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.na-guardar:hover { background: #062d7a; }
+.na-guardar:disabled { background: #9ca3af; cursor: not-allowed; }
+
+.na-cancelar {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 10px 16px;
+}
+.na-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.na-header h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.na-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+}
+
+.na-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.na-field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #083a99;
+  text-transform: uppercase;
+}
+
+.na-field input,
+.na-field select {
+  padding: 10px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1f2937;
+  background: #f9fafb;
+  outline: none;
+  transition: border 0.2s;
+}
+
+.na-field input:focus,
+.na-field select:focus {
+  border-color: #083a99;
+  background: #ffffff;
+}
+
+
+.na-row {
+  display: flex;
+  gap: 16px;
+}
+
+.na-error {
+  font-size: 13px;
+  color: #ef4444;
+  background: #fee2e2;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin: 0;
+}
+
+/* nuevoarticulo.css y registrararticulo.css */
+.na-popup-msg,
+.re-popup-msg {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px 24px;
+  width: 320px;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.na-popup-icon,
+.re-popup-icon {
+  font-size: 40px;
+}
+
+.na-popup-msg h4,
+.re-popup-msg h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.na-popup-msg p,
+.re-popup-msg p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
