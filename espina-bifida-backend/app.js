@@ -12,7 +12,7 @@ import detallePaRouter from "./modulos/fiorella/detallepaciente/detallepaciente.
 import loginRoutes from "./modulos/login/login.routes.js";
 import historialRoutes from "./modulos/historial/historial.route.js";
 import familiarRoutes from "./modulos/detallefamilia/familia.route.js"
-
+import agendacitasRoutes from "./modulos/agendacitas/agendacitas.route.js";
 
 const app = express();
 
@@ -30,5 +30,6 @@ app.use("/api/detallepaciente", detallePaRouter);
 app.use("/api/notificaciones", notificacionesRoutes);
 app.use("/api/historial", historialRoutes);
 app.use("/api/familiar", familiarRoutes);
+app.use("/api/citas", agendacitasRoutes);
 
 export default app;

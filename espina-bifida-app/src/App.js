@@ -18,6 +18,7 @@ import RegistroPage from "./pantallas/registro";
 import Login from "./pantallas/login";
 import ServiciosPanel from "./pantallas/inventario";
 import Credencial from "./componentes/credencial/credencial";
+import AgendaCitasPage from "./pantallas/agendacitas";
 import { NotificacionesProvider } from "./pantallas/notificacionesContext";
 
 function AppContent() {
@@ -58,6 +59,7 @@ function AppContent() {
             <Route path="/notificaciones" element={<NotificacionesPage />} />
             <Route path="/historial" element={<HistorialPage />} />
             <Route path="/inventario" element={<ServiciosPanel />} />
+            <Route path="/agendacitas" element={<AgendaCitasPage />} />
 
             {/* Dynamic routes */}
             <Route path="/credencial/:pacienteId" element={<Credencial />} />
