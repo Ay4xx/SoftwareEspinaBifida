@@ -1,0 +1,23 @@
+.estadisticas-page {
+  min-height: calc(100vh - 60px);
+  background-color: #f8fafc;
+  padding: 36px 42px;
+}
+
+.estadisticas-message {
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.estadisticas-error {
+  font-size: 18px;
+  font-weight: 600;
+  color: #dc2626;
+}
+
+@media (max-width: 700px) {
+  .estadisticas-page {
+    padding: 24px 18px;
+  }
+}
