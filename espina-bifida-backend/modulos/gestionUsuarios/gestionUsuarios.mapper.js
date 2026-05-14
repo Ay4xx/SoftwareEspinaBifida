@@ -5,5 +5,6 @@ export function mapUsuario(row) {
         username:      row.USERNAME,
         tipoUsuario:   row.TIPO_USUARIO,
         fechaRegistro: row.FECHA_REGISTRO,
+        foto:          row.FOTO || null,
     };
 }

@@ -14,14 +14,17 @@ export async function listarUsuarios({ busqueda = "", pagina = 1, limite = 20 })
     const filtro = `%${busqueda.toUpperCase()}%`;
 
     const result = await conn.execute(
-      `SELECT USUARIO_ID, NOMBRE, USERNAME, TIPO_USUARIO, FECHA_REGISTRO
+      `SELECT USUARIO_ID, NOMBRE, USERNAME, TIPO_USUARIO, FECHA_REGISTRO, FOTO
          FROM USUARIO
         WHERE UPPER(USERNAME) LIKE :filtro
            OR UPPER(NOMBRE)   LIKE :filtro
         ORDER BY FECHA_REGISTRO DESC
         OFFSET :saltar ROWS FETCH NEXT :maxRows ROWS ONLY`,
       [filtro, filtro, saltar, limite],
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      {
+        outFormat: oracledb.OUT_FORMAT_OBJECT,
+        fetchInfo: { FOTO: { type: oracledb.BUFFER } },
+      }
     );
 
     const total = await conn.execute(
@@ -33,38 +36,51 @@ export async function listarUsuarios({ busqueda = "", pagina = 1, limite = 20 })
     );
 
     return {
-      usuarios: result.rows.map(mapUsuario),
-      total:    total.rows[0].TOTAL,
-      pagina:   Number(pagina),
-      limite:   Number(limite),
+      usuarios: result.rows.map((row) => {
+        if (row.FOTO) {
+          row.FOTO = `data:image/jpeg;base64,${row.FOTO.toString("base64")}`;
+        }
+        return mapUsuario(row);
+      }),
+      total:  total.rows[0].TOTAL,
+      pagina: Number(pagina),
+      limite: Number(limite),
     };
   } finally {
     if (conn) await conn.close();
   }
 }
 
-
 export async function obtenerUsuario(id) {
   let conn;
   try {
     conn = await getConnection();
     const result = await conn.execute(
-      `SELECT USUARIO_ID, NOMBRE, USERNAME, TIPO_USUARIO, FECHA_REGISTRO
+      `SELECT USUARIO_ID, NOMBRE, USERNAME, TIPO_USUARIO, FECHA_REGISTRO, FOTO
          FROM USUARIO
         WHERE USUARIO_ID = :id`,
       [id],
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      {
+        outFormat: oracledb.OUT_FORMAT_OBJECT,
+        fetchInfo: { FOTO: { type: oracledb.BUFFER } },
+      }
     );
 
     if (!result.rows.length) return null;
-    return mapUsuario(result.rows[0]);
+
+    const row = result.rows[0];
+    if (row.FOTO) {
+      row.FOTO = `data:image/jpeg;base64,${row.FOTO.toString("base64")}`;
+    }
+
+    return mapUsuario(row);
   } finally {
     if (conn) await conn.close();
   }
 }
 
 
-export async function crearUsuario({ nombre, username, password, confirmarPassword, tipoUsuario }) {
+export async function crearUsuario({ nombre, username, password, confirmarPassword, tipoUsuario, foto }) {
   if (!nombre?.trim())
     throw { status: 400, message: "El nombre es requerido" };
   if (!username?.trim())
@@ -95,14 +111,15 @@ export async function crearUsuario({ nombre, username, password, confirmarPasswo
     const passwordHash = await bcrypt.hash(String(password), 10);
 
     const insert = await conn.execute(
-      `INSERT INTO USUARIO (NOMBRE, USERNAME, PASSWORD, TIPO_USUARIO)
-       VALUES (:nombre, :username, :passwordHash, :tipoUsuario)
+      `INSERT INTO USUARIO (NOMBRE, USERNAME, PASSWORD, TIPO_USUARIO, FOTO)
+       VALUES (:nombre, :username, :passwordHash, :tipoUsuario, :foto)
        RETURNING USUARIO_ID INTO :id`,
       {
         nombre:       nombre.trim(),
         username:     username.trim(),
         passwordHash,
         tipoUsuario:  tipoUsuario.toUpperCase(),
+        foto:         foto ? { val: foto, type: oracledb.BLOB } : { val: null, type: oracledb.BLOB },
         id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
       },
       { autoCommit: true }
@@ -123,7 +140,7 @@ export async function crearUsuario({ nombre, username, password, confirmarPasswo
 }
 
 
-export async function actualizarUsuario(id, { nombre, username, tipoUsuario }) {
+export async function actualizarUsuario(id, { nombre, username, tipoUsuario, foto }) {
   if (nombre    !== undefined && !nombre.trim())
     throw { status: 400, message: "El nombre no puede estar vacío" };
   if (username  !== undefined && !username.trim())
@@ -161,25 +178,36 @@ export async function actualizarUsuario(id, { nombre, username, tipoUsuario }) {
       `UPDATE USUARIO
           SET NOMBRE       = NVL(:nombre,      NOMBRE),
               USERNAME     = NVL(:username,    USERNAME),
-              TIPO_USUARIO = NVL(:tipoUsuario, TIPO_USUARIO)
+              TIPO_USUARIO = NVL(:tipoUsuario, TIPO_USUARIO),
+              FOTO         = CASE WHEN :fotoUpdate = 1 THEN :foto ELSE FOTO END
         WHERE USUARIO_ID = :id`,
       {
         nombre:      nombre?.trim()             ?? null,
         username:    username?.trim()           ?? null,
         tipoUsuario: tipoUsuario?.toUpperCase() ?? null,
+        foto:        foto ? { val: foto, type: oracledb.BLOB } : { val: null, type: oracledb.BLOB },
+        fotoUpdate:  foto !== undefined ? 1 : 0,
         id,
       },
       { autoCommit: true }
     );
 
     const actualizado = await conn.execute(
-      `SELECT USUARIO_ID, NOMBRE, USERNAME, TIPO_USUARIO, FECHA_REGISTRO
+      `SELECT USUARIO_ID, NOMBRE, USERNAME, TIPO_USUARIO, FECHA_REGISTRO, FOTO
          FROM USUARIO WHERE USUARIO_ID = :id`,
       [id],
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      {
+        outFormat: oracledb.OUT_FORMAT_OBJECT,
+        fetchInfo: { FOTO: { type: oracledb.BUFFER } },
+      }
     );
 
-    return mapUsuario(actualizado.rows[0]);
+    const row = actualizado.rows[0];
+    if (row.FOTO) {
+      row.FOTO = `data:image/jpeg;base64,${row.FOTO.toString("base64")}`;
+    }
+
+    return mapUsuario(row);
   } finally {
     if (conn) await conn.close();
   }
