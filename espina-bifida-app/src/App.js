@@ -24,6 +24,7 @@ import EstadisticasPage from "./pantallas/estadisticas/estadisticas";
 =======
 import AgendaCitasPage from "./pantallas/agendacitas";
 >>>>>>> 5918231b86e876343b95652e297117bf8e470a49
+import AgendaCitasPage from "./pantallas/agendacitas";
 import { NotificacionesProvider } from "./pantallas/notificacionesContext";
 import GestionUsuarios from "./pantallas/gestionUsuarios";
 
@@ -81,15 +82,6 @@ function AppContent() {
           <Routes>
             <Route path="/" element={<Navigate to="/login" />} />
 
-<<<<<<< HEAD
-            {/* Main routes */}
-            <Route path="/usuarios" element={<UsuariosPage />} />
-            <Route path="/registro" element={<RegistroPage />} />
-            <Route path="/notificaciones" element={<NotificacionesPage />} />
-            <Route path="/historial" element={<HistorialPage />} />
-            <Route path="/inventario" element={<ServiciosPanel />} />
-            <Route path="/estadisticas" element={<EstadisticasPage />} />
-=======
             {/* Coordinador + Admin + SuperAdmin */}
             <Route
               path="/usuarios"
@@ -118,7 +110,6 @@ function AppContent() {
                 />
               }
             />
->>>>>>> 5918231b86e876343b95652e297117bf8e470a49
 
             {/* Solo Coordinador + SuperAdmin */}
             <Route
