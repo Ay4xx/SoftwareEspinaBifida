@@ -36,6 +36,8 @@ function Header() {
         return modoRevision ? "Volver a solicitudes" : "Módulo de Registro";
       case "/notificaciones":
         return "Solicitudes";
+      case "/gestion-usuarios":
+        return "Gestión de usuarios";
       default:
         return "Sistema";
     }
