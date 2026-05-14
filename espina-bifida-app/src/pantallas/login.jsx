@@ -50,6 +50,8 @@ const Login = () => {
           navigate("/usuarios");
         } else if (tipoUsuario === "COORDINADOR") {
           navigate("/usuarios");
+        }else if (tipoUsuario === "SUPERADMIN") {
+          navigate("/usuarios");
         }
       } else {
         setErrorMessage(data.message || "Credenciales incorrectas");

@@ -6,6 +6,9 @@ import "./patientCard.css";
 function PatientCard({ patient }) {
   const navigate = useNavigate();
 
+  const usuario = JSON.parse(localStorage.getItem("usuario"));
+  const esAdmin = usuario?.tipoUsuario?.trim().toUpperCase() === "ADMINISTRADOR";
+
   const formatDate = (dateString) => {
     if (!dateString) return "Sin registro";
     const date = new Date(dateString);
@@ -37,9 +40,11 @@ function PatientCard({ patient }) {
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <button className="btn-editar" onClick={handleEditar} title="Editar paciente">
-            <Pencil size={16} />
-          </button>
+          {!esAdmin && (
+            <button className="btn-editar" onClick={handleEditar} title="Editar paciente">
+              <Pencil size={16} />
+            </button>
+          )}
           <span className={`status ${patient.status === "Activo" ? "active" : "inactive"}`}>
             {patient.status}
           </span>
