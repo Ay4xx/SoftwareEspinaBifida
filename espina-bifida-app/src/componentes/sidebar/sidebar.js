@@ -6,6 +6,7 @@ import {
   BarChart3,
   LogOut,
   PenBoxIcon,
+  CalendarDays,
   UserCog
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -28,6 +29,12 @@ const menuItems = [
     icon: Boxes,
     path: "/inventario",
     roles: ["ADMINISTRADOR", "COORDINADOR", "SUPERADMIN"],
+  },
+  {
+    name: "Agenda",
+    icon: CalendarDays,
+    path: "/agendacitas",
+    roles: ["COORDINADOR"],
   },
   {
     name: "Estadísticas",

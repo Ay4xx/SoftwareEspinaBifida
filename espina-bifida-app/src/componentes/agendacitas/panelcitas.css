@@ -1,0 +1,183 @@
+
+.appointments-panel {
+  flex: 1;
+}
+
+/* HEADER */
+
+.appointments-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.appointments-header h1 {
+  color: #101828;
+  text-transform: capitalize;
+}
+
+.total-citas {
+  color: #98a2b3;
+  font-weight: 500;
+}
+
+/* STATS */
+
+.stats-row {
+  display: flex;
+  gap: 28px;
+  margin-top: 20px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.green {
+  color: #16a34a;
+}
+
+.blue {
+  color: #2563eb;
+}
+
+.gray {
+  color: #6b7280;
+}
+
+.red {
+  color: #dc2626;
+}
+
+/* BOTÓN */
+
+.add-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  background: #0039a6;
+  color: white;
+  border: none;
+
+  padding: 16px 24px;
+  border-radius: 16px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: 0.2s;
+
+  margin-bottom: 30px;
+}
+
+.add-btn:hover {
+  transform: scale(1.02);
+}
+
+/* LISTADO */
+
+.appointments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* CARD */
+
+.appointment-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 24px;
+
+  background: #eef2f6;
+  border: 1px solid #d0d5dd;
+
+  border-radius: 22px;
+}
+
+.attended-card {
+  background: #e8f5e9;
+}
+
+.patient-info {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+
+  border-radius: 18px;
+
+  background: black;
+  color: white;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: bold;
+}
+
+.patient-info h3 {
+  margin-bottom: 6px;
+  color: #101828;
+}
+
+.patient-meta {
+  display: flex;
+  gap: 18px;
+
+  color: #667085;
+}
+
+/* ACTIONS */
+
+.appointment-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.appointment-actions select {
+  padding: 12px 14px;
+
+  border-radius: 14px;
+  border: 1px solid #d0d5dd;
+
+  cursor: pointer;
+}
+
+.delete-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+
+  color: #344054;
+
+  transition: 0.2s;
+}
+
+.delete-btn:hover {
+  transform: scale(1.1);
+}
+
+/* EMPTY */
+
+.empty-state {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  text-align: center;
+  color: #98a2b3;
+}

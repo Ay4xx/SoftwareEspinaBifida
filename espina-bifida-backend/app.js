@@ -9,6 +9,7 @@ import notificacionesRoutes from "./modulos/notificaciones/notificaciones.routes
 import detallePaRouter from "./modulos/fiorella/detallepaciente/detallepaciente.routes.js";
 import loginRoutes from "./modulos/login/login.routes.js";
 import historialRoutes from "./modulos/historial/historial.route.js";
+import agendacitasRoutes from "./modulos/agendacitas/agendacitas.route.js";
 import familiarRoutes from "./modulos/detallefamilia/familia.route.js";
 import inventarioRouter from "./modulos/fiorella/regservicios/regservicios.route.js";
 import gestionUsuarioRoutes from "./modulos/gestionUsuarios/gestionUsuarios.routes.js";
@@ -27,6 +28,7 @@ app.use("/api/detallepaciente", detallePaRouter);
 app.use("/api/notificaciones", notificacionesRoutes);
 app.use("/api/historial", historialRoutes);
 app.use("/api/familiar", familiarRoutes);
+app.use("/api/citas", agendacitasRoutes);
 app.use("/api/inventario", inventarioRouter);
 app.use("/api/gestion-usuarios", gestionUsuarioRoutes);
 

@@ -19,6 +19,7 @@ import Login from "./pantallas/login";
 import ServiciosPanel from "./pantallas/regservicios";
 import InventarioPage from "./pantallas/inventario";
 import Credencial from "./componentes/credencial/credencial";
+import AgendaCitasPage from "./pantallas/agendacitas";
 import { NotificacionesProvider } from "./pantallas/notificacionesContext";
 import GestionUsuarios from "./pantallas/gestionUsuarios";
 
@@ -120,6 +121,15 @@ function AppContent() {
               element={
                 <RutaProtegida
                   element={<NotificacionesPage />}
+                  rolesPermitidos={["COORDINADOR", "SUPERADMIN"]}
+                />
+              }
+            />
+            <Route
+              path="/agendacitas"
+              element={
+                <RutaProtegida
+                  element={<AgendaCitasPage />}
                   rolesPermitidos={["COORDINADOR", "SUPERADMIN"]}
                 />
               }
