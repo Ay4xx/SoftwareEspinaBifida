@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import "./registrararticulo.css";
 import { X } from "lucide-react";
 
-
-
 function RegistrarEntrada({ onCerrar, onGuardado }) {
   const [categoria, setCategoria] = useState("");
   const [articulos, setArticulos] = useState([]);
@@ -16,22 +14,16 @@ function RegistrarEntrada({ onCerrar, onGuardado }) {
   useEffect(() => {
     if (!categoria) return;
 
-    const url = categoria === "medicina"
-      ? "http://localhost:3001/api/medicamentos"
-      : "http://localhost:3001/api/equipo";
-
-    fetch(url)
+    fetch("http://localhost:3001/api/inventario/")
       .then((r) => r.json())
       .then((res) => {
-        setArticulos(res.data || []);
+        const todos = res.data || [];
+        const filtrados = todos.filter((a) => a.TIPO === categoria);
+        setArticulos(filtrados);
         setSeleccionado("");
       })
       .catch(console.error);
   }, [categoria]);
-
-  const articuloSeleccionado = articulos.find(
-    (a) => String(categoria === "medicina" ? a.MEDICINA_ID : a.EQUIPO_M_ID) === String(seleccionado)
-  );
 
   const handleGuardar = async () => {
     if (!categoria) { setError("Selecciona una categoría."); return; }
@@ -56,8 +48,8 @@ function RegistrarEntrada({ onCerrar, onGuardado }) {
 
       const json = await res.json();
       if (json.ok) {
-        setExito(true); 
-        } else {
+        setExito(true);
+      } else {
         setError(json.message);
       }
     } catch (err) {
@@ -66,6 +58,19 @@ function RegistrarEntrada({ onCerrar, onGuardado }) {
       setCargando(false);
     }
   };
+
+  if (exito) {
+    return (
+      <div className="re-overlay">
+        <div className="re-popup-msg">
+          <div className="re-popup-icon"></div>
+          <h4>Entrada registrada</h4>
+          <p>La cantidad fue actualizada correctamente.</p>
+          <button className="re-guardar" onClick={onGuardado}>Aceptar</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="re-overlay" onClick={onCerrar}>
@@ -90,14 +95,11 @@ function RegistrarEntrada({ onCerrar, onGuardado }) {
             <label>Artículo</label>
             <select value={seleccionado} onChange={(e) => { setSeleccionado(e.target.value); setError(""); }}>
               <option value="">Seleccionar</option>
-              {articulos.map((a) => {
-                const id = categoria === "medicina" ? a.MEDICINA_ID : a.EQUIPO_M_ID;
-                return (
-                  <option key={id} value={id}>
-                    {a.DESCRIPCION} — Cantidad: {a.CANTIDAD_TOTAL}
-                  </option>
-                );
-              })}
+              {articulos.map((a) => (
+                <option key={a.ID} value={a.ID}>
+                  {a.DESCRIPCION} — Cantidad: {a.CANTIDAD_TOTAL}
+                </option>
+              ))}
             </select>
           </div>
         )}
@@ -125,16 +127,6 @@ function RegistrarEntrada({ onCerrar, onGuardado }) {
         </div>
 
       </div>
-      {exito && (
-        <div className="re-overlay">
-            <div className="re-popup-msg" onClick={(e) => e.stopPropagation()}>
-            <div className="re-popup-icon"></div>
-            <h4>Entrada registrada</h4>
-            <p>La cantidad fue actualizada correctamente.</p>
-            <button className="re-guardar" onClick={onGuardado}>Aceptar</button>
-            </div>
-        </div>
-        )}
     </div>
   );
 }
