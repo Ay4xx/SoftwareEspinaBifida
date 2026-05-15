@@ -10,7 +10,7 @@ function StatsSectionSkeleton({ title, description }) {
         <p>{description}</p>
       </div>
 
-      <div className="stats-row">
+      <div className="stats-section-grid">
         <StatCardSkeleton />
         <StatCardSkeleton />
         <StatCardSkeleton />
