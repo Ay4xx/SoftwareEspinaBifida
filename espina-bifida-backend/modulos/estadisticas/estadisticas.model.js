@@ -25,7 +25,7 @@ export async function getEstadisticasModel() {
             UNION ALL
             SELECT cantidad_total FROM inventario_equipo_medico
           )
-          WHERE cantidad_total > 10
+          WHERE cantidad_total > 5
         ) AS existencias_normal,
 
         (
@@ -35,7 +35,7 @@ export async function getEstadisticasModel() {
             UNION ALL
             SELECT cantidad_total FROM inventario_equipo_medico
           )
-          WHERE cantidad_total BETWEEN 1 AND 10
+          WHERE cantidad_total BETWEEN 1 AND 5
         ) AS existencias_bajas,
 
         (
