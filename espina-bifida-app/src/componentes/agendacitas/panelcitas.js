@@ -121,8 +121,9 @@ function PanelCitas({
                     <h3>{cita.nombre + " " + cita.apellido}</h3>
 
                     <div className="patient-meta">
-                      <span>{cita.telefono}</span>
+                      <span>{cita.motivo}</span>
                       <span>{cita.hora_cita}</span>
+                      <span>{"+" + cita.telefono.slice(0, 2) + " " + cita.telefono.slice(2, 6) +  " " + cita.telefono.slice(6, 10)}</span>
                     </div>
                   </div>
                 </div>

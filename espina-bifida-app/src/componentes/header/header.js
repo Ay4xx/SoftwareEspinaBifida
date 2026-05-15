@@ -32,15 +32,18 @@ function Header() {
   const modoRevision = location.pathname === "/registro" && location.state?.modoRevision;
 
   const getTitle = () => {
+    if (location.pathname.startsWith("/historial")) {
+      return "Módulo de Historial";
+    }
     switch (location.pathname) {
       case "/":               return "Módulo de Usuarios";
-      case "/historial":      return "Módulo de Historial";
       case "/usuarios":       return "Módulo de Usuarios";
       case "/inventario":     return "Módulo de Inventario";
       case "/estadisticas":   return "Módulo de Estadísticas";
       case "/registro":       return modoRevision ? "Volver a solicitudes" : "Módulo de Registro";
       case "/notificaciones": return "Solicitudes";
       case "/gestion-usuarios": return "Gestión de usuarios";
+      case "/agendacitas":    return "Módulo de Agenda";
       default: return "Sistema";
     }
   };
