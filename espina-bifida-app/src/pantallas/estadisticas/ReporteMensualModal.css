@@ -1,0 +1,124 @@
+.reporte-modal-overlay {
+  position: fixed;
+  inset: 0;
+
+  background: rgba(15, 23, 42, 0.55);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 999;
+}
+
+.reporte-modal {
+  width: 500px;
+
+  background: white;
+
+  border-radius: 18px;
+
+  padding: 28px;
+
+  box-shadow:
+    0 10px 40px rgba(0,0,0,0.15);
+}
+
+.reporte-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 12px;
+}
+
+.reporte-modal-header h2 {
+  margin: 0;
+
+  font-size: 1.5rem;
+
+  color: #0f172a;
+}
+
+.close-btn {
+  border: none;
+  background: transparent;
+
+  font-size: 20px;
+
+  cursor: pointer;
+}
+
+.reporte-description {
+  color: #64748b;
+
+  margin-bottom: 24px;
+}
+
+.checkbox-group {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 14px;
+
+  margin-bottom: 24px;
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  font-weight: 500;
+}
+
+.date-group {
+  display: flex;
+
+  gap: 16px;
+
+  margin-bottom: 24px;
+}
+
+.date-group div {
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+.date-group input {
+  padding: 10px;
+
+  border-radius: 10px;
+
+  border: 1px solid #cbd5e1;
+}
+
+.download-btn {
+  width: 100%;
+
+  border: none;
+
+  background: #2563eb;
+  color: white;
+
+  padding: 14px;
+
+  border-radius: 12px;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.download-btn:hover {
+  background: #1d4ed8;
+}
