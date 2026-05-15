@@ -21,6 +21,9 @@ import {
 import StatsSection from "../../componentes/statCard/statSection";
 import { getEstadisticas } from "../../services/estadisticasService";
 import StatsSectionSkeleton from "../../componentes/statCard/statSectionSkeleton";
+
+import ReporteMensualModal from "../../pantallas/estadisticas/ReporteMensualModal";
+
 import "./estadisticas.css";
 
 function EstadisticasPage() {
@@ -48,6 +51,8 @@ function EstadisticasPage() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [openReporteModal, setOpenReporteModal] = useState(false);
 
   const getPercentage = (value, total) => {
     if (!total || total === 0) return "0%";
@@ -188,30 +193,30 @@ function EstadisticasPage() {
   ];
 
   if (loading) {
-  return (
-    <div className="estadisticas-page">
-      <StatsSectionSkeleton
-        title="Inventario"
-        description="Resumen de existencias de medicinas y equipo médico."
-      />
+    return (
+      <div className="estadisticas-page">
+        <StatsSectionSkeleton
+          title="Inventario"
+          description="Resumen de existencias de medicinas y equipo médico."
+        />
 
-      <StatsSectionSkeleton
-        title="Pacientes"
-        description="Información general sobre pacientes registrados en el sistema."
-      />
+        <StatsSectionSkeleton
+          title="Pacientes"
+          description="Información general sobre pacientes registrados en el sistema."
+        />
 
-      <StatsSectionSkeleton
-        title="Servicios"
-        description="Actividad mensual relacionada con visitas, servicios y entregas."
-      />
+        <StatsSectionSkeleton
+          title="Servicios"
+          description="Actividad mensual relacionada con visitas, servicios y entregas."
+        />
 
-      <StatsSectionSkeleton
-        title="Reportes"
-        description="Indicadores útiles para auditoría, seguimiento y administración."
-      />
-    </div>
-  );
-}
+        <StatsSectionSkeleton
+          title="Reportes"
+          description="Indicadores útiles para auditoría, seguimiento y administración."
+        />
+      </div>
+    );
+  }
 
   if (error) {
     return (
@@ -223,9 +228,30 @@ function EstadisticasPage() {
 
   return (
     <div className="estadisticas-page">
+
+      <div className="estadisticas-header-row">
+
+        <div>
+          <h1 className="estadisticas-main-title">
+            Inventario
+          </h1>
+
+          <p className="estadisticas-main-description">
+            Resumen de existencias de medicinas y equipo médico.
+          </p>
+        </div>
+
+        <button
+          className="btn-descargar-reporte"
+          onClick={() => setOpenReporteModal(true)}
+        >
+          Descargar Reporte Mensual
+        </button>
+      </div>
+
       <StatsSection
-        title="Inventario"
-        description="Resumen de existencias de medicinas y equipo médico."
+        title=""
+        description=""
         cards={inventarioCards}
       />
 
@@ -245,6 +271,11 @@ function EstadisticasPage() {
         title="Reportes"
         description="Indicadores útiles para auditoría, seguimiento y administración."
         cards={reportesCards}
+      />
+
+      <ReporteMensualModal
+        open={openReporteModal}
+        onClose={() => setOpenReporteModal(false)}
       />
     </div>
   );
