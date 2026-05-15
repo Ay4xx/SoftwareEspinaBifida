@@ -1,0 +1,53 @@
+.stat-card-skeleton {
+  width: 100%;
+  min-height: 230px;
+  border-radius: 18px;
+  padding: 30px 22px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.3s infinite;
+}
+
+.skeleton-icon {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+}
+
+.skeleton-title {
+  width: 140px;
+  height: 16px;
+  border-radius: 8px;
+}
+
+.skeleton-value {
+  width: 80px;
+  height: 42px;
+  border-radius: 10px;
+}
+
+.skeleton-percentage {
+  width: 55px;
+  height: 14px;
+  border-radius: 8px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}

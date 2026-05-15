@@ -20,24 +20,12 @@ function PopupAgregarCita({
 
   if (!isOpen) return null;
 
-  /*
-  ========================================
-  MANEJAR INPUTS
-  ========================================
-  */
-
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
-
-  /*
-  ========================================
-  GUARDAR CITA
-  ========================================
-  */
 
   const handleSubmit = async (e) => {
     e.preventDefault();

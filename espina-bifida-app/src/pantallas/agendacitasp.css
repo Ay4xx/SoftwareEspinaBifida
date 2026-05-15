@@ -1,5 +1,7 @@
 .contenedor {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     margin: 0px 50px;
+    
+    overflow: hidden;
 }

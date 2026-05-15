@@ -1,6 +1,11 @@
-
 .appointments-panel {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+
+  height: 100vh;
+  overflow: hidden;
+  min-height: 0;
 }
 
 /* HEADER */
@@ -19,6 +24,11 @@
 .total-citas {
   color: #98a2b3;
   font-weight: 500;
+}
+
+.overlay {
+  background-color: #f4f8fa;
+  flex-shrink: 0;
 }
 
 /* STATS */
@@ -61,7 +71,7 @@
   align-items: center;
   gap: 10px;
 
-  background: #0039a6;
+  background: #083a99;
   color: white;
   border: none;
 
@@ -83,6 +93,11 @@
 /* LISTADO */
 
 .appointments-list {
+  flex: 1;
+  overflow-y: auto;
+
+  min-height: 0;
+
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -107,6 +122,14 @@
   background: #e8f5e9;
 }
 
+.cancelada-card {
+  background: #ffeded;
+}
+
+.confirmada-card {
+  background: #e3f2fd;
+}
+
 .patient-info {
   display: flex;
   align-items: center;
@@ -127,6 +150,10 @@
   justify-content: center;
 
   font-weight: bold;
+}
+
+.patient-details h3 {
+  margin-top: 0px;
 }
 
 .patient-info h3 {

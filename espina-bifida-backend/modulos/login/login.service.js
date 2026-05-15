@@ -9,25 +9,18 @@ export async function iniciarSesionPaciente(username, password) {
   try {
     conn = await getConnection();
 
-    const sql = `
-      SELECT
-        u.USUARIO_ID,
-        u.USERNAME,
-        u.PASSWORD,
-        u.TIPO_USUARIO
-      FROM USUARIO u
-      WHERE LOWER(u.USERNAME) = LOWER(:username)
-    `;
-
     const result = await conn.execute(
-      sql,
+      `SELECT u.USUARIO_ID, u.USERNAME, u.PASSWORD, u.TIPO_USUARIO, u.NOMBRE, u.FOTO
+         FROM USUARIO u
+        WHERE LOWER(u.USERNAME) = LOWER(:username)`,
       { username: String(username).trim() },
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      {
+        outFormat: oracledb.OUT_FORMAT_OBJECT,
+        fetchInfo: { FOTO: { type: oracledb.BUFFER } },
+      }
     );
 
-    if (!result.rows || result.rows.length === 0) {
-      return null;
-    }
+    if (!result.rows || result.rows.length === 0) return null;
 
     const usuario = result.rows[0];
 
@@ -36,13 +29,11 @@ export async function iniciarSesionPaciente(username, password) {
       return null;
     }
 
-    const passwordCorrecta = await bcrypt.compare(
-      String(password),
-      usuario.PASSWORD
-    );
+    const passwordCorrecta = await bcrypt.compare(String(password), usuario.PASSWORD);
+    if (!passwordCorrecta) return null;
 
-    if (!passwordCorrecta) {
-      return null;
+    if (usuario.FOTO) {
+      usuario.FOTO = `data:image/jpeg;base64,${usuario.FOTO.toString("base64")}`;
     }
 
     return mapPacienteLogin(usuario);

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import "./header.css";
 import { Bell, ArrowLeft } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -11,7 +11,18 @@ function Header() {
 
   const token = localStorage.getItem("token");
   const isGuest = localStorage.getItem("guest") === "true";
-  const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
+
+  const [usuario, setUsuario] = useState(
+    JSON.parse(localStorage.getItem("usuario") || "null")
+  );
+
+  useEffect(() => {
+    const handleStorage = () => {
+      setUsuario(JSON.parse(localStorage.getItem("usuario") || "null"));
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
 
   if (!token || isGuest) {
     return null;
@@ -22,34 +33,21 @@ function Header() {
 
   const getTitle = () => {
     switch (location.pathname) {
-      case "/":
-        return "Módulo de Usuarios";
-      case "/historial":
-        return "Módulo de Historial";
-      case "/usuarios":
-        return "Módulo de Usuarios";
-      case "/inventario":
-        return "Módulo de Inventario";
-      case "/estadisticas":
-        return "Módulo de Estadísticas";
-      case "/registro":
-        return modoRevision ? "Volver a solicitudes" : "Módulo de Registro";
-      case "/notificaciones":
-        return "Solicitudes";
-      case "/gestion-usuarios":
-        return "Gestión de usuarios";
-      default:
-        return "Sistema";
+      case "/":               return "Módulo de Usuarios";
+      case "/historial":      return "Módulo de Historial";
+      case "/usuarios":       return "Módulo de Usuarios";
+      case "/inventario":     return "Módulo de Inventario";
+      case "/estadisticas":   return "Módulo de Estadísticas";
+      case "/registro":       return modoRevision ? "Volver a solicitudes" : "Módulo de Registro";
+      case "/notificaciones": return "Solicitudes";
+      case "/gestion-usuarios": return "Gestión de usuarios";
+      default: return "Sistema";
     }
   };
 
   const getInitials = () => {
     if (!usuario) return "US";
-
-    if (usuario.username) {
-      return usuario.username.substring(0, 2).toUpperCase();
-    }
-
+    if (usuario.username) return usuario.username.substring(0, 2).toUpperCase();
     if (usuario.nombre) {
       return usuario.nombre
         .split(" ")
@@ -58,7 +56,6 @@ function Header() {
         .map((p) => p[0].toUpperCase())
         .join("");
     }
-
     return "US";
   };
 
@@ -96,7 +93,22 @@ function Header() {
             )}
           </div>
         )}
-        <div className="avatar">{getInitials()}</div>
+
+        {usuario?.foto ? (
+          <img
+            src={usuario.foto}
+            alt="avatar"
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: "50%",
+              objectFit: "cover",
+              cursor: "pointer",
+            }}
+          />
+        ) : (
+          <div className="avatar">{getInitials()}</div>
+        )}
       </div>
     </div>
   );
