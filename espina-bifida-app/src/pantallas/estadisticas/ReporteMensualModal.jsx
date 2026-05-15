@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import "./ReporteMensualModal.css";
+import {
+  descargarReporteMensual,
+} from "../../services/estadisticasService";
 
 function ReporteMensualModal({ open, onClose }) {
   const [formData, setFormData] = useState({
@@ -9,6 +12,7 @@ function ReporteMensualModal({ open, onClose }) {
     reportes: true,
     fechaInicio: "",
     fechaFin: "",
+    tipoArchivo: "excel",
   });
 
   if (!open) return null;
@@ -31,11 +35,31 @@ function ReporteMensualModal({ open, onClose }) {
     }));
   };
 
-  const handleDownload = () => {
-    console.log("DESCARGAR REPORTE:", formData);
+  const handleTipoArchivo = (e) => {
+    setFormData((prev) => ({
+        ...prev,
+        tipoArchivo: e.target.value,
+    }));
+};
 
-    onClose();
-  };
+  const handleDownload = async () => {
+    try {
+        const data =
+        await descargarReporteMensual(formData);
+
+        console.log(
+        "REPORTE GENERADO:",
+        data
+        );
+
+        onClose();
+    } catch (error) {
+        console.error(
+        "Error descargando reporte:",
+        error
+        );
+    }
+    };
 
   return (
     <div className="reporte-modal-overlay">
@@ -123,6 +147,30 @@ function ReporteMensualModal({ open, onClose }) {
             />
           </div>
         </div>
+
+        <div className="tipo-archivo-group">
+
+            <label>
+                Tipo de archivo
+            </label>
+
+            <select
+                value={formData.tipoArchivo}
+                onChange={handleTipoArchivo}
+            >
+                <option value="excel">
+                Excel (.xlsx)
+                </option>
+
+                <option value="pdf">
+                PDF (.pdf)
+                </option>
+
+                <option value="csv">
+                CSV (.csv)
+                </option>
+            </select>
+            </div>
 
         <button
           className="download-btn"
