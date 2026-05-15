@@ -1,0 +1,118 @@
+.stat-card {
+  width: 100%;
+  min-height: 230px;
+  border-radius: 18px;
+  padding: 30px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.stat-icon {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.stat-card h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #374151;
+  text-align: center;
+  letter-spacing: 0.4px;
+  margin: 0;
+}
+
+.stat-value {
+  font-size: 42px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.stat-percentage {
+  font-size: 15px;
+  font-weight: 700;
+  margin: -8px 0 0 0;
+}
+
+/* Azul */
+.stat-card.blue {
+  background: #d9fbff;
+}
+
+.stat-card.blue .stat-icon {
+  background: #9ff2fb;
+  color: #0891b2;
+}
+
+.stat-card.blue .stat-value,
+.stat-card.blue .stat-percentage {
+  color: #0891b2;
+}
+
+/* Verde */
+.stat-card.green {
+  background: #dcfce7;
+}
+
+.stat-card.green .stat-icon {
+  background: #9cf0bd;
+  color: #059669;
+}
+
+.stat-card.green .stat-value,
+.stat-card.green .stat-percentage {
+  color: #059669;
+}
+
+/* Amarillo */
+.stat-card.yellow {
+  background: #fef9c3;
+}
+
+.stat-card.yellow .stat-icon {
+  background: #fde68a;
+  color: #d97706;
+}
+
+.stat-card.yellow .stat-value,
+.stat-card.yellow .stat-percentage {
+  color: #d97706;
+}
+
+/* Rojo */
+.stat-card.red {
+  background: #fee2e2;
+}
+
+.stat-card.red .stat-icon {
+  background: #fecaca;
+  color: #dc2626;
+}
+
+.stat-card.red .stat-value,
+.stat-card.red .stat-percentage {
+  color: #dc2626;
+}
+
+/* Morado */
+.stat-card.purple {
+  background: #ede9fe;
+}
+
+.stat-card.purple .stat-icon {
+  background: #ddd6fe;
+  color: #7c3aed;
+}
+
+.stat-card.purple .stat-value,
+.stat-card.purple .stat-percentage {
+  color: #7c3aed;
+}

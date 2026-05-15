@@ -19,6 +19,8 @@ import Login from "./pantallas/login";
 import ServiciosPanel from "./pantallas/regservicios";
 import InventarioPage from "./pantallas/inventario";
 import Credencial from "./componentes/credencial/credencial";
+import EstadisticasPage from "./pantallas/estadisticas/estadisticas";
+import AgendaCitasPage from "./pantallas/agendacitas";
 import { NotificacionesProvider } from "./pantallas/notificacionesContext";
 import GestionUsuarios from "./pantallas/gestionUsuarios";
 
@@ -104,6 +106,15 @@ function AppContent() {
                 />
               }
             />
+            <Route
+              path="/estadisticas"
+              element={
+                <RutaProtegida
+                  element={<EstadisticasPage />}
+                  rolesPermitidos={["COORDINADOR", "ADMINISTRADOR", "SUPERADMIN"]}
+                />
+              }
+            />
 
             {/* Solo Coordinador + SuperAdmin */}
             <Route
@@ -120,6 +131,15 @@ function AppContent() {
               element={
                 <RutaProtegida
                   element={<NotificacionesPage />}
+                  rolesPermitidos={["COORDINADOR", "SUPERADMIN"]}
+                />
+              }
+            />
+            <Route
+              path="/agendacitas"
+              element={
+                <RutaProtegida
+                  element={<AgendaCitasPage />}
                   rolesPermitidos={["COORDINADOR", "SUPERADMIN"]}
                 />
               }
@@ -156,6 +176,8 @@ function AppContent() {
                 />
               }
             />
+                        
+
 
             <Route path="*" element={<Navigate to="/login" />} />
           </Routes>

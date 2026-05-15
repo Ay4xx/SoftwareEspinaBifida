@@ -112,3 +112,10 @@
     max-width: 100%;
   }
 }
+
+.usuarios-error {
+  color: #dc2626;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 18px;
+}
