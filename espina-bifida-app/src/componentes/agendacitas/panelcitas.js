@@ -1,5 +1,3 @@
-// components/AppointmentsPanel/AppointmentsPanel.jsx
-
 import React from "react";
 import "./panelcitas.css";
 import {
@@ -45,45 +43,47 @@ function PanelCitas({
 
   return (
     <div className="appointments-panel">
-      {/* HEADER */}
-      <div className="appointments-header">
-        <div>
-          <h1>{formattedDate}</h1>
+      <div className="overlay">
+        {/* HEADER */}
+        <div className="appointments-header">
+          <div>
+            <h1>{formattedDate}</h1>
+          </div>
+
+          <span className="total-citas">
+            {citas.length} citas en total
+          </span>
         </div>
 
-        <span className="total-citas">
-          {citas.length} citas en total
-        </span>
+        {/* STATS */}
+        <div className="stats-row">
+          <div className="stat-item green">
+            <CircleCheck size={20} />
+            <span>{atendidas} Atendidas</span>
+          </div>
+
+          <div className="stat-item blue">
+            <CalendarCheck2 size={20} />
+            <span>{confirmadas} Confirmadas</span>
+          </div>
+
+          <div className="stat-item gray">
+            <CircleDashed size={20} />
+            <span>{pendientes} Pendientes</span>
+          </div>
+
+          <div className="stat-item red">
+            <CircleX size={20} />
+            <span>{canceladas} Canceladas</span>
+          </div>
+        </div>
+
+        {/* BOTÓN */}
+        <button className="add-btn" onClick={onAddPatient}>
+          <Plus size={22} />
+          Agregar Paciente
+        </button>
       </div>
-
-      {/* STATS */}
-      <div className="stats-row">
-        <div className="stat-item green">
-          <CircleCheck size={20} />
-          <span>{atendidas} Atendidas</span>
-        </div>
-
-        <div className="stat-item blue">
-          <CalendarCheck2 size={20} />
-          <span>{confirmadas} Confirmadas</span>
-        </div>
-
-        <div className="stat-item gray">
-          <CircleDashed size={20} />
-          <span>{pendientes} Pendientes</span>
-        </div>
-
-        <div className="stat-item red">
-          <CircleX size={20} />
-          <span>{canceladas} Canceladas</span>
-        </div>
-      </div>
-
-      {/* BOTÓN */}
-      <button className="add-btn" onClick={onAddPatient}>
-        <Plus size={22} />
-        Agregar Paciente
-      </button>
 
       {/* LISTADO */}
       <div className="appointments-list">
@@ -104,7 +104,11 @@ function PanelCitas({
                 className={`appointment-card ${
                   cita.estatus_cita === "ATENDIDA"
                     ? "attended-card"
-                    : ""
+                    : cita.estatus_cita === "CANCELADA"
+                    ? "cancelada-card"
+                    : cita.estatus_cita === "CONFIRMADA"
+                    ? "confirmada-card"
+                    : "pendiente-card"
                 }`}
               >
                 {/* IZQUIERDA */}
@@ -113,8 +117,8 @@ function PanelCitas({
                     {initials}
                   </div>
 
-                  <div>
-                    <h3>{cita.nombre}</h3>
+                  <div className="patient-details">
+                    <h3>{cita.nombre + " " + cita.apellido}</h3>
 
                     <div className="patient-meta">
                       <span>{cita.telefono}</span>
