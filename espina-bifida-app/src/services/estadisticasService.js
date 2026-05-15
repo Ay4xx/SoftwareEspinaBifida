@@ -1,4 +1,5 @@
 export async function getEstadisticas() {
+
   const response = await fetch(
     "http://localhost:3001/api/estadisticas"
   );
@@ -24,6 +25,7 @@ export async function getEstadisticas() {
 export async function descargarReporteMensual(
   filtros
 ) {
+
   const response = await fetch(
     "http://localhost:3001/api/estadisticas/reporte",
     {
@@ -43,18 +45,25 @@ export async function descargarReporteMensual(
     );
   }
 
-  if (filtros.tipoArchivo === "csv") {
+  if (
+    filtros.tipoArchivo === "csv" ||
+    filtros.tipoArchivo === "excel"
+  ) {
 
     const blob = await response.blob();
 
     const url =
       window.URL.createObjectURL(blob);
 
-    const a = document.createElement("a");
+    const a =
+      document.createElement("a");
 
     a.href = url;
 
-    a.download = "reporte_mensual.csv";
+    a.download =
+      filtros.tipoArchivo === "csv"
+        ? "reporte_mensual.csv"
+        : "reporte_mensual.xlsx";
 
     document.body.appendChild(a);
 

@@ -1,3 +1,5 @@
+import ExcelJS from "exceljs";
+
 import { getEstadisticasModel } from "./estadisticas.model.js";
 
 export async function getEstadisticasService() {
@@ -29,6 +31,7 @@ export async function getEstadisticasService() {
 export async function descargarReporteMensualService(
   filtros
 ) {
+
   const stats = await getEstadisticasModel();
 
   const response = {};
@@ -101,6 +104,10 @@ export async function descargarReporteMensualService(
     return convertirACSV(response);
   }
 
+  if (filtros.tipoArchivo === "excel") {
+    return await convertirAExcel(response);
+  }
+
   return response;
 }
 
@@ -129,4 +136,66 @@ function convertirACSV(data) {
   );
 
   return csv;
+}
+
+async function convertirAExcel(data) {
+
+  const workbook = new ExcelJS.Workbook();
+
+  const worksheet =
+    workbook.addWorksheet("Reporte");
+
+  worksheet.columns = [
+    {
+      header: "Sección",
+      key: "seccion",
+      width: 25,
+    },
+    {
+      header: "Campo",
+      key: "campo",
+      width: 35,
+    },
+    {
+      header: "Valor",
+      key: "valor",
+      width: 20,
+    },
+  ];
+
+  Object.entries(data).forEach(
+    ([seccion, valores]) => {
+
+      if (!valores) return;
+
+      Object.entries(valores).forEach(
+        ([key, value]) => {
+
+          worksheet.addRow({
+            seccion,
+            campo: key,
+            valor: value,
+          });
+        }
+      );
+    }
+  );
+
+  worksheet.getRow(1).font = {
+    bold: true,
+  };
+
+  worksheet.getRow(1).fill = {
+    type: "pattern",
+    pattern: "solid",
+
+    fgColor: {
+      argb: "DCE6F1",
+    },
+  };
+
+  const buffer =
+    await workbook.xlsx.writeBuffer();
+
+  return buffer;
 }
