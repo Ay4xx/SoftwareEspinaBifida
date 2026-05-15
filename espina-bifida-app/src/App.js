@@ -118,14 +118,14 @@ function AppContent() {
 
             {/* Solo Coordinador + SuperAdmin */}
             <Route
-              path="/registro"
-              element={
-                <RutaProtegida
-                  element={<RegistroPage />}
-                  rolesPermitidos={["COORDINADOR", "SUPERADMIN"]}
-                />
-              }
-            />
+            path="/registro"
+            element={isGuest ? <RegistroPage /> : (
+              <RutaProtegida
+                element={<RegistroPage />}
+                rolesPermitidos={["COORDINADOR", "SUPERADMIN"]}
+              />
+            )}
+          />
             <Route
               path="/notificaciones"
               element={
