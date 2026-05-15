@@ -60,9 +60,12 @@ export async function getEstadisticasModel() {
         ) AS pacientes_activos,
 
         (
-          SELECT COUNT(*)
-          FROM paciente
-          WHERE vive = 'NO'
+          SELECT (
+            SELECT COUNT(*) FROM paciente
+          ) - (
+            SELECT COUNT(*) FROM paciente WHERE vive = 'SI'
+          )
+          FROM dual
         ) AS pacientes_inactivos,
 
         (
