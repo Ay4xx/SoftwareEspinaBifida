@@ -1,4 +1,5 @@
 import ExcelJS from "exceljs";
+import PDFDocument from "pdfkit";
 
 import { getEstadisticasModel } from "./estadisticas.model.js";
 
@@ -108,6 +109,9 @@ export async function descargarReporteMensualService(
     return await convertirAExcel(response);
   }
 
+  if (filtros.tipoArchivo === "pdf") {
+    return await convertirAPDF(response);
+  }
   return response;
 }
 
@@ -198,4 +202,70 @@ async function convertirAExcel(data) {
     await workbook.xlsx.writeBuffer();
 
   return buffer;
+}
+
+async function convertirAPDF(data) {
+
+  return new Promise((resolve) => {
+
+    const doc = new PDFDocument({
+      margin: 50,
+    });
+
+    const buffers = [];
+
+    doc.on("data", buffers.push.bind(buffers));
+
+    doc.on("end", () => {
+
+      const pdfData =
+        Buffer.concat(buffers);
+
+      resolve(pdfData);
+    });
+
+    doc
+      .fontSize(22)
+      .text(
+        "Reporte Mensual",
+        {
+          align: "center",
+        }
+      );
+
+    doc.moveDown(2);
+
+    Object.entries(data).forEach(
+      ([seccion, valores]) => {
+
+        doc
+          .fontSize(18)
+          .text(
+            seccion.toUpperCase(),
+            {
+              underline: true,
+            }
+          );
+
+        doc.moveDown(0.5);
+
+        if (!valores) return;
+
+        Object.entries(valores).forEach(
+          ([key, value]) => {
+
+            doc
+              .fontSize(12)
+              .text(
+                `${key}: ${value}`
+              );
+          }
+        );
+
+        doc.moveDown(1.5);
+      }
+    );
+
+    doc.end();
+  });
 }

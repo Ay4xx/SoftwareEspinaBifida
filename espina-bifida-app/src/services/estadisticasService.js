@@ -46,9 +46,10 @@ export async function descargarReporteMensual(
   }
 
   if (
-    filtros.tipoArchivo === "csv" ||
-    filtros.tipoArchivo === "excel"
-  ) {
+  filtros.tipoArchivo === "csv" ||
+  filtros.tipoArchivo === "excel" ||
+  filtros.tipoArchivo === "pdf"
+) {
 
     const blob = await response.blob();
 
@@ -60,10 +61,17 @@ export async function descargarReporteMensual(
 
     a.href = url;
 
-    a.download =
-      filtros.tipoArchivo === "csv"
-        ? "reporte_mensual.csv"
-        : "reporte_mensual.xlsx";
+    if (filtros.tipoArchivo === "csv") {
+      a.download = "reporte_mensual.csv";
+    }
+
+    if (filtros.tipoArchivo === "excel") {
+      a.download = "reporte_mensual.xlsx";
+    }
+
+    if (filtros.tipoArchivo === "pdf") {
+      a.download = "reporte_mensual.pdf";
+    }
 
     document.body.appendChild(a);
 

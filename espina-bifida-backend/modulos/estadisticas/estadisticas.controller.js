@@ -78,6 +78,23 @@ export async function descargarReporteMensual(
         .send(resultado);
     }
 
+    if (filtros.tipoArchivo === "pdf") {
+
+      res.setHeader(
+        "Content-Type",
+        "application/pdf"
+      );
+
+      res.setHeader(
+        "Content-Disposition",
+        "attachment; filename=reporte_mensual.pdf"
+      );
+
+      return res
+        .status(200)
+        .send(resultado);
+    }
+
     return res.status(200).json({
       ok: true,
       data: resultado,
