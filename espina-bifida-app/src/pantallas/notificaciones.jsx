@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 const API_URL = "http://localhost:3001/api/notificaciones";
 
 function NotificacionesPage() {
-  const [filtro, setFiltro] = useState("todas");
+  const [filtro, setFiltro] = useState("pendientes");
   const [busqueda, setBusqueda] = useState("");
   const [notificaciones, setNotificaciones] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -85,10 +85,6 @@ function NotificacionesPage() {
     return new Date(utc);
   }
 
-  const pendientesCount = useMemo(() => {
-    return notificaciones.filter((n) => n.estado === "pendiente").length;
-  }, [notificaciones]);
-
   const notificacionesFiltradas = useMemo(() => {
     let resultado = notificaciones;
     if (filtro === "pendientes") resultado = resultado.filter((n) => n.estado === "pendiente");
@@ -101,9 +97,6 @@ function NotificacionesPage() {
     }
     return resultado;
   }, [filtro, busqueda, notificaciones]);
-
-  const nuevas = notificacionesFiltradas.filter((n) => !n.leida);
-  const anteriores = notificacionesFiltradas.filter((n) => n.leida);
 
   function renderEstado(estado) {
     if (estado === "pendiente") return <span className="estado-badge pendiente">● Pendiente</span>;
@@ -186,9 +179,6 @@ function NotificacionesPage() {
     <div className="notificaciones-page">
       <div className="notificaciones-topbar">
         <div className="filtros">
-          <button className={filtro === "todas" ? "activo" : ""} onClick={() => setFiltro("todas")}>
-            Todas <span>{notificaciones.length}</span>
-          </button>
           <button className={filtro === "pendientes" ? "activo" : ""} onClick={() => setFiltro("pendientes")}>
             Pendientes <span>{notificaciones.filter((n) => n.estado === "pendiente").length}</span>
           </button>
@@ -208,38 +198,17 @@ function NotificacionesPage() {
         </div>
       </div>
 
-      {filtro === "todas" ? (
-        <>
-          <div className="seccion-notis">
-            <h4>Nuevas</h4>
-            {nuevas.length > 0 ? (
-              nuevas.map((item) => <TarjetaNotificacion key={item.id} item={item} />)
-            ) : (
-              <div className="sin-notificaciones"><Bell size={20} /><span>No hay notificaciones nuevas</span></div>
-            )}
+      <div className="seccion-notis">
+        <h4>{filtro === "resueltas" ? "Rechazadas" : "Pendientes"}</h4>
+        {notificacionesFiltradas.length > 0 ? (
+          notificacionesFiltradas.map((item) => <TarjetaNotificacion key={item.id} item={item} />)
+        ) : (
+          <div className="sin-notificaciones">
+            <Bell size={20} />
+            <span>No hay notificaciones {filtro === "resueltas" ? "resueltas" : "pendientes"}</span>
           </div>
-          <div className="seccion-notis">
-            <h4>Anteriores</h4>
-            {anteriores.length > 0 ? (
-              anteriores.map((item) => <TarjetaNotificacion key={item.id} item={item} />)
-            ) : (
-              <div className="sin-notificaciones"><Bell size={20} /><span>No hay notificaciones anteriores</span></div>
-            )}
-          </div>
-        </>
-      ) : (
-        <div className="seccion-notis">
-          <h4>{filtro === "resueltas" ? "Resueltas" : "Pendientes"}</h4>
-          {notificacionesFiltradas.length > 0 ? (
-            notificacionesFiltradas.map((item) => <TarjetaNotificacion key={item.id} item={item} />)
-          ) : (
-            <div className="sin-notificaciones">
-              <Bell size={20} />
-              <span>No hay notificaciones {filtro === "resueltas" ? "resueltas" : "pendientes"}</span>
-            </div>
-          )}
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
