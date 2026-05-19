@@ -1,6 +1,7 @@
 import oracledb from "oracledb";
 import { getConnection } from "../../config/db.js";
 import { mapPacienteToCard } from "../paciente/paciente.mapper.js";
+import { obtenerMembresiaPorPacienteId } from "../membresia/membresia.service.js";
 
 export async function getPacienteCards(search = "") {
   let conn;
@@ -111,10 +112,8 @@ export async function getPacienteDetail(id) {
         p.paciente_id, p.nombre, p.apellido, p.fotografia,
         p.ciudad_residencia, p.estado_residencia,
         p.fecha_ultima_visita, p.etapa_vida,
-        m.estatus AS estatus_membresia,
         NVL(ev.total_consultas, 0) AS total_consultas
       FROM PACIENTE p
-      LEFT JOIN MEMBRESIA m ON p.paciente_id = m.paciente_id
       LEFT JOIN (
         SELECT paciente_id, COUNT(evento_id) AS total_consultas
         FROM EVENTO_VISITA GROUP BY paciente_id
@@ -123,7 +122,14 @@ export async function getPacienteDetail(id) {
     `;
     const result = await conn.execute(sql, { id: Number(id) }, { outFormat: oracledb.OUT_FORMAT_OBJECT });
     if (!result.rows || result.rows.length === 0) return null;
-    return mapPacienteToCard(result.rows[0]);
+
+    const row = result.rows[0];
+    const membresia = await obtenerMembresiaPorPacienteId(id);
+
+    return mapPacienteToCard({
+      ...row,
+      ESTATUS_MEMBRESIA: membresia?.ESTATUS,
+    });
   } catch (error) {
     console.error("Error en getPacienteDetail:", error);
     throw error;
@@ -139,15 +145,17 @@ export async function getPacienteDetalle(pacienteId) {
     const result = await conn.execute(
       `SELECT p.PACIENTE_ID, p.NOMBRE, p.APELLIDO, p.EMAIL,
         p.TELEFONO_CELULAR, p.ESTADO_RESIDENCIA, p.FECHA_ALTA,
-        p.VIVE, m.FECHA_INICIO, m.FECHA_FIN
+        p.VIVE
         FROM PACIENTE p
-        LEFT JOIN MEMBRESIA m ON p.PACIENTE_ID = m.PACIENTE_ID
         WHERE p.PACIENTE_ID = :pacienteId`,
       { pacienteId: Number(pacienteId) },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
     if (!result.rows || result.rows.length === 0) return null;
     const row = result.rows[0];
+
+    const membresia = await obtenerMembresiaPorPacienteId(pacienteId);
+
     return {
       PACIENTE_ID: row.PACIENTE_ID ?? null,
       NOMBRE: row.NOMBRE ?? null,
@@ -158,8 +166,8 @@ export async function getPacienteDetalle(pacienteId) {
       ESTADO_RESIDENCIA: row.ESTADO_RESIDENCIA ?? null,
       FECHA_ALTA: row.FECHA_ALTA ? new Date(row.FECHA_ALTA).toISOString() : null,
       VIVE: row.VIVE ?? null,
-      FECHA_INICIO: row.FECHA_INICIO ? new Date(row.FECHA_INICIO).toISOString() : null,
-      FECHA_FIN: row.FECHA_FIN ? new Date(row.FECHA_FIN).toISOString() : null,
+      FECHA_INICIO: membresia?.FECHA_INICIO ? new Date(membresia.FECHA_INICIO).toISOString() : null,
+      FECHA_FIN: membresia?.FECHA_FIN ? new Date(membresia.FECHA_FIN).toISOString() : null,
       foto: `/api/pacientes/${row.PACIENTE_ID}/foto`,
     };
   } catch (error) {

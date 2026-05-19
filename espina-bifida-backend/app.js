@@ -14,6 +14,7 @@ import familiarRoutes from "./modulos/detallefamilia/familia.route.js";
 import inventarioRouter from "./modulos/fiorella/regservicios/regservicios.route.js";
 import gestionUsuarioRoutes from "./modulos/gestionUsuarios/gestionUsuarios.routes.js";
 import estadisticasRoutes from "./modulos/estadisticas/estadisticas.routes.js";
+import membresiaRoutes from "./modulos/membresia/membresia.routes.js";
 
 const app = express();
 app.use(cors());
@@ -33,5 +34,5 @@ app.use("/api/citas", agendacitasRoutes);
 app.use("/api/inventario", inventarioRouter);
 app.use("/api/gestion-usuarios", gestionUsuarioRoutes);
 app.use("/api/estadisticas", estadisticasRoutes);
-
+app.use("/api/membresia", membresiaRoutes);
 export default app;
