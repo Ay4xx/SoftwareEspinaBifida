@@ -67,9 +67,7 @@ function PatientCard({ patient }) {
       </div>
 
       <div className="card-footer">
-        <button className="btn-secondary" onClick={() => navigate(`/historial/${patient.id}`)}>
-          Historial
-        </button>
+        
         <button className="btn-primary" onClick={() => navigate(`/inventario/${patient.id}`)}>
           <Plus size={14} />
           Agregar
