@@ -16,9 +16,27 @@ import gestionUsuarioRoutes from "./modulos/gestionUsuarios/gestionUsuarios.rout
 import estadisticasRoutes from "./modulos/estadisticas/estadisticas.routes.js";
 
 const app = express();
-app.use(cors());
+
+export const sseClients = new Set();
+
 app.use(cors({ origin: "http://localhost:3000" }));
 app.use(express.json());
+
+app.get("/api/notificaciones-sse", (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders();
+
+  sseClients.add(res);
+  console.log(`[SSE] Cliente conectado. Total: ${sseClients.size}`);
+
+  req.on("close", () => {
+    sseClients.delete(res);
+    console.log(`[SSE] Cliente desconectado. Total: ${sseClients.size}`);
+  });
+});
+
 app.use("/api/login", loginRoutes);
 app.use("/api/registro", registroRoutes);
 app.use("/api/pacientes", pacienteRoutes);

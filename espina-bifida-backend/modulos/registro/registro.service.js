@@ -1,5 +1,13 @@
 import oracledb from "oracledb";
 import { getConnection } from "../../config/db.js";
+import { enviarSMS } from "../email/sms.service.js";
+import { sseClients } from "../../app.js";
+
+function notificarSSE() {
+  for (const client of sseClients) {
+    client.write(`data: ${JSON.stringify({ tipo: "actualizar" })}\n\n`);
+  }
+}
 
 function calcularEdad(fechaNacimiento) {
   const hoy = new Date();
@@ -16,9 +24,14 @@ function calcularEtapaVida(edad) {
   return "Adulto";
 }
 
+function nullIfEmpty(val) {
+  if (val === undefined || val === null || val === "" || val === "N/A") return null;
+  return val;
+}
+
 export async function crearPacientePaso1({ nombre, apellido, genero, fechaNacimiento, curp, usuarioId }) {
-  const edad = calcularEdad(fechaNacimiento);
-  const etapaVida = calcularEtapaVida(edad);
+  const edad = fechaNacimiento ? calcularEdad(fechaNacimiento) : null;
+  const etapaVida = edad !== null ? calcularEtapaVida(edad) : null;
   let conn;
   try {
     conn = await getConnection();
@@ -43,15 +56,20 @@ export async function crearPacientePaso1({ nombre, apellido, genero, fechaNacimi
       ) VALUES (
         (SELECT NVL(MAX(PACIENTE_ID), 0) + 1 FROM PACIENTE),
         :nombre, :apellido, :curp,
-        TO_DATE(:fechaNacimiento, 'YYYY-MM-DD'),
+        ${fechaNacimiento ? "TO_DATE(:fechaNacimiento, 'YYYY-MM-DD')" : "NULL"},
         :genero, :edad, :etapaVida,
-        'N/A', 'N/A', 'N/A', 'N/A',
-        'N/A', 'N/A',
-        'N/A', 'N/A', 'N/A'
+        NULL, NULL, NULL, NULL,
+        NULL, NULL,
+        NULL, NULL, NULL
       ) RETURNING PACIENTE_ID INTO :id`,
       {
-        nombre, apellido, curp, fechaNacimiento,
-        genero, edad, etapaVida,
+        nombre:    nullIfEmpty(nombre),
+        apellido:  nullIfEmpty(apellido),
+        curp,
+        ...(fechaNacimiento ? { fechaNacimiento } : {}),
+        genero:    nullIfEmpty(genero),
+        edad,
+        etapaVida,
         id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
       },
       { autoCommit: true }
@@ -62,8 +80,8 @@ export async function crearPacientePaso1({ nombre, apellido, genero, fechaNacimi
     if (usuarioId) {
       await conn.execute(
         `DELETE FROM NOTIFICACION
-        WHERE paciente_id = :pacienteId
-        AND estado_proceso = 'pendiente'`,
+         WHERE paciente_id = :pacienteId
+         AND estado_proceso = 'pendiente'`,
         { pacienteId },
         { autoCommit: true }
       );
@@ -72,6 +90,13 @@ export async function crearPacientePaso1({ nombre, apellido, genero, fechaNacimi
     return { pacienteId };
   } catch (error) {
     console.error("Error en crearPacientePaso1:", error);
+    // ORA-00001 = unique constraint violated — la CURP ya existe
+    if (error.errorNum === 1) {
+      throw Object.assign(
+        new Error("Ya existe un paciente registrado con ese CURP."),
+        { code: "CURP_DUPLICADO" }
+      );
+    }
     throw error;
   } finally {
     if (conn) await conn.close();
@@ -99,15 +124,30 @@ export async function actualizarPaso2(pacienteId, {
         EMAIL                = :correo
       WHERE PACIENTE_ID = :pacienteId`,
       {
-        direccion, ciudad, estado, codigoPostal,
-        emergenciaContacto, emergenciaTelefono,
-        telefonoCasa:    telefonoCasa    || null,
-        telefonoCelular: telefonoCelular || null,
-        correo:          correo          || null,
+        direccion:          nullIfEmpty(direccion),
+        ciudad:             nullIfEmpty(ciudad),
+        estado:             nullIfEmpty(estado),
+        codigoPostal:       nullIfEmpty(codigoPostal),
+        emergenciaContacto: nullIfEmpty(emergenciaContacto),
+        emergenciaTelefono: nullIfEmpty(emergenciaTelefono),
+        telefonoCasa:       nullIfEmpty(telefonoCasa),
+        telefonoCelular:    nullIfEmpty(telefonoCelular),
+        correo:             nullIfEmpty(correo),
         pacienteId,
       },
       { autoCommit: true }
     );
+
+    // Solo envía SMS si hay un número disponible
+    const telefono = nullIfEmpty(telefonoCelular) || nullIfEmpty(telefonoCasa);
+    if (telefono) {
+      await enviarSMS(
+        telefono,
+        "Hola, tu solicitud de registro en la Asociación Espina Bífida ha sido recibida y está siendo revisada. Te notificaremos pronto."
+      );
+    }
+
+    notificarSSE();
   } catch (error) {
     console.error("Error en actualizarPaso2:", error);
     throw error;
@@ -132,8 +172,12 @@ export async function actualizarPaso3(pacienteId, {
         NOTAS_ADICIONALES   = :notas
       WHERE PACIENTE_ID = :pacienteId`,
       {
-        lugarNacimiento, hospitalNacimiento, tipoSangre,
-        valvula, notas: notas || null, pacienteId,
+        lugarNacimiento:    nullIfEmpty(lugarNacimiento),
+        hospitalNacimiento: nullIfEmpty(hospitalNacimiento),
+        tipoSangre:         nullIfEmpty(tipoSangre),
+        valvula,
+        notas:              nullIfEmpty(notas),
+        pacienteId,
       },
       { autoCommit: true }
     );
@@ -165,15 +209,15 @@ export async function actualizarPaso4(pacienteId, {
       )`,
       {
         pacienteId,
-        lugarNacimiento: tutorLugarNacimiento || 'N/A',
-        escolaridad:     tutorEscolaridad     || 'N/A',
-        ocupacion:       tutorOcupacion       || 'N/A',
-        edad:            Number(tutorEdad)    || 0,
-        parentesco:      tutorParentesco === 'Sí' ? 'S' : 'N',
-        seguroMedico:    madreSeguroMedico    || 'N/A',
-        cdEmbarazo:      cdEmbarazo           || 'N/A',
-        acidoFolico:     acidoFolico === 'Sí' ? 'S' : 'N',
-        citasControl:    Number(citasControl) || 0,
+        lugarNacimiento: nullIfEmpty(tutorLugarNacimiento),
+        escolaridad:     nullIfEmpty(tutorEscolaridad),
+        ocupacion:       nullIfEmpty(tutorOcupacion),
+        edad:            tutorEdad ? Number(tutorEdad) : null,
+        parentesco:      tutorParentesco === "Sí" ? "S" : tutorParentesco === "No" ? "N" : null,
+        seguroMedico:    nullIfEmpty(madreSeguroMedico),
+        cdEmbarazo:      nullIfEmpty(cdEmbarazo),
+        acidoFolico:     acidoFolico === "Sí" ? "S" : acidoFolico === "No" ? "N" : null,
+        citasControl:    citasControl ? Number(citasControl) : null,
       },
       { autoCommit: true }
     );

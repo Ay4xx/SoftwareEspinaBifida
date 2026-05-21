@@ -44,6 +44,46 @@
   margin: 0;
 }
 
+/* ── Advertencias (registro guardado con errores parciales) ── */
+.registro-advertencias {
+  margin-top: 4px;
+  background-color: #fffbeb;
+  border: 1px solid #f59e0b;
+  border-radius: 10px;
+  padding: 14px 18px;
+  text-align: left;
+  width: 100%;
+  max-width: 380px;
+}
+
+.registro-advertencias-titulo {
+  font-size: 13px;
+  font-weight: 700;
+  color: #92400e;
+  margin: 0 0 8px;
+}
+
+.registro-advertencias-lista {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 10px;
+}
+
+.registro-advertencias-lista li {
+  font-size: 12.5px;
+  color: #78350f;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.registro-advertencias-nota {
+  font-size: 12px;
+  color: #92400e;
+  font-style: italic;
+  margin: 0;
+}
+
+/* ── Card principal ── */
 .registro-card {
   background: white;
   border-radius: 20px;
@@ -116,6 +156,7 @@
   border-radius: 8px;
   color: #b91c1c;
   font-size: 13px;
+  white-space: pre-line;
 }
 
 /* ── Contenedor de botones ── */

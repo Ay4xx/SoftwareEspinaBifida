@@ -42,6 +42,8 @@ const Login = () => {
         localStorage.setItem("usuario", JSON.stringify(data.data));
         localStorage.removeItem("guest");
 
+        window.dispatchEvent(new Event("usuario-login"));
+
         const tipoUsuario = data.data?.tipoUsuario?.trim().toUpperCase();
 
         console.log("TIPO USUARIO:", tipoUsuario);
@@ -50,7 +52,7 @@ const Login = () => {
           navigate("/usuarios");
         } else if (tipoUsuario === "COORDINADOR") {
           navigate("/usuarios");
-        }else if (tipoUsuario === "SUPERADMIN") {
+        } else if (tipoUsuario === "SUPERADMIN") {
           navigate("/usuarios");
         }
       } else {
