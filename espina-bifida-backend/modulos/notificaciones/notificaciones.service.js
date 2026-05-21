@@ -1,6 +1,15 @@
 import { getConnection } from "../../config/db.js";
 import oracledb from "oracledb";
 import { mapNotificacionToCard } from "./notificaciones.mapper.js";
+import { enviarSMS } from "../email/sms.service.js";
+import { sseClients } from "../../app.js";
+
+// ✅ Helper para notificar a todos los clientes SSE conectados
+function notificarSSE() {
+  for (const client of sseClients) {
+    client.write(`data: ${JSON.stringify({ tipo: "actualizar" })}\n\n`);
+  }
+}
 
 export async function getNotificaciones(estado = null) {
   let conn;
@@ -95,7 +104,6 @@ export async function getNotificacionById(notificacionId) {
     if (!result.rows || result.rows.length === 0) return null;
     const row = result.rows[0];
 
-    // Convertir BLOB a base64
     let fotoBase64 = null;
     if (row.FOTOGRAFIA) {
       const chunks = [];
@@ -156,12 +164,35 @@ export async function aprobarNotificacion(notificacionId, usuarioId) {
   let conn;
   try {
     conn = await getConnection();
+
+    const datos = await conn.execute(
+      `SELECT p.telefono_celular, p.telefono_casa
+       FROM NOTIFICACION n
+       JOIN PACIENTE p ON n.paciente_id = p.paciente_id
+       WHERE n.notificacion_id = :notificacionId`,
+      { notificacionId: Number(notificacionId) },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+
     const result = await conn.execute(
       `UPDATE NOTIFICACION SET estado_proceso = 'aprobado'
       WHERE notificacion_id = :notificacionId AND estado_proceso = 'pendiente'`,
       { notificacionId: Number(notificacionId) },
       { autoCommit: true }
     );
+
+    if (result.rowsAffected > 0) {
+      notificarSSE();
+
+      if (datos.rows.length > 0) {
+        const { TELEFONO_CELULAR, TELEFONO_CASA } = datos.rows[0];
+        await enviarSMS(
+          TELEFONO_CELULAR || TELEFONO_CASA,
+          "¡Felicidades! Tu registro ha sido aprobado. Ya formas parte de la Asociación Espina Bífida. ¡Bienvenido/a!"
+        );
+      }
+    }
+
     return result.rowsAffected > 0;
   } catch (error) {
     console.error("Error en aprobarNotificacion:", error);
@@ -175,12 +206,36 @@ export async function rechazarNotificacion(notificacionId, usuarioId) {
   let conn;
   try {
     conn = await getConnection();
+
+    const datos = await conn.execute(
+      `SELECT p.telefono_celular, p.telefono_casa
+       FROM NOTIFICACION n
+       JOIN PACIENTE p ON n.paciente_id = p.paciente_id
+       WHERE n.notificacion_id = :notificacionId`,
+      { notificacionId: Number(notificacionId) },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+
     const result = await conn.execute(
       `UPDATE NOTIFICACION SET estado_proceso = 'rechazado'
       WHERE notificacion_id = :notificacionId AND estado_proceso = 'pendiente'`,
       { notificacionId: Number(notificacionId) },
       { autoCommit: true }
     );
+
+    if (result.rowsAffected > 0) {
+      
+      notificarSSE();
+
+      if (datos.rows.length > 0) {
+        const { TELEFONO_CELULAR, TELEFONO_CASA } = datos.rows[0];
+        await enviarSMS(
+          TELEFONO_CELULAR || TELEFONO_CASA,
+          "Tu solicitud de registro no pudo ser aprobada. Por favor acude presencialmente a la Asociación Espina Bífida para revisar tus datos."
+        );
+      }
+    }
+
     return result.rowsAffected > 0;
   } catch (error) {
     console.error("Error en rechazarNotificacion:", error);
