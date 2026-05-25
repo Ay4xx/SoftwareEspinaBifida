@@ -36,8 +36,8 @@ function Header() {
       return "Módulo de Historial";
     }
     switch (location.pathname) {
-      case "/":               return "Módulo de Usuarios";
-      case "/usuarios":       return "Módulo de Usuarios";
+      case "/":               return "Módulo de Pacientes";
+      case "/usuarios":       return "Módulo de Pacientes";
       case "/inventario":     return "Módulo de Inventario";
       case "/estadisticas":   return "Módulo de Estadísticas";
       case "/registro":       return modoRevision ? "Volver a solicitudes" : "Módulo de Registro";

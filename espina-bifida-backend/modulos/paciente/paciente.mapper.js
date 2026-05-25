@@ -20,7 +20,7 @@ export function mapPacienteToCard(row) {
     apellido,
     subtitle: "Paciente registrado",
     status:
-      row.ESTATUS_MEMBRESIA && row.ESTATUS_MEMBRESIA.toLowerCase() === "activa"
+      row.ESTATUS_MEMBRESIA && row.ESTATUS_MEMBRESIA.toLowerCase() === "activo"
         ? "Activo"
         : "Inactivo",
     location: [row.CIUDAD_RESIDENCIA, row.ESTADO_RESIDENCIA]
