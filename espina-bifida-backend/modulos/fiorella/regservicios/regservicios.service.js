@@ -133,3 +133,19 @@ export async function getInventarioCompleto() {
     if (conn) await conn.close();
   }
 }
+
+export async function eliminarArticulo(id, tipo) {
+  let conn;
+  try {
+    conn = await getConnection();
+    const tabla = tipo === "medicina" ? "INVENTARIO_MEDICINAS" : "INVENTARIO_EQUIPO_MEDICO";
+    const campo = tipo === "medicina" ? "MEDICINA_ID" : "EQUIPO_M_ID";
+    await conn.execute(
+      `DELETE FROM ${tabla} WHERE ${campo} = :id`,
+      { id: parseInt(id) },
+    );
+    await conn.commit();
+  } finally {
+    if (conn) await conn.close();
+  }
+}

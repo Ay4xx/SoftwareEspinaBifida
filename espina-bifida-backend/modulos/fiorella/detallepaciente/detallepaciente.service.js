@@ -1,4 +1,5 @@
 import { getConnection } from "../../../config/db.js";
+import { obtenerMembresiaPorPacienteId } from "../../../modulos/membresia/membresia.service.js";
 import oracledb from "oracledb";
 
 export async function getPacienteDetalle(pacienteId) {
@@ -15,11 +16,8 @@ export async function getPacienteDetalle(pacienteId) {
           p.EMAIL,
           p.EMERGENCIA_TELEFONO,
           p.ESTADO_RESIDENCIA,
-          p.FECHA_ALTA,
-          m.FECHA_INICIO,
-          m.FECHA_FIN
+          p.FECHA_ALTA
        FROM PACIENTE p
-       LEFT JOIN MEMBRESIA m ON p.PACIENTE_ID = m.PACIENTE_ID
        WHERE p.PACIENTE_ID = :pacienteId`,
       { pacienteId: Number(pacienteId) },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
@@ -29,6 +27,8 @@ export async function getPacienteDetalle(pacienteId) {
 
     if (!row) return null;
 
+    const membresia = await obtenerMembresiaPorPacienteId(pacienteId);
+
     return {
       PACIENTE_ID: row.PACIENTE_ID ?? null,
       NOMBRE: row.NOMBRE ?? null,
@@ -37,8 +37,8 @@ export async function getPacienteDetalle(pacienteId) {
       EMERGENCIA_TELEFONO: row.EMERGENCIA_TELEFONO ?? null,
       ESTADO_RESIDENCIA: row.ESTADO_RESIDENCIA ?? null,
       FECHA_ALTA: row.FECHA_ALTA ? new Date(row.FECHA_ALTA).toISOString() : null,
-      FECHA_INICIO: row.FECHA_INICIO ? new Date(row.FECHA_INICIO).toISOString() : null,
-      FECHA_FIN: row.FECHA_FIN ? new Date(row.FECHA_FIN).toISOString() : null,
+      FECHA_INICIO: membresia?.FECHA_INICIO ? new Date(membresia.FECHA_INICIO).toISOString() : null,
+      FECHA_FIN: membresia?.FECHA_FIN ? new Date(membresia.FECHA_FIN).toISOString() : null,
     };
   } finally {
     if (conn) await conn.close();

@@ -4,13 +4,13 @@ import "./statSection.css";
 
 function StatsSection({ title, description, cards }) {
   return (
-    <section className="stats-section">
-      <div className="section-header">
+    <section className="stats-section-container">
+      <div className="stats-section-header">
         <h2>{title}</h2>
         <p>{description}</p>
       </div>
 
-      <div className="stats-row">
+      <div className="stats-section-grid">
         {cards.map((card) => (
           <StatCard
             key={card.title}

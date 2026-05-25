@@ -12,10 +12,11 @@ function NotificacionesPage() {
   const [notificaciones, setNotificaciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const { setPendientesCount } = useNotificaciones();
+  const { setPendientesCount, refrescarBadge  } = useNotificaciones();
   const navigate = useNavigate();
 
   useEffect(() => {
+    refrescarBadge();
     cargarNotificaciones();
     const intervalo = setInterval(() => {
       setNotificaciones((prev) =>

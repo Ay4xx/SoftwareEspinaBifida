@@ -95,7 +95,6 @@ export async function getNotificacionById(notificacionId) {
     if (!result.rows || result.rows.length === 0) return null;
     const row = result.rows[0];
 
-    // Convertir BLOB a base64
     let fotoBase64 = null;
     if (row.FOTOGRAFIA) {
       const chunks = [];
@@ -156,12 +155,14 @@ export async function aprobarNotificacion(notificacionId, usuarioId) {
   let conn;
   try {
     conn = await getConnection();
+
     const result = await conn.execute(
       `UPDATE NOTIFICACION SET estado_proceso = 'aprobado'
       WHERE notificacion_id = :notificacionId AND estado_proceso = 'pendiente'`,
       { notificacionId: Number(notificacionId) },
       { autoCommit: true }
     );
+
     return result.rowsAffected > 0;
   } catch (error) {
     console.error("Error en aprobarNotificacion:", error);
@@ -175,12 +176,14 @@ export async function rechazarNotificacion(notificacionId, usuarioId) {
   let conn;
   try {
     conn = await getConnection();
+
     const result = await conn.execute(
       `UPDATE NOTIFICACION SET estado_proceso = 'rechazado'
       WHERE notificacion_id = :notificacionId AND estado_proceso = 'pendiente'`,
       { notificacionId: Number(notificacionId) },
       { autoCommit: true }
     );
+
     return result.rowsAffected > 0;
   } catch (error) {
     console.error("Error en rechazarNotificacion:", error);
@@ -205,10 +208,7 @@ export async function eliminarNotificacionesAntiguas() {
 
     const ids = pacientes.rows.map((r) => r.PACIENTE_ID);
 
-    if (ids.length === 0) {
-      console.log("No hay notificaciones antiguas que eliminar");
-      return 0;
-    }
+    if (ids.length === 0) return 0;
 
     const placeholders = ids.map((_, i) => `:id${i}`).join(",");
     const binds = Object.fromEntries(ids.map((id, i) => [`id${i}`, id]));
@@ -221,7 +221,6 @@ export async function eliminarNotificacionesAntiguas() {
     await conn.execute(`DELETE FROM MEMBRESIA WHERE paciente_id IN (${placeholders})`, binds, { autoCommit: true });
     await conn.execute(`DELETE FROM PACIENTE WHERE paciente_id IN (${placeholders})`, binds, { autoCommit: true });
 
-    console.log(`[Limpieza] Eliminados ${ids.length} pacientes y sus notificaciones antiguas`);
     return ids.length;
   } catch (error) {
     console.error("Error en eliminarNotificacionesAntiguas:", error);
