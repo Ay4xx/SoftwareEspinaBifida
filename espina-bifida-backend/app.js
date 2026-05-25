@@ -30,11 +30,9 @@ app.get("/api/notificaciones-sse", (req, res) => {
   res.flushHeaders();
 
   sseClients.add(res);
-  console.log(`[SSE] Cliente conectado. Total: ${sseClients.size}`);
 
   req.on("close", () => {
     sseClients.delete(res);
-    console.log(`[SSE] Cliente desconectado. Total: ${sseClients.size}`);
   });
 });
 

@@ -1,15 +1,6 @@
 import { getConnection } from "../../config/db.js";
 import oracledb from "oracledb";
 import { mapNotificacionToCard } from "./notificaciones.mapper.js";
-import { enviarSMS } from "../email/sms.service.js";
-import { sseClients } from "../../app.js";
-
-// ✅ Helper para notificar a todos los clientes SSE conectados
-function notificarSSE() {
-  for (const client of sseClients) {
-    client.write(`data: ${JSON.stringify({ tipo: "actualizar" })}\n\n`);
-  }
-}
 
 export async function getNotificaciones(estado = null) {
   let conn;
@@ -165,33 +156,12 @@ export async function aprobarNotificacion(notificacionId, usuarioId) {
   try {
     conn = await getConnection();
 
-    const datos = await conn.execute(
-      `SELECT p.telefono_celular, p.telefono_casa
-       FROM NOTIFICACION n
-       JOIN PACIENTE p ON n.paciente_id = p.paciente_id
-       WHERE n.notificacion_id = :notificacionId`,
-      { notificacionId: Number(notificacionId) },
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
-
     const result = await conn.execute(
       `UPDATE NOTIFICACION SET estado_proceso = 'aprobado'
       WHERE notificacion_id = :notificacionId AND estado_proceso = 'pendiente'`,
       { notificacionId: Number(notificacionId) },
       { autoCommit: true }
     );
-
-    if (result.rowsAffected > 0) {
-      notificarSSE();
-
-      if (datos.rows.length > 0) {
-        const { TELEFONO_CELULAR, TELEFONO_CASA } = datos.rows[0];
-        await enviarSMS(
-          TELEFONO_CELULAR || TELEFONO_CASA,
-          "¡Felicidades! Tu registro ha sido aprobado. Ya formas parte de la Asociación Espina Bífida. ¡Bienvenido/a!"
-        );
-      }
-    }
 
     return result.rowsAffected > 0;
   } catch (error) {
@@ -207,34 +177,12 @@ export async function rechazarNotificacion(notificacionId, usuarioId) {
   try {
     conn = await getConnection();
 
-    const datos = await conn.execute(
-      `SELECT p.telefono_celular, p.telefono_casa
-       FROM NOTIFICACION n
-       JOIN PACIENTE p ON n.paciente_id = p.paciente_id
-       WHERE n.notificacion_id = :notificacionId`,
-      { notificacionId: Number(notificacionId) },
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
-
     const result = await conn.execute(
       `UPDATE NOTIFICACION SET estado_proceso = 'rechazado'
       WHERE notificacion_id = :notificacionId AND estado_proceso = 'pendiente'`,
       { notificacionId: Number(notificacionId) },
       { autoCommit: true }
     );
-
-    if (result.rowsAffected > 0) {
-      
-      notificarSSE();
-
-      if (datos.rows.length > 0) {
-        const { TELEFONO_CELULAR, TELEFONO_CASA } = datos.rows[0];
-        await enviarSMS(
-          TELEFONO_CELULAR || TELEFONO_CASA,
-          "Tu solicitud de registro no pudo ser aprobada. Por favor acude presencialmente a la Asociación Espina Bífida para revisar tus datos."
-        );
-      }
-    }
 
     return result.rowsAffected > 0;
   } catch (error) {
@@ -260,10 +208,7 @@ export async function eliminarNotificacionesAntiguas() {
 
     const ids = pacientes.rows.map((r) => r.PACIENTE_ID);
 
-    if (ids.length === 0) {
-      console.log("No hay notificaciones antiguas que eliminar");
-      return 0;
-    }
+    if (ids.length === 0) return 0;
 
     const placeholders = ids.map((_, i) => `:id${i}`).join(",");
     const binds = Object.fromEntries(ids.map((id, i) => [`id${i}`, id]));
@@ -276,7 +221,6 @@ export async function eliminarNotificacionesAntiguas() {
     await conn.execute(`DELETE FROM MEMBRESIA WHERE paciente_id IN (${placeholders})`, binds, { autoCommit: true });
     await conn.execute(`DELETE FROM PACIENTE WHERE paciente_id IN (${placeholders})`, binds, { autoCommit: true });
 
-    console.log(`[Limpieza] Eliminados ${ids.length} pacientes y sus notificaciones antiguas`);
     return ids.length;
   } catch (error) {
     console.error("Error en eliminarNotificacionesAntiguas:", error);
