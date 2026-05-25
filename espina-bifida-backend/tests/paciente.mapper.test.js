@@ -8,7 +8,7 @@ describe("PACIENTE MAPPER", () => {
       APELLIDO: "Pérez",
       CIUDAD_RESIDENCIA: "Monterrey",
       ESTADO_RESIDENCIA: "NL",
-      ESTATUS_MEMBRESIA: "activa",
+      ESTATUS_MEMBRESIA: "activo",
     };
 
     const result = mapPacienteToCard(row);

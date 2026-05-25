@@ -14,7 +14,7 @@ import logoPic from "../../assets/logo_AEBNL.png";
 
 const menuItems = [
   {
-    name: "Usuarios",
+    name: "Pacientes",
     icon: Users,
     path: "/usuarios",
     roles: ["ADMINISTRADOR", "COORDINADOR", "SUPERADMIN"],
