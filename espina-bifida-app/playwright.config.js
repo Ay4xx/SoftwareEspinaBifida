@@ -3,10 +3,10 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests',
-  fullyParallel: true,
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  retries: 0,
+  workers: 1,
   reporter: [
     ['html'],
     [
@@ -16,7 +16,7 @@ export default defineConfig({
         debug: true,
         testops: {
           api: {
-            token: '80c02962b7c8f454476d4e8a78c19b9ec94f5cefddadce007e388df6878b4e5e',
+            token: '3cbc592bde470d5ced77f240d031f1a81ab57ef9335bc15a5806174bdf3b6030',
           },
           project: 'HS01',
           run: {
@@ -27,20 +27,15 @@ export default defineConfig({
     ],
   ],
   use: {
+    baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
+    headless: false,
+    screenshot: 'only-on-failure',
   },
   projects: [
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
     },
   ],
 });
