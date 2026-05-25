@@ -1,13 +1,5 @@
 import oracledb from "oracledb";
 import { getConnection } from "../../config/db.js";
-import { enviarSMS } from "../email/sms.service.js";
-import { sseClients } from "../../app.js";
-
-function notificarSSE() {
-  for (const client of sseClients) {
-    client.write(`data: ${JSON.stringify({ tipo: "actualizar" })}\n\n`);
-  }
-}
 
 function calcularEdad(fechaNacimiento) {
   const hoy = new Date();
@@ -90,7 +82,6 @@ export async function crearPacientePaso1({ nombre, apellido, genero, fechaNacimi
     return { pacienteId };
   } catch (error) {
     console.error("Error en crearPacientePaso1:", error);
-    // ORA-00001 = unique constraint violated — la CURP ya existe
     if (error.errorNum === 1) {
       throw Object.assign(
         new Error("Ya existe un paciente registrado con ese CURP."),
@@ -137,17 +128,6 @@ export async function actualizarPaso2(pacienteId, {
       },
       { autoCommit: true }
     );
-
-    // Solo envía SMS si hay un número disponible
-    const telefono = nullIfEmpty(telefonoCelular) || nullIfEmpty(telefonoCasa);
-    if (telefono) {
-      await enviarSMS(
-        telefono,
-        "Hola, tu solicitud de registro en la Asociación Espina Bífida ha sido recibida y está siendo revisada. Te notificaremos pronto."
-      );
-    }
-
-    notificarSSE();
   } catch (error) {
     console.error("Error en actualizarPaso2:", error);
     throw error;
