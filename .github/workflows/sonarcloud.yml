@@ -63,6 +63,8 @@ jobs:
             -Dsonar.organization=ay4xx
             -Dsonar.scm.provider=git
             -Dsonar.sources=.
+            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/build/**,**/*.min.js,**/coverage/**,**/.next/**
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
             # Comma-separated paths to directories containing main source files.
             #-Dsonar.sources= # optional, default is project base directory
             # Comma-separated paths to directories containing test source files.
