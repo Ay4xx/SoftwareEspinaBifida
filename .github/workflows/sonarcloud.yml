@@ -62,9 +62,10 @@ jobs:
             -Dsonar.projectKey=Ay4xx_SoftwareEspinaBifida
             -Dsonar.organization=ay4xx
             -Dsonar.scm.provider=git
-            -Dsonar.sources=.
-            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/build/**,**/*.min.js,**/coverage/**,**/.next/**
-            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.sources=espina-bifida-app/src,espina-bifida-backend
+            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/build/**,**/*.min.js,**/coverage/**,**/.next/**,**/e2e/**,**/playwright-report/**,**/test-results/**
+            #-Dsonar.tests=e2e
+            #-Dsonar.test.exclusions=**/node_modules/**
             # Comma-separated paths to directories containing main source files.
             #-Dsonar.sources= # optional, default is project base directory
             # Comma-separated paths to directories containing test source files.
