@@ -54,13 +54,13 @@ function VisualizarHistorial() {
                     <p className="fecha">{visita.fecha}</p>
                     <ul className="lista">
                       {visita.servicios.map((s, idx) => (
-                        <ItemRow key={idx} nombre={s.nombre} precio={s.precio} badgeClass="badge-servicio" badgeLabel="Servicio" />
+                        <ItemRow key={idx} nombre={s.nombre} cantidad={s.cantidad} precio={s.precio} badgeClass="badge-servicio" badgeLabel="Servicio" />
                       ))}
                       {visita.medicamentos.map((m, idx) => (
-                        <ItemRow key={idx} nombre={m.nombre} precio={m.precio} badgeClass="badge-medicamento" badgeLabel="Medicamento" />
+                        <ItemRow key={idx} nombre={m.nombre} cantidad={m.cantidad} precio={m.precio} badgeClass="badge-medicamento" badgeLabel="Medicamento" />
                       ))}
                       {visita.equipo.map((e, idx) => (
-                        <ItemRow key={idx} nombre={e.nombre} precio={e.precio} badgeClass="badge-equipo" badgeLabel="Equipo" />
+                        <ItemRow key={idx} nombre={e.nombre} cantidad={e.cantidad} precio={e.precio} badgeClass="badge-equipo" badgeLabel="Equipo" />
                       ))}
                     </ul>
                     <hr className="divider" />
@@ -458,7 +458,7 @@ function transformarDatos(rows) {
       visita = { fecha: fecha.toLocaleDateString("es-MX"), servicios: [], medicamentos: [], equipo: [] };
       resultado[year].push(visita);
     }
-    const registro = { nombre: item.NOMBRE, precio: item.PRECIO };
+    const registro = { nombre: item.NOMBRE, precio: item.PRECIO, cantidad: item.CANTIDAD };
     if (item.TIPO === "servicio") visita.servicios.push(registro);
     if (item.TIPO === "medicamento") visita.medicamentos.push(registro);
     if (item.TIPO === "equipo") visita.equipo.push(registro);
@@ -471,12 +471,12 @@ function calcularTotal(visita) {
   return suma(visita.servicios) + suma(visita.medicamentos) + suma(visita.equipo);
 }
 
-function ItemRow({ nombre, precio, badgeClass, badgeLabel }) {
+function ItemRow({ nombre, precio, cantidad, badgeClass, badgeLabel }) {
   return (
     <li>
       <div className="item-left">
         <span className={`badge ${badgeClass}`}>{badgeLabel}</span>
-        {nombre}
+        {nombre} {cantidad > 1 && <span className="item-cantidad">x{cantidad}</span>}
       </div>
       <span className="item-price">${precio.toLocaleString("es-MX")}</span>
     </li>

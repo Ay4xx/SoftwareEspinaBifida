@@ -148,6 +148,12 @@
   margin: 0;
 }
 
+.item-cantidad {
+  color: #555;
+  margin-left: 4px;
+  font-weight: bold;
+}
+
 .total strong {
   font-weight: 500;
   color: #111;
