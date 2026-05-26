@@ -41,8 +41,12 @@ permissions:
 jobs:
   Analysis:
     runs-on: ubuntu-latest
-
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # historial completo para SCM
+          
       - name: Analyze with SonarCloud
 
         # You can pin the exact commit or the version.
