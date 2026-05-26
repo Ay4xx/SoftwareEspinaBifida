@@ -30,5 +30,6 @@ jobs:
             -Dsonar.scm.provider=git
             -Dsonar.sources=espina-bifida-app/src,espina-bifida-backend
             -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/build/**,**/*.min.js,**/coverage/**,**/e2e/**,**/playwright-report/**,**/test-results/**
-            -Dsonar.verbose=true
+            -Dsonar.javascript.node.maxspace=4096
+            -Dsonar.jasmin.enabled=false
           projectBaseDir: .
