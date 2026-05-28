@@ -32,4 +32,3 @@ jobs:
             -Dsonar.organization=ay4xx
             -Dsonar.sources=.
             -Dsonar.exclusions=node_modules/**,dist/**,build/**,coverage/**
-            -Dsonar.tests=tests
