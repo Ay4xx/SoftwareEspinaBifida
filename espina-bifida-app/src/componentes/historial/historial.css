@@ -541,3 +541,71 @@
   cursor: default !important;
   font-weight: 600;
 }
+
+.med-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5000;
+}
+
+.med-popup-msg {
+  width: 340px;
+  background: white;
+  border-radius: 20px;
+  padding: 28px 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+  text-align: center;
+  animation: popupFade 0.2s ease;
+}
+
+.med-popup-msg-icon {
+  font-size: 42px;
+  margin-bottom: 10px;
+}
+
+.med-popup-msg h4 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.med-popup-msg p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #64748b;
+}
+
+.med-popup-confirmar {
+  margin-top: 22px;
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  background: #083a99;
+  color: white;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.med-popup-confirmar:hover {
+  background: #062d7a;
+}
+
+@keyframes popupFade {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

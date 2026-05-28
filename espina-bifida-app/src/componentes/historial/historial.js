@@ -25,6 +25,7 @@ function VisualizarHistorial() {
 
   const abrirModal = (visita, year) => {
     setModalData({
+      eventoId: visita.eventoId,
       fecha: visita.fecha,
       year,
       total: calcularTotal(visita),
@@ -69,12 +70,20 @@ function VisualizarHistorial() {
                         Total
                         <strong>${calcularTotal(visita).toLocaleString("es-MX")}</strong>
                       </p>
-                      <button
-                        className="btn-modificar-pago"
-                        onClick={() => abrirModal(visita, year)}
-                      >
-                        Modificar pago
-                      </button>
+                      {!visita.montoRecibido ? (
+                        <button
+                          className="btn-modificar-pago"
+                          onClick={() => abrirModal(visita, year)}
+                        >
+                          Realizar pago
+                        </button>
+                      ) : (
+                        <p className="monto-pagado-real">
+                          Pagado: <strong>
+                            ${Number(visita.montoRecibido).toLocaleString("es-MX")}
+                          </strong>
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -354,6 +363,8 @@ function ModalPago({ data, pacienteId, onClose }) {
     montoAbonado: "",
     notas: "",
   });
+  const [popup, setPopup] = useState(null);
+  const [popupMensaje, setPopupMensaje] = useState("");
 
   const descuento = form.montoAbonado !== ""
     ? Math.max(0, data.total - parseFloat(form.montoAbonado || 0))
@@ -363,10 +374,55 @@ function ModalPago({ data, pacienteId, onClose }) {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleGuardar = () => {
-    // TODO: conectar con el endpoint de guardado
-    console.log("Guardar pago:", { pacienteId, fecha: data.fecha, descuento, ...form });
-    onClose();
+  //aqui mandar a llamar una funcion que guarde el monto recibido del evento id y paciente id
+  const handleGuardarPago = async () => {
+
+    if (!form.metodoPago) {
+      setPopup("error");
+      setPopupMensaje("Debes seleccionar un método de pago.");
+      return;
+    }
+
+    if (!form.montoAbonado || Number(form.montoAbonado) <= 0) {
+      setPopup("error");
+      setPopupMensaje("Debes ingresar un monto válido.");
+      return;
+    }
+
+    try {
+
+      const body = {
+        eventoId: data.eventoId,
+        pacienteId,
+        montoPagado: Number(form.montoAbonado),
+        metodoPago: form.metodoPago,
+        notas: form.notas,
+        descuento
+      };
+
+      const response = await fetch(
+        "http://localhost:3001/api/pagos/guardar",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(body)
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error();
+      }
+
+      setPopup("exito");
+      setPopupMensaje("El pago fue registrado exitosamente.");
+
+    } catch (error) {
+
+      setPopup("error");
+      setPopupMensaje("No se pudo guardar el pago.");
+    }
   };
 
   const handleBackdropClick = (e) => {
@@ -378,7 +434,7 @@ function ModalPago({ data, pacienteId, onClose }) {
       <div className="modal-pago">
         <div className="modal-header">
           <div>
-            <h2 className="modal-titulo">Modificar pago</h2>
+            <h2 className="modal-titulo">Realizar Pago</h2>
             <p className="modal-subtitulo">
               Visita del {data.fecha} · Total:{" "}
               <strong>${data.total.toLocaleString("es-MX")}</strong>
@@ -438,9 +494,43 @@ function ModalPago({ data, pacienteId, onClose }) {
 
         <div className="modal-footer">
           <button className="btn-cancelar" onClick={onClose}>Cancelar</button>
-          <button className="btn-guardar" onClick={handleGuardar}>Guardar pago</button>
+          <button className="btn-guardar" onClick={handleGuardarPago}>Guardar pago</button>
         </div>
       </div>
+
+      {popup && (
+        <div className="med-overlay" onClick={() => setPopup(null)}>
+          <div
+            className="med-popup-msg"
+            onClick={(e) => e.stopPropagation()}
+          >
+
+            <h4>
+              {popup === "exito"
+                ? "¡Pago registrado!"
+                : "Campos incompletos"}
+            </h4>
+
+            <p>{popupMensaje}</p>
+
+            <button
+              className="med-popup-confirmar"
+              onClick={() => {
+
+                setPopup(null);
+
+                if (popup === "exito") {
+                  window.location.reload();
+                }
+              }}
+            >
+              Aceptar
+            </button>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
@@ -453,9 +543,15 @@ function transformarDatos(rows) {
     const fecha = new Date(item.FECHA_EVENTO);
     const year = fecha.getFullYear();
     if (!resultado[year]) resultado[year] = [];
-    let visita = resultado[year].find(v => v.fecha === fecha.toLocaleDateString("es-MX"));
+    let visita = resultado[year].find(
+      v => v.eventoId === item.EVENTO_ID
+    );
     if (!visita) {
-      visita = { fecha: fecha.toLocaleDateString("es-MX"), servicios: [], medicamentos: [], equipo: [] };
+      visita = { 
+        eventoId: item.EVENTO_ID,
+        fecha: fecha.toLocaleDateString("es-MX"),
+        montoRecibido: item.MONTO_RECIBIDO, 
+        servicios: [], medicamentos: [], equipo: [] };
       resultado[year].push(visita);
     }
     const registro = { nombre: item.NOMBRE, precio: item.PRECIO, cantidad: item.CANTIDAD };

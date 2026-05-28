@@ -11,10 +11,10 @@ import "./regservicios.css";
 
 const tabs = [
   { id: "infopaciente", label: "Información Familiar", icon: <Users size={16} /> },
-  { id: "historial", label: "Historial", icon: <Clipboard size={16} /> },
   { id: "citas", label: "Citas", icon: <FileText size={16} /> },
   { id: "medicamentos", label: "Medicamentos", icon: <Pill size={16} /> },
   { id: "equipo", label: "Equipo médico", icon: <Stethoscope size={16} /> },
+  { id: "historial", label: "Recibos", icon: <Clipboard size={16} /> },
 ];
 
 function ServiciosPanel() {
