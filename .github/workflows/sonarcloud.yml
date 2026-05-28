@@ -12,7 +12,7 @@ permissions:
   pull-requests: read
 
 jobs:
-  analysis:
+  sonarcloud:
     name: SonarCloud Analysis
     runs-on: ubuntu-latest
 
@@ -23,12 +23,13 @@ jobs:
           fetch-depth: 0
 
       - name: Analyze with SonarCloud
-        uses: SonarSource/sonarqube-scan-action@v5
+        uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
             -Dsonar.projectKey=Ay4xx_SoftwareEspinaBifida
             -Dsonar.organization=ay4xx
-            -Dsonar.sources=.
-            -Dsonar.exclusions=node_modules/**,dist/**,build/**,coverage/**
+            -Dsonar.sources=espina-bifida-app/src,espina-bifida-backend
+            -Dsonar.tests=espina-bifida-app/tests,espina-bifida-backend/tests,e2e/tests
+            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/build/**,**/coverage/**,**/*.png,**/*.jpg,**/*.jpeg,**/*.gif,**/*.svg,**/*.ico,**/logs/**
