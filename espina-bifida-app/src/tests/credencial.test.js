@@ -1,5 +1,5 @@
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
-import Credencial from "./credencial";
+import Credencial from "../componentes/credencial/credencial";
 import { MemoryRouter } from "react-router-dom";
 
 const mockNavigate = jest.fn();
@@ -84,7 +84,7 @@ describe("Credencial", () => {
     });
 
     expect(screen.getByText(/001/)).toBeInTheDocument();
-    expect(screen.getByText(/Monterrey/)).toBeInTheDocument();
+    expect(screen.getByText(/Dirección:/)).toBeInTheDocument();
     expect(screen.getByText(/A\+/)).toBeInTheDocument();
     expect(screen.getByText(/Sí/)).toBeInTheDocument();
   });

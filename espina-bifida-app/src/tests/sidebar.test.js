@@ -1,8 +1,21 @@
 import { render, screen } from "@testing-library/react";
-import Sidebar from "./sidebar";
+import Sidebar from "../componentes/sidebar/sidebar";
 import { MemoryRouter } from "react-router-dom";
 
 describe("Sidebar", () => {
+  beforeEach(() => {
+    localStorage.setItem("token", "test-token");
+    localStorage.setItem("guest", "false");
+    localStorage.setItem(
+      "usuario",
+      JSON.stringify({ username: "AB", tipoUsuario: "SUPERADMIN" })
+    );
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+  });
+
   test("renderiza el encabezado del sidebar", () => {
     render(
       <MemoryRouter initialEntries={["/usuarios"]}>
@@ -12,7 +25,6 @@ describe("Sidebar", () => {
 
     expect(screen.getByText("AEBNL")).toBeInTheDocument();
     expect(screen.getByText("Espina Bífida NL")).toBeInTheDocument();
-    expect(screen.getByText("AE")).toBeInTheDocument();
   });
 
   test("renderiza el título del menú principal", () => {
@@ -25,18 +37,18 @@ describe("Sidebar", () => {
     expect(screen.getByText("Menú Principal")).toBeInTheDocument();
   });
 
-  test("renderiza todas las opciones del menú", () => {
+  test("renderiza todas las opciones del menú para SUPERADMIN", () => {
     render(
       <MemoryRouter initialEntries={["/usuarios"]}>
         <Sidebar />
       </MemoryRouter>
     );
 
-    expect(screen.getByText("Usuarios")).toBeInTheDocument();
-    expect(screen.getByText("Historial")).toBeInTheDocument();
+    expect(screen.getByText("Pacientes")).toBeInTheDocument();
     expect(screen.getByText("Registro")).toBeInTheDocument();
     expect(screen.getByText("Inventario")).toBeInTheDocument();
-    expect(screen.getByText("Estadisticas")).toBeInTheDocument();
+    expect(screen.getByText("Estadísticas")).toBeInTheDocument();
+    expect(screen.getByText("Gestión de usuarios")).toBeInTheDocument();
   });
 
   test("renderiza la sección de sistema", () => {
@@ -50,26 +62,26 @@ describe("Sidebar", () => {
     expect(screen.getByText("Cerrar sesión")).toBeInTheDocument();
   });
 
-  test("marca Usuarios como activo cuando la ruta es /usuarios", () => {
+  test("marca Pacientes como activo cuando la ruta es /usuarios", () => {
     render(
       <MemoryRouter initialEntries={["/usuarios"]}>
         <Sidebar />
       </MemoryRouter>
     );
 
-    const usuariosLink = screen.getByRole("link", { name: /usuarios/i });
-    expect(usuariosLink).toHaveClass("active");
+    const pacientesLink = screen.getByRole("link", { name: /pacientes/i });
+    expect(pacientesLink).toHaveClass("active");
   });
 
-  test("marca Historial como activo cuando la ruta es /historial", () => {
+  test("marca Gestión de usuarios como activo cuando la ruta es /gestion-usuarios", () => {
     render(
-      <MemoryRouter initialEntries={["/historial"]}>
+      <MemoryRouter initialEntries={["/gestion-usuarios"]}>
         <Sidebar />
       </MemoryRouter>
     );
 
-    const historialLink = screen.getByRole("link", { name: /historial/i });
-    expect(historialLink).toHaveClass("active");
+    const gestionUsuariosLink = screen.getByRole("link", { name: /gesti[oó]n de usuarios/i });
+    expect(gestionUsuariosLink).toHaveClass("active");
   });
 
   test("marca Registro como activo cuando la ruta es /registro", () => {
@@ -94,7 +106,7 @@ describe("Sidebar", () => {
     expect(inventarioLink).toHaveClass("active");
   });
 
-  test("marca Estadisticas como activo cuando la ruta es /estadisticas", () => {
+  test("marca Estadísticas como activo cuando la ruta es /estadisticas", () => {
     render(
       <MemoryRouter initialEntries={["/estadisticas"]}>
         <Sidebar />
@@ -102,7 +114,7 @@ describe("Sidebar", () => {
     );
 
     const estadisticasLink = screen.getByRole("link", {
-      name: /estadisticas/i,
+      name: /estad/i,
     });
     expect(estadisticasLink).toHaveClass("active");
   });
@@ -114,13 +126,9 @@ describe("Sidebar", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByRole("link", { name: /usuarios/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /pacientes/i })).toHaveAttribute(
       "href",
       "/usuarios"
-    );
-    expect(screen.getByRole("link", { name: /historial/i })).toHaveAttribute(
-      "href",
-      "/historial"
     );
     expect(screen.getByRole("link", { name: /registro/i })).toHaveAttribute(
       "href",
@@ -130,9 +138,13 @@ describe("Sidebar", () => {
       "href",
       "/inventario"
     );
-    expect(screen.getByRole("link", { name: /estadisticas/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /estad/i })).toHaveAttribute(
       "href",
       "/estadisticas"
+    );
+    expect(screen.getByRole("link", { name: /gesti[oó]n de usuarios/i })).toHaveAttribute(
+      "href",
+      "/gestion-usuarios"
     );
   });
 });

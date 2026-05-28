@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import PatientCard from "./patientCard";
+import PatientCard from "../componentes/patientCard/patientCard";
 import { BrowserRouter } from "react-router-dom";
 
 const mockPatient = {
