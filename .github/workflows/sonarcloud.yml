@@ -20,7 +20,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Analyze with SonarCloud
         uses: SonarSource/sonarqube-scan-action@v6
@@ -30,6 +30,7 @@ jobs:
           args: >
             -Dsonar.projectKey=Ay4xx_SoftwareEspinaBifida
             -Dsonar.organization=ay4xx
-            -Dsonar.sources=espina-bifida-app/src,espina-bifida-backend
+            -Dsonar.sources=espina-bifida-app/src,espina-bifida-backend/src,espina-bifida-backend/routes,espina-bifida-backend/controllers,espina-bifida-backend/models,espina-bifida-backend/config
             -Dsonar.tests=espina-bifida-app/tests,espina-bifida-backend/tests,e2e/tests
-            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/build/**,**/coverage/**,**/*.png,**/*.jpg,**/*.jpeg,**/*.gif,**/*.svg,**/*.ico,**/logs/**
+            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/build/**,**/coverage/**,**/.next/**,**/public/**,**/assets/**,**/*.png,**/*.jpg,**/*.jpeg,**/*.gif,**/*.svg,**/*.ico,**/*.pdf,**/*.zip,**/*.log
+            -Dsonar.javascript.lcov.reportPaths=espina-bifida-app/coverage/lcov.info,espina-bifida-backend/coverage/lcov.info
