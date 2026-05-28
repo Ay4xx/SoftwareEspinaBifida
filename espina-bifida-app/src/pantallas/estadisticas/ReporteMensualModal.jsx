@@ -1,186 +1,209 @@
 import React, { useState } from "react";
-import "./ReporteMensualModal.css";
 import {
-  descargarReporteMensual,
-} from "../../services/estadisticasService";
+  X, Download, FileSpreadsheet, FileText, FileDown,
+  Users, CalendarDays, Activity, Heart, Stethoscope,
+  Pill, Package, Bell,
+} from "lucide-react";
+import { descargarReporteMensual } from "../../services/estadisticasService";
+import "./ReporteMensualModal.css";
 
-function ReporteMensualModal({ open, onClose }) {
+const SECCIONES = [
+  { key: "pacientes",      label: "Pacientes",         icon: Users,          desc: "KPIs, nuevos por mes, membresías" },
+  { key: "citas",          label: "Citas",             icon: CalendarDays,   desc: "Totales, atendidas, canceladas" },
+  { key: "visitas",        label: "Visitas e ingresos",icon: Activity,       desc: "Ingresos, descuentos, servicios" },
+  { key: "membresias",     label: "Membresías",        icon: Heart,          desc: "Activas, inactivas, vencidas" },
+  { key: "servicios",      label: "Servicios",         icon: Stethoscope,    desc: "Servicios realizados por mes" },
+  { key: "medicinas",      label: "Medicinas",         icon: Pill,           desc: "Stock, uso, valor de inventario" },
+  { key: "equipo",         label: "Equipo médico",     icon: Package,        desc: "Uso, retorno, valor total" },
+  { key: "notificaciones", label: "Notificaciones",    icon: Bell,           desc: "Por mes, rechazados, aprobación" },
+];
+
+const FORMATOS = [
+  { value: "excel", label: "Excel (.xlsx)", icon: FileSpreadsheet, desc: "Hojas con tablas, fórmulas y gráficas" },
+  { value: "pdf",   label: "PDF (.pdf)",    icon: FileText,        desc: "Documento con gráficas y tablas" },
+  { value: "csv",   label: "CSV (.csv)",    icon: FileDown,        desc: "Datos planos, sin gráficas" },
+];
+
+export default function ReporteMensualModal({ open, onClose }) {
   const [formData, setFormData] = useState({
-    inventario: true,
-    pacientes: true,
-    servicios: true,
-    reportes: true,
-    fechaInicio: "",
-    fechaFin: "",
-    tipoArchivo: "excel",
+    pacientes:      true,
+    citas:          true,
+    visitas:        true,
+    membresias:     true,
+    servicios:      true,
+    medicinas:      true,
+    equipo:         true,
+    notificaciones: true,
+    tipoArchivo:    "excel",
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState("");
 
   if (!open) return null;
 
-  const handleCheckbox = (e) => {
-    const { name, checked } = e.target;
+  const toggleSection = (key) =>
+    setFormData((p) => ({ ...p, [key]: !p[key] }));
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: checked,
-    }));
-  };
+  const selectAll = () =>
+    setFormData((p) => {
+      const next = { ...p };
+      SECCIONES.forEach((s) => { next[s.key] = true; });
+      return next;
+    });
 
-  const handleDate = (e) => {
-    const { name, value } = e.target;
+  const deselectAll = () =>
+    setFormData((p) => {
+      const next = { ...p };
+      SECCIONES.forEach((s) => { next[s.key] = false; });
+      return next;
+    });
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleTipoArchivo = (e) => {
-    setFormData((prev) => ({
-        ...prev,
-        tipoArchivo: e.target.value,
-    }));
-};
+  const selectedCount = SECCIONES.filter((s) => formData[s.key]).length;
 
   const handleDownload = async () => {
-    try {
-        const data =
-        await descargarReporteMensual(formData);
-
-        console.log(
-        "REPORTE GENERADO:",
-        data
-        );
-
-        onClose();
-    } catch (error) {
-        console.error(
-        "Error descargando reporte:",
-        error
-        );
+    if (selectedCount === 0) {
+      setError("Selecciona al menos una sección.");
+      return;
     }
-    };
+    setError("");
+    setLoading(true);
+    try {
+      // DEBUGS ----------------------------------------------------------------------------
+      console.log("=== INICIO DESCARGA ===");
+      console.log("Form data:", formData);
+      // DEBUGS ----------------------------------------------------------------------------
+      const blob = await descargarReporteMensual(formData);
+      // DEBUGS ----------------------------------------------------------------------------
+      console.log("Blob recibido:", blob);
+      console.log("Blob type:", blob.type);
+      console.log("Blob size:", blob.size);
+      // DEBUGS ----------------------------------------------------------------------------
+
+      const mimeMap = {
+        excel: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        pdf:   "application/pdf",
+        csv:   "text/csv",
+      };
+      const extMap = { excel: "xlsx", pdf: "pdf", csv: "csv" };
+      // DEBUGS ----------------------------------------------------------------------------
+      console.log("Creando URL...");
+      // DEBUGS ----------------------------------------------------------------------------
+      const url = URL.createObjectURL(
+        new Blob([blob], { type: mimeMap[formData.tipoArchivo] })
+      );
+      // DEBUGS ----------------------------------------------------------------------------
+      console.log("Download iniciado");
+      // DEBUGS ----------------------------------------------------------------------------
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `reporte_mensual.${extMap[formData.tipoArchivo]}`;
+      a.click();
+      URL.revokeObjectURL(url);
+      onClose();
+    } catch (e) {
+      console.error(e);
+      setError("Error al generar el reporte. Intenta de nuevo.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="reporte-modal-overlay">
-      <div className="reporte-modal">
+    <div className="rm-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="rm-modal">
 
-        <div className="reporte-modal-header">
-          <h2>Reporte Mensual</h2>
-
-          <button
-            className="close-btn"
-            onClick={onClose}
-          >
-            ✕
+        {/* header */}
+        <div className="rm-header">
+          <div>
+            <h2 className="rm-title">Descargar reporte</h2>
+            <p className="rm-desc">Elige las secciones y el formato del archivo.</p>
+          </div>
+          <button className="rm-close" onClick={onClose} aria-label="Cerrar">
+            <X size={18} strokeWidth={2} />
           </button>
         </div>
 
-        <p className="reporte-description">
-          Selecciona qué información deseas incluir en el reporte.
-        </p>
-
-        <div className="checkbox-group">
-
-          <label>
-            <input
-              type="checkbox"
-              name="inventario"
-              checked={formData.inventario}
-              onChange={handleCheckbox}
-            />
-            Inventario
-          </label>
-
-          <label>
-            <input
-              type="checkbox"
-              name="pacientes"
-              checked={formData.pacientes}
-              onChange={handleCheckbox}
-            />
-            Pacientes
-          </label>
-
-          <label>
-            <input
-              type="checkbox"
-              name="servicios"
-              checked={formData.servicios}
-              onChange={handleCheckbox}
-            />
-            Servicios
-          </label>
-
-          <label>
-            <input
-              type="checkbox"
-              name="reportes"
-              checked={formData.reportes}
-              onChange={handleCheckbox}
-            />
-            Reportes
-          </label>
-        </div>
-
-        <div className="date-group">
-
-          <div>
-            <label>Fecha inicio</label>
-
-            <input
-              type="date"
-              name="fechaInicio"
-              value={formData.fechaInicio}
-              onChange={handleDate}
-            />
-          </div>
-
-          <div>
-            <label>Fecha fin</label>
-
-            <input
-              type="date"
-              name="fechaFin"
-              value={formData.fechaFin}
-              onChange={handleDate}
-            />
+        {/* secciones */}
+        <div className="rm-section-label">
+          <span>Secciones ({selectedCount}/{SECCIONES.length})</span>
+          <div className="rm-quick-btns">
+            <button className="rm-link-btn" onClick={selectAll}>Todas</button>
+            <span className="rm-link-sep">·</span>
+            <button className="rm-link-btn" onClick={deselectAll}>Ninguna</button>
           </div>
         </div>
 
-        <div className="tipo-archivo-group">
-
-            <label>
-                Tipo de archivo
-            </label>
-
-            <select
-                value={formData.tipoArchivo}
-                onChange={handleTipoArchivo}
+        <div className="rm-sections-grid">
+          {SECCIONES.map(({ key, label, icon: Icon, desc }) => (
+            <label
+              key={key}
+              className={`rm-section-card ${formData[key] ? "checked" : ""}`}
             >
-                <option value="excel">
-                Excel (.xlsx)
-                </option>
+              <input
+                type="checkbox"
+                checked={formData[key]}
+                onChange={() => toggleSection(key)}
+                className="rm-hidden-check"
+              />
+              <div className="rm-card-icon">
+                <Icon size={16} strokeWidth={2} />
+              </div>
+              <div className="rm-card-text">
+                <p className="rm-card-name">{label}</p>
+                <p className="rm-card-desc">{desc}</p>
+              </div>
+              <div className={`rm-check-dot ${formData[key] ? "on" : ""}`} />
+            </label>
+          ))}
+        </div>
 
-                <option value="pdf">
-                PDF (.pdf)
-                </option>
+        {/* formato */}
+        <div className="rm-section-label" style={{ marginTop: "20px" }}>
+          <span>Formato de exportación</span>
+        </div>
+        <div className="rm-format-grid">
+          {FORMATOS.map(({ value, label, icon: Icon, desc }) => (
+            <label
+              key={value}
+              className={`rm-format-card ${formData.tipoArchivo === value ? "selected" : ""}`}
+            >
+              <input
+                type="radio"
+                name="tipoArchivo"
+                value={value}
+                checked={formData.tipoArchivo === value}
+                onChange={() => setFormData((p) => ({ ...p, tipoArchivo: value }))}
+                className="rm-hidden-check"
+              />
+              <Icon size={20} strokeWidth={1.8}
+                    className={`rm-fmt-icon ${formData.tipoArchivo === value ? "active" : ""}`} />
+              <p className="rm-fmt-name">{label}</p>
+              <p className="rm-fmt-desc">{desc}</p>
+            </label>
+          ))}
+        </div>
 
-                <option value="csv">
-                CSV (.csv)
-                </option>
-            </select>
-            </div>
+        {error && <p className="rm-error">{error}</p>}
 
+        {/* action */}
         <button
-          className="download-btn"
+          className={`rm-download-btn ${loading ? "loading" : ""}`}
           onClick={handleDownload}
+          disabled={loading}
         >
-          Descargar Reporte
+          {loading ? (
+            <>
+              <span className="rm-spinner" />
+              Generando reporte…
+            </>
+          ) : (
+            <>
+              <Download size={16} strokeWidth={2.5} />
+              Descargar reporte
+            </>
+          )}
         </button>
       </div>
     </div>
   );
 }
-
-export default ReporteMensualModal;
