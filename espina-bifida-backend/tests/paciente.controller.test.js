@@ -7,8 +7,11 @@ jest.unstable_mockModule("../modulos/paciente/paciente.service.js", () => ({
   getPacienteDetail: jest.fn(),
   getPacienteCredencial: jest.fn(),
   getPacienteDetalle: jest.fn(),
+  getPacienteCompleto: jest.fn(),
   guardarFoto: jest.fn(),
   obtenerFoto: jest.fn(),
+  updatePaciente: jest.fn(),
+  updateHistorialMadre: jest.fn(),
 }));
 
 const pacienteService = await import("../modulos/paciente/paciente.service.js");
