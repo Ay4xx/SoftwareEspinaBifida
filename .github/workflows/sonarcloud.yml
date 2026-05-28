@@ -32,3 +32,4 @@ jobs:
             -Dsonar.organization=ay4xx
             -Dsonar.sources=espina-bifida-app/src,espina-bifida-backend
             -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/build/**,**/coverage/**,**/.next/**,**/public/**,**/assets/**,**/*.png,**/*.jpg,**/*.jpeg,**/*.gif,**/*.svg,**/*.ico,**/*.pdf,**/*.zip,**/*.log
+            -Dsonar.coverage.exclusions=**/*
