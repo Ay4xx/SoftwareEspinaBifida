@@ -1,12 +1,12 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import NuevoArticulo from "../componentes/nuevoarticulo/nuevoarticulo";
+import NuevoArticulo from "../../componentes/nuevoarticulo/nuevoarticulo";
 
 describe("NuevoArticulo", () => {
   const onCerrar = jest.fn();
   const onGuardado = jest.fn();
 
   beforeEach(() => {
-    global.fetch = jest.fn(() =>
+    globalThis.fetch = jest.fn(() =>
       Promise.resolve({
         json: () => Promise.resolve({ ok: true }),
       })

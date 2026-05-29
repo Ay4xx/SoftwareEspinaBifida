@@ -1,10 +1,10 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
-import EquipoMedico from "../componentes/equipomedico/equipomedico";
+import EquipoMedico from "../../componentes/equipomedico/equipomedico";
 
 describe("EquipoMedico", () => {
   beforeEach(() => {
-    global.fetch = jest.fn(() =>
+    globalThis.fetch = jest.fn(() =>
       Promise.resolve({
         json: () => Promise.resolve({ data: [
           { EQUIPO_M_ID: 1, DESCRIPCION: "Silla de ruedas", PRECIO: 120 },

@@ -1,10 +1,10 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import Header from "../componentes/header/header";
+import Header from "../../componentes/header/header";
 import { MemoryRouter } from "react-router-dom";
 
 const mockNavigate = jest.fn();
 
-jest.mock("../pantallas/notificacionesContext", () => ({
+jest.mock("../../pantallas/notificacionesContext", () => ({
   useNotificaciones: () => ({ pendientesCount: 0 }),
 }));
 

@@ -1,10 +1,10 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
-import VisualizarFamiliar from "../componentes/detallefamiliar/detallefamiliar";
+import VisualizarFamiliar from "../../componentes/detallefamiliar/detallefamiliar";
 
 describe("VisualizarFamiliar", () => {
   beforeEach(() => {
-    global.fetch = jest.fn(() =>
+    globalThis.fetch = jest.fn(() =>
       Promise.resolve({
         json: () =>
           Promise.resolve([
