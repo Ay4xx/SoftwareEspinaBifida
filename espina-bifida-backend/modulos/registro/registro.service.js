@@ -239,16 +239,6 @@ export async function actualizarPaso4(pacienteId, {
   expoToxicos,
   descripcionExpoToxicos,
 }) {
-  // ── LOG DIAGNÓSTICO ──
-  console.log("=== [actualizarPaso4] tutorParentesco:", tutorParentesco);
-  console.log("=== [actualizarPaso4] tutorNombre:", tutorNombre);
-  console.log("=== [actualizarPaso4] tutorEdad:", tutorEdad);
-  console.log("=== [actualizarPaso4] datos completos:", JSON.stringify({
-    tutorParentesco, tutorNombre, tutorLugarNacimiento, tutorEdad,
-    tutorOcupacion, tutorEscolaridad, tutorSeguroMedico, madreSeguroMedico,
-    cdEmbarazo, acidoFolico, citasControl, adicciones, hijoDtn,
-    familiarDtn, expoToxicos, descripcionExpoToxicos,
-  }, null, 2));
 
   let conn;
   try {

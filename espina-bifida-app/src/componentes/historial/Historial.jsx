@@ -3,8 +3,8 @@ import "./historial.css";
 import React, { useEffect, useState } from "react";
 
 import ModalPago from "./ModalPago";
-import ModalGenerarRecibo from "./ModalGenerarRecibo";
-import { calcularTotal } from "./helpers";
+import ModalGenerarRecibo from "./ModalRecibo";
+import { calcularTotal } from "./helper";
 
 function VisualizarHistorial() {
   const { pacienteId } = useParams();

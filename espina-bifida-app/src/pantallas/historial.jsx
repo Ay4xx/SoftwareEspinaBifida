@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import TabNav from "../componentes/tabnav/tabnav";
-import VisualizarHistorial from '../componentes/historial/historial';
+import VisualizarHistorial from '../componentes/historial/Historial';
 import VisualizarInfo from '../componentes/detallepaciente/detallepaciente';
 import VisualizarFamiliar from '../componentes/detallefamiliar/detallefamiliar';
 import { FileText, Pill } from "lucide-react";
