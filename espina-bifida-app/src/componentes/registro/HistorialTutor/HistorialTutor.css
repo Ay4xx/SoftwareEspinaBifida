@@ -1,3 +1,7 @@
+/* ══════════════════════════════════════
+   Tu CSS original — sin cambios
+   ══════════════════════════════════════ */
+
 .ht-wrapper {
   display: flex;
   flex-direction: column;
@@ -100,7 +104,6 @@
   color: #9ca3af;
 }
 
-/* Parentesco */
 .ht-parentesco-opciones {
   display: flex;
   flex-wrap: wrap;
@@ -131,7 +134,6 @@
   font-weight: 600;
 }
 
-/* Textarea */
 .ht-textarea {
   padding: 10px 14px;
   border: 1px solid #d1d5db;
@@ -163,7 +165,6 @@
   margin: 0 0 8px;
 }
 
-/* Toggle Sí/No */
 .ht-toggle-opciones {
   display: flex;
   gap: 12px;
@@ -191,4 +192,48 @@
   border-color: #083a99;
   color: white;
   font-weight: 600;
+}
+
+/* ══════════════════════════════════════
+   Clases nuevas — solo las necesarias
+   ══════════════════════════════════════ */
+
+/* Asterisco requerido */
+.ht-requerido {
+  color: #ef4444;
+}
+
+/* Icono morado para sección madre */
+.ht-icono-madre {
+  background-color: #6b21a8;
+}
+
+.ht-titulo-madre {
+  color: #6b21a8;
+}
+
+/* Icono verde para historial familiar */
+.ht-icono-ambos {
+  background-color: #065f46;
+}
+
+.ht-titulo-ambos {
+  color: #065f46;
+}
+
+/* Info box variante verde */
+.ht-mensaje-ambos {
+  background-color: #ecfdf5;
+  border-left-color: #065f46;
+  color: #065f46;
+}
+
+/* Fade-in para descripción de tóxicos */
+.ht-fade-in {
+  animation: htFadeIn 0.2s ease;
+}
+
+@keyframes htFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

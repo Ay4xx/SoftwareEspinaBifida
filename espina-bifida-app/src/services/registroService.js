@@ -72,6 +72,8 @@ export async function actualizarPaso3(pacienteId, formData) {
     tipoSangre:         nullIfEmpty(formData.tipoSangre),
     usaValvula:         nullIfEmpty(formData.usaValvula),
     notas:              nullIfEmpty(formData.notas),
+    tipoEspinaBifida:   nullIfEmpty(formData.tipoEspinaBifida),
+    otrosPadecimiento:  nullIfEmpty(formData.otrosPadecimiento),
   };
   const response = await fetch(`${API_URL}/${pacienteId}/paso3`, {
     method: "PUT",
@@ -85,15 +87,22 @@ export async function actualizarPaso3(pacienteId, formData) {
 
 export async function actualizarPaso4(pacienteId, formData) {
   const body = {
-    tutorLugarNacimiento: nullIfEmpty(formData.tutorLugarNacimiento),
-    tutorEdad:            nullIfEmpty(formData.tutorEdad),
-    tutorOcupacion:       nullIfEmpty(formData.tutorOcupacion),
-    tutorEscolaridad:     nullIfEmpty(formData.tutorEscolaridad),
-    tutorParentesco:      nullIfEmpty(formData.tutorParentesco),
-    madreSeguroMedico:    nullIfEmpty(formData.madreSeguroMedico),
-    cdEmbarazo:           nullIfEmpty(formData.cdEmbarazo),
-    acidoFolico:          nullIfEmpty(formData.acidoFolico),
-    citasControl:         nullIfEmpty(formData.citasControl),
+    tutorParentesco:        nullIfEmpty(formData.tutorParentesco),
+    tutorNombre:            nullIfEmpty(formData.tutorNombre),         // ← CORREGIDO
+    tutorLugarNacimiento:   nullIfEmpty(formData.tutorLugarNacimiento),
+    tutorEdad:              nullIfEmpty(formData.tutorEdad),
+    tutorOcupacion:         nullIfEmpty(formData.tutorOcupacion),
+    tutorEscolaridad:       nullIfEmpty(formData.tutorEscolaridad),
+    tutorSeguroMedico:      nullIfEmpty(formData.tutorSeguroMedico),
+    madreSeguroMedico:      nullIfEmpty(formData.madreSeguroMedico),
+    cdEmbarazo:             nullIfEmpty(formData.cdEmbarazo),
+    acidoFolico:            nullIfEmpty(formData.acidoFolico),
+    citasControl:           nullIfEmpty(formData.citasControl),
+    adicciones:             nullIfEmpty(formData.adicciones),          // ← CORREGIDO
+    hijoDtn:                nullIfEmpty(formData.hijoDtn),             // ← CORREGIDO
+    familiarDtn:            nullIfEmpty(formData.familiarDtn),         // ← CORREGIDO
+    expoToxicos:            nullIfEmpty(formData.expoToxicos),         // ← CORREGIDO
+    descripcionExpoToxicos: nullIfEmpty(formData.descripcionExpoToxicos), // ← CORREGIDO
   };
   const response = await fetch(`${API_URL}/${pacienteId}/paso4`, {
     method: "PUT",
