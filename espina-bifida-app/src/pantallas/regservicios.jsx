@@ -4,17 +4,17 @@ import RegistrarConsulta from '../componentes/registrocitas/registrocitas';
 import Medicamentos from '../componentes/medicamentos/medicamentos';
 import EquipoMedico from '../componentes/equipomedico/equipomedico';
 import VisualizarInfo from '../componentes/detallepaciente/detallepaciente';
-import VisualizarHistorial from '../componentes/historial/historial';
+import VisualizarHistorial from '../componentes/historial/Historial';
 import VisualizarFamiliar from '../componentes/detallefamiliar/detallefamiliar';
-import { FileText, Pill, Users } from "lucide-react";
+import { FileText, Pill, Users, Clipboard, Stethoscope } from "lucide-react";
 import "./regservicios.css";
 
 const tabs = [
-  { id: "infopaciente", label: "Información Familiar", icon: <FileText size={16} /> },
-  { id: "historial", label: "Historial", icon: <Pill size={16} /> },
+  { id: "infopaciente", label: "Información Familiar", icon: <Users size={16} /> },
   { id: "citas", label: "Citas", icon: <FileText size={16} /> },
   { id: "medicamentos", label: "Medicamentos", icon: <Pill size={16} /> },
-  { id: "equipo", label: "Equipo médico", icon: <Users size={16} /> },
+  { id: "equipo", label: "Equipo médico", icon: <Stethoscope size={16} /> },
+  { id: "historial", label: "Recibos", icon: <Clipboard size={16} /> },
 ];
 
 function ServiciosPanel() {

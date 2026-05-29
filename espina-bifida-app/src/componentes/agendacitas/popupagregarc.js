@@ -17,6 +17,8 @@ function PopupAgregarCita({
   });
 
   const [loading, setLoading] = useState(false);
+  const [popup, setPopup] = useState(null);
+  const [popupMensaje, setPopupMensaje] = useState("");
 
   if (!isOpen) return null;
 
@@ -28,9 +30,29 @@ function PopupAgregarCita({
   };
 
   const handleSubmit = async (e) => {
+
     e.preventDefault();
 
+    if (!formData.id_paciente) {
+      setPopup("error");
+      setPopupMensaje("Debes ingresar el ID del paciente.");
+      return;
+    }
+
+    if (!formData.hora_cita) {
+      setPopup("error");
+      setPopupMensaje("Debes seleccionar una hora para la cita.");
+      return;
+    }
+
+    if (!formData.motivo.trim()) {
+      setPopup("error");
+      setPopupMensaje("Debes escribir el motivo de la cita.");
+      return;
+    }
+
     try {
+
       setLoading(true);
 
       const fecha = selectedDate
@@ -43,8 +65,7 @@ function PopupAgregarCita({
           method: "POST",
 
           headers: {
-            "Content-Type":
-              "application/json",
+            "Content-Type": "application/json",
           },
 
           body: JSON.stringify({
@@ -57,11 +78,12 @@ function PopupAgregarCita({
       const data = await response.json();
 
       if (data.ok) {
-        alert("Cita creada ✨");
 
-        onSuccess();
+        setPopup("exito");
 
-        onClose();
+        setPopupMensaje(
+          "La cita fue registrada exitosamente."
+        );
 
         setFormData({
           id_paciente: "",
@@ -77,6 +99,12 @@ function PopupAgregarCita({
       console.error(
         "Error creando cita:",
         error
+      );
+
+      setPopup("error");
+
+      setPopupMensaje(
+        "No se pudo registrar la cita."
       );
 
     } finally {
@@ -195,6 +223,47 @@ function PopupAgregarCita({
         </form>
 
       </div>
+
+      {popup && (
+        <div
+          className="med-overlay"
+          onClick={() => setPopup(null)}
+        >
+
+          <div
+            className="med-popup-msg"
+            onClick={(e) => e.stopPropagation()}
+          >
+
+            <h4>
+              {popup === "exito"
+                ? "¡Cita registrada!"
+                : "Campos incompletos"}
+            </h4>
+
+            <p>{popupMensaje}</p>
+
+            <button
+              className="med-popup-confirmar"
+              onClick={() => {
+
+                setPopup(null);
+
+                if (popup === "exito") {
+
+                  onSuccess();
+
+                  onClose();
+                }
+              }}
+            >
+              Aceptar
+            </button>
+
+          </div>
+
+        </div>
+      )}
 
     </div>
   );

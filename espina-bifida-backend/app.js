@@ -15,6 +15,7 @@ import inventarioRouter from "./modulos/fiorella/regservicios/regservicios.route
 import gestionUsuarioRoutes from "./modulos/gestionUsuarios/gestionUsuarios.routes.js";
 import estadisticasRoutes from "./modulos/estadisticas/estadisticas.routes.js";
 import membresiaRoutes from "./modulos/membresia/membresia.routes.js";
+import pagoreciboRoutes from "./modulos/pagorecibo/pagorebico.route.js";
 
 const app = express();
 
@@ -51,4 +52,5 @@ app.use("/api/inventario", inventarioRouter);
 app.use("/api/gestion-usuarios", gestionUsuarioRoutes);
 app.use("/api/estadisticas", estadisticasRoutes);
 app.use("/api/membresia", membresiaRoutes);
+app.use("/api/pagos", pagoreciboRoutes);
 export default app;

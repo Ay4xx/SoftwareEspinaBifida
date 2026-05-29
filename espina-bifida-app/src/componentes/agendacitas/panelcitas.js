@@ -81,7 +81,7 @@ function PanelCitas({
         {/* BOTÓN */}
         <button className="add-btn" onClick={onAddPatient}>
           <Plus size={22} />
-          Agregar Paciente
+          Agregar Cita
         </button>
       </div>
 

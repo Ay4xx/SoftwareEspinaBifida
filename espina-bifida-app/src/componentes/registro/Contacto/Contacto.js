@@ -1,55 +1,7 @@
 import React from "react";
 import "./Contacto.css";
 import { Phone } from "lucide-react";
-
-const MUNICIPIOS = [
-  "Monterrey",
-  "San Nicolás de los Garza",
-  "Guadalupe",
-  "Apodaca",
-  "San Pedro Garza García",
-  "General Escobedo",
-  "Santa Catarina",
-  "Juárez",
-  "García",
-  "Linares",
-  "Otro",
-];
-
-const ESTADOS = [
-  "Nuevo León",
-  "Aguascalientes",
-  "Baja California",
-  "Baja California Sur",
-  "Campeche",
-  "Chiapas",
-  "Chihuahua",
-  "Ciudad de México",
-  "Coahuila",
-  "Colima",
-  "Durango",
-  "Guanajuato",
-  "Guerrero",
-  "Hidalgo",
-  "Jalisco",
-  "Estado de México",
-  "Michoacán",
-  "Morelos",
-  "Nayarit",
-  "Oaxaca",
-  "Puebla",
-  "Querétaro",
-  "Quintana Roo",
-  "San Luis Potosí",
-  "Sinaloa",
-  "Sonora",
-  "Tabasco",
-  "Tamaulipas",
-  "Tlaxcala",
-  "Veracruz",
-  "Yucatán",
-  "Zacatecas",
-];
+import { ESTADOS_MEXICO } from "../../../constantes/mexico";
 
 function Contacto({ datos, onChange }) {
   const handleInput = (e) => {
@@ -96,7 +48,7 @@ function Contacto({ datos, onChange }) {
             <label>Estado de Residencia</label>
             <select name="estado" value={datos.estado} onChange={handleInput}>
               <option value="">Seleccionar estado...</option>
-              {ESTADOS.map((e) => (
+              {ESTADOS_MEXICO.map((e) => (
                 <option key={e} value={e}>{e}</option>
               ))}
             </select>

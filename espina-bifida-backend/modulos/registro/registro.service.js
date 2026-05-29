@@ -239,16 +239,6 @@ export async function actualizarPaso4(pacienteId, {
   expoToxicos,
   descripcionExpoToxicos,
 }) {
-  // ── LOG DIAGNÓSTICO ──
-  console.log("=== [actualizarPaso4] tutorParentesco:", tutorParentesco);
-  console.log("=== [actualizarPaso4] tutorNombre:", tutorNombre);
-  console.log("=== [actualizarPaso4] tutorEdad:", tutorEdad);
-  console.log("=== [actualizarPaso4] datos completos:", JSON.stringify({
-    tutorParentesco, tutorNombre, tutorLugarNacimiento, tutorEdad,
-    tutorOcupacion, tutorEscolaridad, tutorSeguroMedico, madreSeguroMedico,
-    cdEmbarazo, acidoFolico, citasControl, adicciones, hijoDtn,
-    familiarDtn, expoToxicos, descripcionExpoToxicos,
-  }, null, 2));
 
   let conn;
   try {
@@ -371,6 +361,41 @@ export async function actualizarPaso5(pacienteId, fotoBuffer) {
     );
   } catch (error) {
     console.error("Error en actualizarPaso5:", error);
+    throw error;
+  } finally {
+    if (conn) await conn.close();
+  }
+}
+
+export async function guardarDocumentos(pacienteId, {
+  docPreregistro,
+  docActaNacimiento,
+  docCurp,
+  docComprobanteDomicilio,
+  docIneFamilia,
+}) {
+  let conn;
+  try {
+    conn = await getConnection();
+
+    const campos = [];
+    const binds = { pacienteId };
+
+    if (docPreregistro)          { campos.push("DOC_PREREGISTRO = :docPreregistro");                     binds.docPreregistro = docPreregistro; }
+    if (docActaNacimiento)       { campos.push("DOC_ACTA_NACIMIENTO = :docActaNacimiento");               binds.docActaNacimiento = docActaNacimiento; }
+    if (docCurp)                 { campos.push("DOC_CURP = :docCurp");                                   binds.docCurp = docCurp; }
+    if (docComprobanteDomicilio) { campos.push("DOC_COMPROBANTE_DOMICILIO = :docComprobanteDomicilio");   binds.docComprobanteDomicilio = docComprobanteDomicilio; }
+    if (docIneFamilia)           { campos.push("DOC_INE_FAMILIA = :docIneFamilia");                      binds.docIneFamilia = docIneFamilia; }
+
+    if (campos.length === 0) return;
+
+    await conn.execute(
+      `UPDATE PACIENTE SET ${campos.join(", ")} WHERE PACIENTE_ID = :pacienteId`,
+      binds,
+      { autoCommit: true }
+    );
+  } catch (error) {
+    console.error("Error en guardarDocumentos:", error);
     throw error;
   } finally {
     if (conn) await conn.close();

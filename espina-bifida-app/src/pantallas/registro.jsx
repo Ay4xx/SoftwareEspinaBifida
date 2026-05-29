@@ -12,12 +12,14 @@ import {
   actualizarPaso3,
   actualizarPaso4,
   actualizarPaso5,
+  actualizarPaciente,
 } from "../services/registroService";
+import { validarCURP } from "../utils/validaciones";
 import { useLocation, useNavigate } from "react-router-dom";
 
-const TOTAL_PASOS = 5;
-const API_URL = "http://localhost:3001/api/notificaciones";
-const PACIENTES_URL = "http://localhost:3001/api/pacientes";
+const TOTAL_PASOS       = 5;
+const NOTIFICACIONES_URL = "http://localhost:3001/api/notificaciones";
+const PACIENTES_URL      = "http://localhost:3001/api/pacientes";
 
 const tutorVacio = (parentesco) => ({
   tutorParentesco: parentesco,
@@ -33,13 +35,13 @@ const tutorVacio = (parentesco) => ({
   acidoFolico: "",
 });
 
-const historialFamiliarVacio = () => ({
+const HISTORIAL_FAMILIAR_VACIO = {
   adicciones: "",
   hijoDtn: "",
   familiarDtn: "",
   expoToxicos: "",
   descripcionExpoToxicos: "",
-});
+};
 
 const formInicial = {
   nombres: "", apellidoPaterno: "", genero: "", fechaNacimiento: "", curp: "",
@@ -49,6 +51,13 @@ const formInicial = {
   lugarNacimiento: "", hospitalNacimiento: "", tipoSangre: "", usaValvula: "",
   tipoEspinaBifida: "", otrosPadecimiento: "", notas: "",
   foto: null,
+  documentos: {
+    preregistro: null,
+    actaNacimiento: null,
+    curp: null,
+    comprobanteDomicilio: null,
+    ineFamilia: null,
+  },
 };
 
 function RegistroPage() {
@@ -71,7 +80,7 @@ function RegistroPage() {
   const [formData, setFormData] = useState(formInicial);
   const [tutorMadre, setTutorMadre] = useState(tutorVacio("Madre"));
   const [tutorPadre, setTutorPadre] = useState(tutorVacio("Padre"));
-  const [historialFamiliar, setHistorialFamiliar] = useState(historialFamiliarVacio());
+  const [historialFamiliar, setHistorialFamiliar] = useState({ ...HISTORIAL_FAMILIAR_VACIO });
   const [tabActivo, setTabActivo] = useState("Madre");
 
   const esInvitado = localStorage.getItem("guest") === "true";
@@ -84,14 +93,12 @@ function RegistroPage() {
   // Cargar desde notificación
   useEffect(() => {
     if (!modoRevision || !notificacionId) return;
-    fetch(`${API_URL}/${notificacionId}`)
+    fetch(`${NOTIFICACIONES_URL}/${notificacionId}`)
       .then((r) => r.json())
       .then((result) => {
         if (!result.ok) return;
         const p = result.data;
 
-        // ── LOG DIAGNÓSTICO ──
-        console.log("=== [NOTIFICACION] TUTORES DEL BACKEND ===", JSON.stringify(p.TUTORES, null, 2));
 
         setNotificacionEstado(p.ESTADO_PROCESO);
         setPacienteId(p.PACIENTE_ID);
@@ -174,8 +181,6 @@ function RegistroPage() {
         if (!result.ok) return;
         const p = result.data;
 
-        // ── LOG DIAGNÓSTICO ──
-        console.log("=== [PACIENTE] TUTORES DEL BACKEND ===", JSON.stringify(p.TUTORES, null, 2));
 
         setPacienteId(p.PACIENTE_ID);
         setNotificacionEstado("aprobado");
@@ -275,34 +280,7 @@ function RegistroPage() {
 
   const handleGuardarCambios = async () => {
     try {
-      const form = new FormData();
-      form.append("nombre",             formData.nombres || "");
-      form.append("apellido",           formData.apellidoPaterno || "");
-      form.append("genero",             formData.genero || "");
-      form.append("fechaNacimiento",    formData.fechaNacimiento || "");
-      form.append("curp",               formData.curp || "");
-      form.append("direccion",          formData.direccion || "");
-      form.append("ciudad",             formData.ciudad || "");
-      form.append("estado",             formData.estado || "");
-      form.append("codigoPostal",       formData.codigoPostal || "");
-      form.append("telefonoCasa",       formData.telefonoCasa || "");
-      form.append("telefonoCelular",    formData.telefonoCelular || "");
-      form.append("correo",             formData.correo || "");
-      form.append("emergenciaContacto", formData.emergenciaContacto || "");
-      form.append("emergenciaTelefono", formData.emergenciaTelefono || "");
-      form.append("lugarNacimiento",    formData.lugarNacimiento || "");
-      form.append("hospitalNacimiento", formData.hospitalNacimiento || "");
-      form.append("tipoSangre",         formData.tipoSangre || "");
-      form.append("usaValvula",         formData.usaValvula || "");
-      form.append("notas",              formData.notas || "");
-      form.append("tipoEspinaBifida",   formData.tipoEspinaBifida  || "");
-      form.append("otrosPadecimiento",  formData.otrosPadecimiento || "");
-      form.append("tutores",            JSON.stringify(getTutoresParaGuardar()));
-      if (formData.foto instanceof File) form.append("foto", formData.foto);
-
-      const response = await fetch(`${PACIENTES_URL}/${pacienteId}`, { method: "PUT", body: form });
-      const result = await response.json();
-      if (!result.ok) throw new Error(result.message);
+      const result = await actualizarPaciente(pacienteId, formData, getTutoresParaGuardar());
       if (result.data?.fotoUrl) setFormData((prev) => ({ ...prev, foto: result.data.fotoUrl }));
       setCambiosGuardados(true);
       setTimeout(() => setCambiosGuardados(false), 3000);
@@ -361,9 +339,10 @@ function RegistroPage() {
         }
       }
 
-      if (formData.foto) {
+      const tieneDocumentos = formData.documentos && Object.values(formData.documentos).some((f) => f instanceof File);
+      if (formData.foto || tieneDocumentos) {
         try { await actualizarPaso5(id, formData.foto, formData); }
-        catch (e) { erroresPasos.push("Fotografía: " + (e.message || "No se pudo guardar la fotografía.")); }
+        catch (e) { erroresPasos.push("Fotografía/Documentos: " + (e.message || "No se pudieron guardar.")); }
       }
 
       if (erroresPasos.length > 0) setAdvertencias(erroresPasos);
@@ -376,7 +355,7 @@ function RegistroPage() {
         setFormData(formInicial);
         setTutorMadre(tutorVacio("Madre"));
         setTutorPadre(tutorVacio("Padre"));
-        setHistorialFamiliar(historialFamiliarVacio());
+        setHistorialFamiliar({ ...HISTORIAL_FAMILIAR_VACIO });
         setTabActivo("Madre");
         if (esInvitado) navigate("/registro");
         else navigate("/usuarios");
@@ -396,7 +375,7 @@ function RegistroPage() {
 
   const handleAprobar = async () => {
     try {
-      const response = await fetch(`${API_URL}/${notificacionId}/aprobar`, {
+      const response = await fetch(`${NOTIFICACIONES_URL}/${notificacionId}/aprobar`, {
         method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}),
       });
       const result = await response.json();
@@ -408,7 +387,7 @@ function RegistroPage() {
 
   const handleRechazar = async () => {
     try {
-      const response = await fetch(`${API_URL}/${notificacionId}/rechazar`, {
+      const response = await fetch(`${NOTIFICACIONES_URL}/${notificacionId}/rechazar`, {
         method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}),
       });
       const result = await response.json();
@@ -418,7 +397,7 @@ function RegistroPage() {
     } catch (err) { alert(err.message || "Error al rechazar"); }
   };
 
-  const porcentaje = paso * 20;
+  const porcentaje = Math.round((paso / TOTAL_PASOS) * 100);
 
   const renderPaso = () => {
     switch (paso) {
@@ -426,15 +405,6 @@ function RegistroPage() {
       case 2: return <Contacto datos={formData} onChange={handleChange} />;
       case 3: return <HistorialMedico datos={formData} onChange={handleChange} />;
       case 4: {
-        // ── LOG DIAGNÓSTICO ──
-        console.log("=== [PASO 4] tutorMadre ===", JSON.stringify(tutorMadre, null, 2));
-        console.log("=== [PASO 4] tutorPadre ===", JSON.stringify(tutorPadre, null, 2));
-        console.log("=== [PASO 4] historialFamiliar ===", JSON.stringify(historialFamiliar, null, 2));
-        console.log("=== [PASO 4] tabActivo ===", tabActivo);
-        console.log("=== [PASO 4] datos que recibe HistorialTutor ===", JSON.stringify({
-          ...(tabActivo === "Madre" ? tutorMadre : tutorPadre),
-          ...historialFamiliar,
-        }, null, 2));
 
         return (
           <>
