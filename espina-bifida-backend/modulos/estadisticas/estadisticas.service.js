@@ -2,6 +2,8 @@ import { execFile } from "child_process";
 import { promisify } from "util";
 import path from "path";
 import { fileURLToPath } from "url";
+import { spawn } from "child_process";
+
 
 import { getEstadisticasModel } from "./estadisticas.model.js";
 
@@ -11,23 +13,117 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SCRIPTS_DIR = path.resolve(__dirname, "../../scripts");
 
 async function runPython(scriptName, jsonPayload) {
-  const scriptPath = path.join(SCRIPTS_DIR, scriptName);
-  const { stdout, stderr } = await execFileAsync(
-    "py",
-    [scriptPath],
-    {
-      input: jsonPayload,
-      encoding: "buffer",
-      maxBuffer: 20 * 1024 * 1024,
-    }
-  );
-  if (stderr && stderr.length) {
-    const msg = stderr.toString();
-    if (msg.includes("Traceback") || msg.includes("Error")) {
-      throw new Error(`Python script error: ${msg}`);
-    }
-  }
-  return Buffer.from(stdout.toString().trim(), "base64");
+
+  return new Promise((resolve, reject) => {
+
+    console.log("\n========== RUN PYTHON ==========");
+    console.log("Script:", scriptName);
+
+    const scriptPath = path.join(SCRIPTS_DIR, scriptName);
+
+    console.log("Script path:", scriptPath);
+
+    const py = spawn("py", [scriptPath]);
+
+    let stdout = [];
+    let stderr = [];
+
+    py.stdout.on("data", (data) => {
+      console.log("PYTHON STDOUT CHUNK RECEIVED");
+      stdout.push(data);
+    });
+
+    py.stderr.on("data", (data) => {
+
+      const text = data.toString();
+
+      console.log("\nPYTHON STDERR:");
+      console.log(text);
+
+      stderr.push(data);
+    });
+
+    py.on("close", (code) => {
+
+      console.log("\nPYTHON PROCESS CLOSED");
+      console.log("Exit code:", code);
+
+      const stdoutBuffer = Buffer.concat(stdout);
+      const stderrBuffer = Buffer.concat(stderr);
+
+      if (stderrBuffer.length > 0) {
+
+        const errText = stderrBuffer.toString();
+
+        console.log("\nFULL STDERR:");
+        console.log(errText);
+
+        if (
+          errText.includes("Traceback") ||
+          errText.includes("Error")
+        ) {
+          return reject(
+            new Error(`Python Error:\n${errText}`)
+          );
+        }
+      }
+
+      const stdoutText = stdoutBuffer.toString("utf8");
+
+      console.log(
+        "\nSTDOUT first 100 chars:"
+      );
+
+      console.log(
+        stdoutText.slice(0, 100)
+      );
+
+      try {
+
+        const cleanBase64 = stdoutText
+          .trim()
+          .replace(/\r/g, "")
+          .replace(/\n/g, "");
+
+        console.log(
+          "Starts with JVBER:",
+          cleanBase64.startsWith("JVBER")
+        );
+
+        const buffer = Buffer.from(
+          cleanBase64,
+          "base64"
+        );
+
+        console.log(
+          "\nDecoded buffer size:",
+          buffer.length
+        );
+
+        resolve(buffer);
+
+      } catch (err) {
+
+        reject(err);
+      }
+    });
+
+    py.on("error", (err) => {
+
+      console.log("\nFAILED TO START PYTHON");
+      console.log(err);
+
+      reject(err);
+    });
+
+    console.log("\nSending payload to Python...");
+
+    py.stdin.write(jsonPayload);
+
+    py.stdin.end();
+
+    console.log("Payload sent");
+  });
 }
 
 
@@ -47,6 +143,16 @@ export async function descargarReporteMensualService(filtros) {
   const payload = buildFilteredPayload(stats, filtros);
 
   const { tipoArchivo } = filtros;
+
+  //DEBUGS ----------------------------------------------------------------------------
+  console.log("\n========== SERVICE ==========");
+  console.log("Tipo archivo:", tipoArchivo);
+
+  console.log(
+    "Payload sections:",
+    Object.keys(payload)
+  );
+  //DEBUGS ----------------------------------------------------------------------------
 
   if (tipoArchivo === "excel") {
     return runPython("generate_excel.py", JSON.stringify(payload));
