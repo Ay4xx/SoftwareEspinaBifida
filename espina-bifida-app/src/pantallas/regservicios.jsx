@@ -4,7 +4,7 @@ import RegistrarConsulta from '../componentes/registrocitas/registrocitas';
 import Medicamentos from '../componentes/medicamentos/medicamentos';
 import EquipoMedico from '../componentes/equipomedico/equipomedico';
 import VisualizarInfo from '../componentes/detallepaciente/detallepaciente';
-import VisualizarHistorial from '../componentes/historial/historial';
+import VisualizarHistorial from '../componentes/historial/Historial';
 import VisualizarFamiliar from '../componentes/detallefamiliar/detallefamiliar';
 import { FileText, Pill, Users, Clipboard, Stethoscope } from "lucide-react";
 import "./regservicios.css";

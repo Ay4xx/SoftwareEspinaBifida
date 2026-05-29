@@ -124,39 +124,21 @@ function HistorialTutor({ datos, onChange, onAgregarTutor }) {
                 </div>
               </div>
 
-              {/* Escolaridad sola en fila cuando es Madre, con Seguro cuando es Padre */}
-              {esMadre ? (
-                <div className="ht-fila">
-                  <div className="ht-campo">
-                    <label>Escolaridad</label>
-                    <select
-                      name="tutorEscolaridad"
-                      value={datos.tutorEscolaridad || ""}
-                      onChange={handleInput}
-                    >
-                      <option value="">Seleccionar...</option>
-                      {ESCOLARIDAD.map((e) => (
-                        <option key={e} value={e}>{e}</option>
-                      ))}
-                    </select>
-                  </div>
-                  {/* Seguro Médico de la Madre va en la sección Historial de la Madre */}
+              <div className="ht-fila">
+                <div className="ht-campo">
+                  <label>Escolaridad</label>
+                  <select
+                    name="tutorEscolaridad"
+                    value={datos.tutorEscolaridad || ""}
+                    onChange={handleInput}
+                  >
+                    <option value="">Seleccionar...</option>
+                    {ESCOLARIDAD.map((e) => (
+                      <option key={e} value={e}>{e}</option>
+                    ))}
+                  </select>
                 </div>
-              ) : (
-                <div className="ht-fila">
-                  <div className="ht-campo">
-                    <label>Escolaridad</label>
-                    <select
-                      name="tutorEscolaridad"
-                      value={datos.tutorEscolaridad || ""}
-                      onChange={handleInput}
-                    >
-                      <option value="">Seleccionar...</option>
-                      {ESCOLARIDAD.map((e) => (
-                        <option key={e} value={e}>{e}</option>
-                      ))}
-                    </select>
-                  </div>
+                {esPadre && (
                   <div className="ht-campo">
                     <label>Seguro Médico</label>
                     <input
@@ -167,8 +149,8 @@ function HistorialTutor({ datos, onChange, onAgregarTutor }) {
                       placeholder="Ej. IMSS, ISSSTE, Privado..."
                     />
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </>
           )}
         </div>

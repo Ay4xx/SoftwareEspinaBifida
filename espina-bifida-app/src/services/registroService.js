@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:3001/api/registro";
+const API_URL      = "http://localhost:3001/api/registro";
+const PACIENTES_URL = "http://localhost:3001/api/pacientes";
 
 function nullIfEmpty(val) {
   if (val === undefined || val === null || val === "") return null;
@@ -138,5 +139,40 @@ export async function actualizarPaso5(pacienteId, foto, formData) {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || "Error al guardar la fotografía.");
+  return data;
+}
+
+export async function actualizarPaciente(pacienteId, formData, tutores) {
+  const body = new FormData();
+  body.append("nombre",             formData.nombres || "");
+  body.append("apellido",           formData.apellidoPaterno || "");
+  body.append("genero",             formData.genero || "");
+  body.append("fechaNacimiento",    formData.fechaNacimiento || "");
+  body.append("curp",               formData.curp || "");
+  body.append("direccion",          formData.direccion || "");
+  body.append("ciudad",             formData.ciudad || "");
+  body.append("estado",             formData.estado || "");
+  body.append("codigoPostal",       formData.codigoPostal || "");
+  body.append("telefonoCasa",       formData.telefonoCasa || "");
+  body.append("telefonoCelular",    formData.telefonoCelular || "");
+  body.append("correo",             formData.correo || "");
+  body.append("emergenciaContacto", formData.emergenciaContacto || "");
+  body.append("emergenciaTelefono", formData.emergenciaTelefono || "");
+  body.append("lugarNacimiento",    formData.lugarNacimiento || "");
+  body.append("hospitalNacimiento", formData.hospitalNacimiento || "");
+  body.append("tipoSangre",         formData.tipoSangre || "");
+  body.append("usaValvula",         formData.usaValvula || "");
+  body.append("notas",              formData.notas || "");
+  body.append("tipoEspinaBifida",   formData.tipoEspinaBifida || "");
+  body.append("otrosPadecimiento",  formData.otrosPadecimiento || "");
+  body.append("tutores",            JSON.stringify(tutores));
+  if (formData.foto instanceof File) body.append("foto", formData.foto);
+
+  const response = await fetch(`${PACIENTES_URL}/${pacienteId}`, {
+    method: "PUT",
+    body,
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || "Error al guardar cambios.");
   return data;
 }
