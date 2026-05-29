@@ -204,7 +204,7 @@ def line_chart(labels, datasets, title, money=False, figsize=(7,3)):
     plt.tight_layout()
     return fig
 
-def pie_chart(labels, values, title, figsize=(5,3)):
+def pie_chart(labels, values, title, figsize=(5,5)):
     fig, ax = plt.subplots(figsize=figsize)
     fig.patch.set_facecolor("white")
     wedges, texts, autotexts = ax.pie(
@@ -282,7 +282,7 @@ def generate(stats_json: str) -> bytes:
     mb_vals = [membresias.get("activas",0), membresias.get("inactivas",0), membresias.get("vencidas",0)]
     if sum(mb_vals) > 0:
         fig = pie_chart(["Activas","Inactivas","Vencidas"], mb_vals, "Distribución de membresías")
-        story.append(chart_to_image(fig, height=2.8))
+        story.append(chart_to_image(fig, height=5))
     story.append(sp(16))
 
     # ── 2. CITAS ──────────────────────────────────────────────────────────────
@@ -432,8 +432,8 @@ def generate(stats_json: str) -> bytes:
 
     eq_vals = [equipo.get("en_uso",0), equipo.get("regresados",0)]
     if sum(eq_vals) > 0:
-        fig = pie_chart(["En uso","Regresados"], eq_vals, "Estado del equipo médico", figsize=(5,2.8))
-        story.append(chart_to_image(fig, height=2.6))
+        fig = pie_chart(["En uso","Regresados"], eq_vals, "Estado del equipo médico", figsize=(5,5))
+        story.append(chart_to_image(fig, height=5))
 
     # ── 5. NOTIFICACIONES ─────────────────────────────────────────────────────
     story.append(PageBreak())

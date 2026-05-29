@@ -8,14 +8,14 @@ import { descargarReporteMensual } from "../../services/estadisticasService";
 import "./ReporteMensualModal.css";
 
 const SECCIONES = [
-  { key: "pacientes",      label: "Pacientes",         icon: Users,          desc: "KPIs, nuevos por mes, membresías" },
-  { key: "citas",          label: "Citas",             icon: CalendarDays,   desc: "Totales, atendidas, canceladas" },
-  { key: "visitas",        label: "Visitas e ingresos",icon: Activity,       desc: "Ingresos, descuentos, servicios" },
-  { key: "membresias",     label: "Membresías",        icon: Heart,          desc: "Activas, inactivas, vencidas" },
-  { key: "servicios",      label: "Servicios",         icon: Stethoscope,    desc: "Servicios realizados por mes" },
-  { key: "medicinas",      label: "Medicinas",         icon: Pill,           desc: "Stock, uso, valor de inventario" },
-  { key: "equipo",         label: "Equipo médico",     icon: Package,        desc: "Uso, retorno, valor total" },
-  { key: "notificaciones", label: "Notificaciones",    icon: Bell,           desc: "Por mes, rechazados, aprobación" },
+  { key: "pacientes",      label: "Pacientes",          icon: Users,        desc: "KPIs, nuevos por mes, membresías" },
+  { key: "citas",          label: "Citas",              icon: CalendarDays, desc: "Totales, atendidas, canceladas" },
+  { key: "visitas",        label: "Visitas e ingresos", icon: Activity,     desc: "Ingresos, descuentos, servicios" },
+  { key: "membresias",     label: "Membresías",         icon: Heart,        desc: "Activas, inactivas, vencidas" },
+  { key: "servicios",      label: "Servicios",          icon: Stethoscope,  desc: "Servicios realizados por mes" },
+  { key: "medicinas",      label: "Medicinas",          icon: Pill,         desc: "Stock, uso, valor de inventario" },
+  { key: "equipo",         label: "Equipo médico",      icon: Package,      desc: "Uso, retorno, valor total" },
+  { key: "notificaciones", label: "Notificaciones",     icon: Bell,         desc: "Por mes, rechazados, aprobación" },
 ];
 
 const FORMATOS = [
@@ -23,6 +23,13 @@ const FORMATOS = [
   { value: "pdf",   label: "PDF (.pdf)",    icon: FileText,        desc: "Documento con gráficas y tablas" },
   { value: "csv",   label: "CSV (.csv)",    icon: FileDown,        desc: "Datos planos, sin gráficas" },
 ];
+
+const MIME = {
+  excel: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  pdf:   "application/pdf",
+  csv:   "text/csv",
+};
+const EXT = { excel: "xlsx", pdf: "pdf", csv: "csv" };
 
 export default function ReporteMensualModal({ open, onClose }) {
   const [formData, setFormData] = useState({
@@ -61,50 +68,49 @@ export default function ReporteMensualModal({ open, onClose }) {
   const selectedCount = SECCIONES.filter((s) => formData[s.key]).length;
 
   const handleDownload = async () => {
+    // Guard: si ya está en progreso no hacer nada
+    if (loading) return;
+
     if (selectedCount === 0) {
       setError("Selecciona al menos una sección.");
       return;
     }
+
     setError("");
     setLoading(true);
-    try {
-      // DEBUGS ----------------------------------------------------------------------------
-      console.log("=== INICIO DESCARGA ===");
-      console.log("Form data:", formData);
-      // DEBUGS ----------------------------------------------------------------------------
-      const blob = await descargarReporteMensual(formData);
-      // DEBUGS ----------------------------------------------------------------------------
-      console.log("Blob recibido:", blob);
-      console.log("Blob type:", blob.type);
-      console.log("Blob size:", blob.size);
-      // DEBUGS ----------------------------------------------------------------------------
 
-      const mimeMap = {
-        excel: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        pdf:   "application/pdf",
-        csv:   "text/csv",
-      };
-      const extMap = { excel: "xlsx", pdf: "pdf", csv: "csv" };
-      // DEBUGS ----------------------------------------------------------------------------
-      console.log("Creando URL...");
-      // DEBUGS ----------------------------------------------------------------------------
-      const url = URL.createObjectURL(
-        new Blob([blob], { type: mimeMap[formData.tipoArchivo] })
-      );
-      // DEBUGS ----------------------------------------------------------------------------
-      console.log("Download iniciado");
-      // DEBUGS ----------------------------------------------------------------------------
+    let success = false;
+
+    try {
+      const data = await descargarReporteMensual(formData);
+
+      const blobFinal = data instanceof Blob
+        ? data
+        : new Blob([data], { type: MIME[formData.tipoArchivo] });
+
+      const url = URL.createObjectURL(blobFinal);
+
       const a = document.createElement("a");
       a.href = url;
-      a.download = `reporte_mensual.${extMap[formData.tipoArchivo]}`;
+      a.download = `reporte_mensual.${EXT[formData.tipoArchivo]}`;
+      a.style.display = "none";
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      onClose();
+
+      success = true;
     } catch (e) {
       console.error(e);
       setError("Error al generar el reporte. Intenta de nuevo.");
     } finally {
       setLoading(false);
+      // Cerrar DESPUÉS de que loading vuelva a false, y solo si fue exitoso.
+      // El setTimeout(fn, 0) deja que React termine el render del finally
+      // antes de desmontar el componente, evitando el segundo trigger.
+      if (success) {
+        setTimeout(onClose, 0);
+      }
     }
   };
 
@@ -175,8 +181,11 @@ export default function ReporteMensualModal({ open, onClose }) {
                 onChange={() => setFormData((p) => ({ ...p, tipoArchivo: value }))}
                 className="rm-hidden-check"
               />
-              <Icon size={20} strokeWidth={1.8}
-                    className={`rm-fmt-icon ${formData.tipoArchivo === value ? "active" : ""}`} />
+              <Icon
+                size={20}
+                strokeWidth={1.8}
+                className={`rm-fmt-icon ${formData.tipoArchivo === value ? "active" : ""}`}
+              />
               <p className="rm-fmt-name">{label}</p>
               <p className="rm-fmt-desc">{desc}</p>
             </label>
