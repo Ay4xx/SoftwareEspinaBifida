@@ -1,10 +1,10 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
-import VisualizarHistorial from "../componentes/historial/historial";
+import VisualizarHistorial from "../../componentes/historial/historial";
 
 describe("VisualizarHistorial", () => {
   beforeEach(() => {
-    global.fetch = jest.fn(() =>
+    globalThis.fetch = jest.fn(() =>
       Promise.resolve({
         json: () =>
           Promise.resolve([

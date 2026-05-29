@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import PanelCitas from "../componentes/agendacitas/panelcitas";
+import PanelCitas from "../../componentes/agendacitas/panelcitas";
 
 const mockCitas = [
   {

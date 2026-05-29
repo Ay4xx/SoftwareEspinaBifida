@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import Sidebar from "../componentes/sidebar/sidebar";
+import Sidebar from "../../componentes/sidebar/sidebar";
 import { MemoryRouter } from "react-router-dom";
 
 describe("Sidebar", () => {

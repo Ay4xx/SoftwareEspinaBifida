@@ -1,10 +1,10 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
-import Medicamentos from "../componentes/medicamentos/medicamentos";
+import Medicamentos from "../../componentes/medicamentos/medicamentos";
 
 describe("Medicamentos", () => {
   beforeEach(() => {
-    global.fetch = jest.fn(() =>
+    globalThis.fetch = jest.fn(() =>
       Promise.resolve({
         json: () => Promise.resolve({ data: [
           { MEDICINA_ID: 1, DESCRIPCION: "Amoxicilina", PRECIO: 35 },

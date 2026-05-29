@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import TablaInventario from "../componentes/tablaInventario/TablaInventario";
+import TablaInventario from "../../componentes/tablaInventario/TablaInventario";
 
 describe("TablaInventario", () => {
   test("renderiza los artículos y su estado correctamente", () => {

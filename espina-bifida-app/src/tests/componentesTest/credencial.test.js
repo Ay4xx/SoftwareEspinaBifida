@@ -1,5 +1,5 @@
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
-import Credencial from "../componentes/credencial/credencial";
+import Credencial from "../../componentes/credencial/credencial";
 import { MemoryRouter } from "react-router-dom";
 
 const mockNavigate = jest.fn();
@@ -19,7 +19,7 @@ describe("Credencial", () => {
   });
 
   test("muestra loading inicialmente", () => {
-    global.fetch = jest.fn(() => new Promise(() => {}));
+    globalThis.fetch = jest.fn(() => new Promise(() => {}));
 
     render(
       <MemoryRouter>
@@ -31,7 +31,7 @@ describe("Credencial", () => {
   });
 
   test("renderiza datos correctamente cuando fetch es exitoso", async () => {
-    global.fetch = jest.fn(() =>
+    globalThis.fetch = jest.fn(() =>
       Promise.resolve({
         ok: true,
         json: () =>
@@ -76,7 +76,7 @@ describe("Credencial", () => {
   });
 
   test("muestra error si falla el fetch", async () => {
-    global.fetch = jest.fn(() =>
+    globalThis.fetch = jest.fn(() =>
       Promise.resolve({
         ok: false,
         json: () =>
@@ -99,7 +99,7 @@ describe("Credencial", () => {
   });
 
   test("botón volver ejecuta navigate(-1)", async () => {
-    global.fetch = jest.fn(() =>
+    globalThis.fetch = jest.fn(() =>
       Promise.resolve({
         ok: false,
         json: () =>
@@ -126,7 +126,7 @@ describe("Credencial", () => {
   });
 
   test("renderiza botones de descarga", async () => {
-    global.fetch = jest.fn(() =>
+    globalThis.fetch = jest.fn(() =>
       Promise.resolve({
         ok: true,
         json: () =>

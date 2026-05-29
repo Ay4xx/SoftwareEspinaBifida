@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import TabNav from "../componentes/tabnav/tabnav";
+import TabNav from "../../componentes/tabnav/tabnav";
 
 describe("TabNav", () => {
   const tabs = [

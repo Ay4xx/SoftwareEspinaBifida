@@ -1,10 +1,10 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
-import RegistrarConsulta from "../componentes/registrocitas/registrocitas";
+import RegistrarConsulta from "../../componentes/registrocitas/registrocitas";
 
 describe("RegistrarConsulta", () => {
   beforeEach(() => {
-    global.fetch = jest.fn()
+    globalThis.fetch = jest.fn()
       .mockImplementationOnce(() =>
         Promise.resolve({
           json: () => Promise.resolve({ data: [
