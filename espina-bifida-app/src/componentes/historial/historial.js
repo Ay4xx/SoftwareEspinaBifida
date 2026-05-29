@@ -470,7 +470,7 @@ function ModalPago({ data, pacienteId, onClose }) {
               />
             </div>
             <div className="modal-field">
-              <label>Descuento ($)</label>
+              <label>Monto Restante ($)</label>
               <input
                 type="text"
                 readOnly
