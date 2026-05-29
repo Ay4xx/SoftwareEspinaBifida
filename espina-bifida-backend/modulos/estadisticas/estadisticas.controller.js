@@ -24,6 +24,7 @@ export async function getEstadisticas(req, res) {
 
 export async function descargarReporteMensual(req, res) {
   try {
+    console.log("CONTROLLER HIT");
     const filtros = req.body;
     const resultado = await descargarReporteMensualService(filtros);
 
