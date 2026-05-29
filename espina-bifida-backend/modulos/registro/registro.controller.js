@@ -54,9 +54,15 @@ export async function contactoPaciente(req, res) {
 export async function historialMedicoPaciente(req, res) {
   try {
     const { id } = req.params;
-    const { lugarNacimiento, hospitalNacimiento, tipoSangre, usaValvula, notas } = req.body;
+    const {
+      lugarNacimiento, hospitalNacimiento, tipoSangre,
+      usaValvula, notas, tipoEspinaBifida, otrosPadecimiento,
+    } = req.body;
 
-    await actualizarPaso3(Number(id), { lugarNacimiento, hospitalNacimiento, tipoSangre, usaValvula, notas });
+    await actualizarPaso3(Number(id), {
+      lugarNacimiento, hospitalNacimiento, tipoSangre,
+      usaValvula, notas, tipoEspinaBifida, otrosPadecimiento,
+    });
     res.json({ ok: true });
   } catch (error) {
     console.error("Error en historialMedicoPaciente:", error);
@@ -68,14 +74,43 @@ export async function historialTutorPaciente(req, res) {
   try {
     const { id } = req.params;
     const {
-      tutorLugarNacimiento, tutorEdad, tutorOcupacion, tutorEscolaridad,
-      tutorParentesco, madreSeguroMedico, cdEmbarazo, acidoFolico, citasControl,
+      tutorParentesco,
+      tutorNombre,
+      tutorLugarNacimiento,
+      tutorEdad,
+      tutorOcupacion,
+      tutorEscolaridad,
+      tutorSeguroMedico,
+      madreSeguroMedico,
+      cdEmbarazo,
+      acidoFolico,
+      citasControl,
+      adicciones,
+      hijoDtn,
+      familiarDtn,
+      expoToxicos,
+      descripcionExpoToxicos,
     } = req.body;
 
     await actualizarPaso4(Number(id), {
-      tutorLugarNacimiento, tutorEdad, tutorOcupacion, tutorEscolaridad,
-      tutorParentesco, madreSeguroMedico, cdEmbarazo, acidoFolico, citasControl,
+      tutorParentesco,
+      tutorNombre,
+      tutorLugarNacimiento,
+      tutorEdad,
+      tutorOcupacion,
+      tutorEscolaridad,
+      tutorSeguroMedico,
+      madreSeguroMedico,
+      cdEmbarazo,
+      acidoFolico,
+      citasControl,
+      adicciones,
+      hijoDtn,
+      familiarDtn,
+      expoToxicos,
+      descripcionExpoToxicos,
     });
+
     res.json({ ok: true });
   } catch (error) {
     console.error("Error en historialTutorPaciente:", error);

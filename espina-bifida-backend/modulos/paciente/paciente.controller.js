@@ -86,6 +86,13 @@ export async function actualizarPaciente(req, res) {
   try {
     const { id } = req.params;
     const datos = req.body;
+    console.log("tipoEspinaBifida:", datos.tipoEspinaBifida);
+    console.log("otrosPadecimiento:", datos.otrosPadecimiento);
+
+    if (datos.tutores && typeof datos.tutores === "string") {
+      datos.tutores = JSON.parse(datos.tutores);
+    }
+
     await updatePaciente(Number(id), datos, req.file);
     await updateHistorialMadre(Number(id), datos);
     res.json({ ok: true, message: "Paciente actualizado correctamente" });
