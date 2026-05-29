@@ -1,8 +1,12 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import Header from "./header";
+import Header from "../componentes/header/header";
 import { MemoryRouter } from "react-router-dom";
 
 const mockNavigate = jest.fn();
+
+jest.mock("../pantallas/notificacionesContext", () => ({
+  useNotificaciones: () => ({ pendientesCount: 0 }),
+}));
 
 jest.mock("react-router-dom", () => {
   const actual = jest.requireActual("react-router-dom");
@@ -14,10 +18,20 @@ jest.mock("react-router-dom", () => {
 
 describe("Header", () => {
   beforeEach(() => {
+    localStorage.setItem("token", "test-token");
+    localStorage.setItem("guest", "false");
+    localStorage.setItem(
+      "usuario",
+      JSON.stringify({ username: "AB", tipoUsuario: "COORDINADOR" })
+    );
     mockNavigate.mockClear();
   });
 
-  test("muestra 'Módulo de Usuarios' en la ruta /", () => {
+  afterEach(() => {
+    localStorage.clear();
+  });
+
+  test("muestra 'Módulo de Pacientes' en la ruta /", () => {
     render(
       <MemoryRouter initialEntries={["/"]}>
         <Header />
@@ -25,7 +39,7 @@ describe("Header", () => {
     );
 
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-      "Módulo de Usuarios"
+      "Módulo de Pacientes"
     );
   });
 
@@ -77,7 +91,7 @@ describe("Header", () => {
     );
   });
 
-  test("muestra 'Notificaciones' en la ruta /notificaciones", () => {
+  test("muestra 'Solicitudes' en la ruta /notificaciones", () => {
     render(
       <MemoryRouter initialEntries={["/notificaciones"]}>
         <Header />
@@ -85,7 +99,7 @@ describe("Header", () => {
     );
 
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-      "Notificaciones"
+      "Solicitudes"
     );
   });
 

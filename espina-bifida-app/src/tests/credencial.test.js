@@ -1,5 +1,5 @@
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
-import Credencial from "./credencial";
+import Credencial from "../componentes/credencial/credencial";
 import { MemoryRouter } from "react-router-dom";
 
 const mockNavigate = jest.fn();
@@ -12,20 +12,6 @@ jest.mock("react-router-dom", () => {
     useNavigate: () => mockNavigate,
   };
 });
-
-jest.mock("html-to-image", () => ({
-  toPng: jest.fn(() => Promise.resolve("data:image/png;base64,fake")),
-}));
-
-const mockAddImage = jest.fn();
-const mockSave = jest.fn();
-
-jest.mock("jspdf", () => ({
-  jsPDF: jest.fn().mockImplementation(() => ({
-    addImage: mockAddImage,
-    save: mockSave,
-  })),
-}));
 
 describe("Credencial", () => {
   beforeEach(() => {
@@ -84,7 +70,7 @@ describe("Credencial", () => {
     });
 
     expect(screen.getByText(/001/)).toBeInTheDocument();
-    expect(screen.getByText(/Monterrey/)).toBeInTheDocument();
+    expect(screen.getByText(/Dirección:/)).toBeInTheDocument();
     expect(screen.getByText(/A\+/)).toBeInTheDocument();
     expect(screen.getByText(/Sí/)).toBeInTheDocument();
   });
