@@ -1,0 +1,62 @@
+name: SonarCloud analysis
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  sonarcloud:
+    name: Unit Tests and SonarCloud Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install frontend dependencies
+        working-directory: espina-bifida-app
+        run: npm install
+
+      - name: Run frontend unit tests with coverage
+        working-directory: espina-bifida-app
+        env:
+          CI: true
+        run: npm test -- --coverage --watchAll=false --passWithNoTests
+        continue-on-error: true
+
+      - name: Install backend dependencies
+        working-directory: espina-bifida-backend
+        run: npm install
+
+      - name: Run backend unit tests with coverage
+        working-directory: espina-bifida-backend
+        run: npm test -- --coverage --passWithNoTests
+        continue-on-error: true
+
+      - name: Analyze with SonarCloud
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=Ay4xx_SoftwareEspinaBifida
+            -Dsonar.organization=ay4xx
+            -Dsonar.sources=espina-bifida-app/src,espina-bifida-backend
+            -Dsonar.tests=espina-bifida-app/tests,espina-bifida-backend/tests
+            -Dsonar.test.inclusions=**/*.test.js,**/*.test.jsx,**/*.spec.js,**/*.spec.jsx
+            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/build/**,**/coverage/**,**/.next/**,**/public/**,**/assets/**,**/*.png,**/*.jpg,**/*.jpeg,**/*.gif,**/*.svg,**/*.ico,**/*.pdf,**/*.zip,**/*.log
+            -Dsonar.javascript.lcov.reportPaths=espina-bifida-app/coverage/lcov.info,espina-bifida-backend/coverage/lcov.info

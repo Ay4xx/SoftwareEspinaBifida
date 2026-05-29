@@ -73,18 +73,12 @@ export async function getNotificacionById(notificacionId) {
         p.etapa_vida,
         p.notas_adicionales,
         p.fotografia,
-        m.lugar_nacimiento   AS tutor_lugar_nacimiento,
-        m.edad               AS tutor_edad,
-        m.ocupacion          AS tutor_ocupacion,
-        m.escolaridad        AS tutor_escolaridad,
-        m.parentesco         AS tutor_parentesco,
-        m.seguro_medico      AS madre_seguro_medico,
-        m.cd_embarazo        AS cd_embarazo,
-        m.acido_folico       AS acido_folico,
-        m.citas_control      AS citas_control
+        pb.tipo_padecimiento AS tipo_espina_bifida,
+        pb.descripcion       AS otros_padecimiento
       FROM NOTIFICACION n
       INNER JOIN PACIENTE p ON n.paciente_id = p.paciente_id
-      LEFT JOIN HISTORIAL_MADRE m ON m.paciente_id = p.paciente_id  
+      LEFT JOIN PACIENTE_PADECIMIENTO pp ON pp.PACIENTE_ID = p.PACIENTE_ID
+      LEFT JOIN PADECIMIENTOEB pb ON pb.PADECIMIENTO_ID = pp.PADECIMIENTO_ID
       WHERE n.notificacion_id = :notificacionId
     `;
     const result = await conn.execute(
@@ -95,7 +89,6 @@ export async function getNotificacionById(notificacionId) {
     if (!result.rows || result.rows.length === 0) return null;
     const row = result.rows[0];
 
-    // Convertir BLOB a base64
     let fotoBase64 = null;
     if (row.FOTOGRAFIA) {
       const chunks = [];
@@ -106,6 +99,104 @@ export async function getNotificacionById(notificacionId) {
       });
       const buffer = Buffer.concat(chunks);
       fotoBase64 = `data:image/jpeg;base64,${buffer.toString("base64")}`;
+    }
+
+    const resMadre = await conn.execute(
+      `SELECT NOMBRE, LUGAR_NACIMIENTO, ESCOLARIDAD, OCUPACION,
+        EDAD, SEGURO_MEDICO, CD_EMBARAZO, ACIDO_FOLICO, CITAS_CONTROL
+      FROM HISTORIAL_MADRE WHERE PACIENTE_ID = :pacienteId`,
+      { pacienteId: row.PACIENTE_ID },
+      {
+        outFormat: oracledb.OUT_FORMAT_OBJECT,
+        fetchInfo: {
+          NOMBRE:           { type: oracledb.STRING },
+          LUGAR_NACIMIENTO: { type: oracledb.STRING },
+          ESCOLARIDAD:      { type: oracledb.STRING },
+          OCUPACION:        { type: oracledb.STRING },
+          SEGURO_MEDICO:    { type: oracledb.STRING },
+          CD_EMBARAZO:      { type: oracledb.STRING },
+          ACIDO_FOLICO:     { type: oracledb.STRING },
+        }
+      }
+    );
+
+    const resPadre = await conn.execute(
+      `SELECT NOMBRE, LUGAR_NACIMIENTO, ESCOLARIDAD, OCUPACION, EDAD, SEGURO_MEDICO
+      FROM HISTORIAL_PADRE WHERE PACIENTE_ID = :pacienteId`,
+      { pacienteId: row.PACIENTE_ID },
+      {
+        outFormat: oracledb.OUT_FORMAT_OBJECT,
+        fetchInfo: {
+          NOMBRE:           { type: oracledb.STRING },
+          LUGAR_NACIMIENTO: { type: oracledb.STRING },
+          ESCOLARIDAD:      { type: oracledb.STRING },
+          OCUPACION:        { type: oracledb.STRING },
+          SEGURO_MEDICO:    { type: oracledb.STRING },
+        }
+      }
+    );
+
+    const resAmbos = await conn.execute(
+      `SELECT ADICCIONES, HIJO_DTN, FAMILIAR_DTN, EXPO_TOXICOS, DESCRIPCION_EXPO_TOXICOS
+      FROM HISTORIAL_AMBOS WHERE PACIENTE_ID = :pacienteId`,
+      { pacienteId: row.PACIENTE_ID },
+      {
+        outFormat: oracledb.OUT_FORMAT_OBJECT,
+        fetchInfo: {
+          ADICCIONES:               { type: oracledb.STRING },
+          HIJO_DTN:                 { type: oracledb.STRING },
+          FAMILIAR_DTN:             { type: oracledb.STRING },
+          EXPO_TOXICOS:             { type: oracledb.STRING },
+          DESCRIPCION_EXPO_TOXICOS: { type: oracledb.STRING },
+        }
+      }
+    );
+
+    const madre = resMadre.rows?.[0] || null;
+    const padre = resPadre.rows?.[0] || null;
+    const ambos = resAmbos.rows?.[0] || null;
+    const tutores = [];
+
+    if (madre) {
+      tutores.push({
+        tutorParentesco:        "Madre",
+        tutorNombre:            madre.NOMBRE           || "",
+        tutorLugarNacimiento:   madre.LUGAR_NACIMIENTO || "",
+        tutorEscolaridad:       madre.ESCOLARIDAD      || "",
+        tutorOcupacion:         madre.OCUPACION        || "",
+        tutorEdad:              madre.EDAD ? String(madre.EDAD) : "",
+        tutorSeguroMedico:      "",
+        madreSeguroMedico:      madre.SEGURO_MEDICO    || "",
+        cdEmbarazo:             madre.CD_EMBARAZO      || "",
+        acidoFolico:            madre.ACIDO_FOLICO === "S" ? "Sí" : madre.ACIDO_FOLICO === "N" ? "No" : "",
+        citasControl:           madre.CITAS_CONTROL ? String(madre.CITAS_CONTROL) : "",
+        adicciones:             ambos?.ADICCIONES      || "",
+        hijoDtn:                ambos?.HIJO_DTN    === "SI" ? "Sí" : ambos?.HIJO_DTN    === "NO" ? "No" : "",
+        familiarDtn:            ambos?.FAMILIAR_DTN=== "SI" ? "Sí" : ambos?.FAMILIAR_DTN=== "NO" ? "No" : "",
+        expoToxicos:            ambos?.EXPO_TOXICOS=== "SI" ? "Sí" : ambos?.EXPO_TOXICOS=== "NO" ? "No" : "",
+        descripcionExpoToxicos: ambos?.DESCRIPCION_EXPO_TOXICOS || "",
+      });
+    }
+
+    if (padre) {
+      tutores.push({
+        tutorParentesco:        "Padre",
+        tutorNombre:            padre.NOMBRE           || "",
+        tutorLugarNacimiento:   padre.LUGAR_NACIMIENTO || "",
+        tutorEscolaridad:       padre.ESCOLARIDAD      || "",
+        tutorOcupacion:         padre.OCUPACION        || "",
+        tutorEdad:              padre.EDAD ? String(padre.EDAD) : "",
+        tutorSeguroMedico:      padre.SEGURO_MEDICO    || "",
+        madreSeguroMedico:      "",
+        cdEmbarazo:             "",
+        acidoFolico:            "",
+        citasControl:           "",
+        adicciones:             ambos?.ADICCIONES      || "",
+        hijoDtn:                ambos?.HIJO_DTN    === "SI" ? "Sí" : ambos?.HIJO_DTN    === "NO" ? "No" : "",
+        familiarDtn:            ambos?.FAMILIAR_DTN=== "SI" ? "Sí" : ambos?.FAMILIAR_DTN=== "NO" ? "No" : "",
+        expoToxicos:            ambos?.EXPO_TOXICOS=== "SI" ? "Sí" : ambos?.EXPO_TOXICOS=== "NO" ? "No" : "",
+        descripcionExpoToxicos: ambos?.DESCRIPCION_EXPO_TOXICOS || "",
+      });
     }
 
     return {
@@ -133,16 +224,10 @@ export async function getNotificacionById(notificacionId) {
       VALVULA:             row.VALVULA              ?? null,
       ETAPA_VIDA:          row.ETAPA_VIDA           ?? null,
       NOTAS_ADICIONALES:   row.NOTAS_ADICIONALES    ?? null,
+      TIPO_ESPINA_BIFIDA:  row.TIPO_ESPINA_BIFIDA   ?? null,
+      OTROS_PADECIMIENTO:  row.OTROS_PADECIMIENTO   ?? null,
       FOTO:                fotoBase64,
-      TUTOR_LUGAR_NACIMIENTO: row.TUTOR_LUGAR_NACIMIENTO ?? null,
-      TUTOR_EDAD:             row.TUTOR_EDAD             ?? null,
-      TUTOR_OCUPACION:        row.TUTOR_OCUPACION        ?? null,
-      TUTOR_ESCOLARIDAD:      row.TUTOR_ESCOLARIDAD      ?? null,
-      TUTOR_PARENTESCO:       row.TUTOR_PARENTESCO       ?? null,
-      MADRE_SEGURO_MEDICO:    row.MADRE_SEGURO_MEDICO    ?? null,
-      CD_EMBARAZO:            row.CD_EMBARAZO            ?? null,
-      ACIDO_FOLICO:           row.ACIDO_FOLICO            ?? null,
-      CITAS_CONTROL:          row.CITAS_CONTROL           ?? null,
+      TUTORES:             tutores,
     };
   } catch (error) {
     console.error("Error en getNotificacionById:", error);
@@ -156,12 +241,14 @@ export async function aprobarNotificacion(notificacionId, usuarioId) {
   let conn;
   try {
     conn = await getConnection();
+
     const result = await conn.execute(
       `UPDATE NOTIFICACION SET estado_proceso = 'aprobado'
       WHERE notificacion_id = :notificacionId AND estado_proceso = 'pendiente'`,
       { notificacionId: Number(notificacionId) },
       { autoCommit: true }
     );
+
     return result.rowsAffected > 0;
   } catch (error) {
     console.error("Error en aprobarNotificacion:", error);
@@ -175,12 +262,14 @@ export async function rechazarNotificacion(notificacionId, usuarioId) {
   let conn;
   try {
     conn = await getConnection();
+
     const result = await conn.execute(
       `UPDATE NOTIFICACION SET estado_proceso = 'rechazado'
       WHERE notificacion_id = :notificacionId AND estado_proceso = 'pendiente'`,
       { notificacionId: Number(notificacionId) },
       { autoCommit: true }
     );
+
     return result.rowsAffected > 0;
   } catch (error) {
     console.error("Error en rechazarNotificacion:", error);
@@ -205,10 +294,7 @@ export async function eliminarNotificacionesAntiguas() {
 
     const ids = pacientes.rows.map((r) => r.PACIENTE_ID);
 
-    if (ids.length === 0) {
-      console.log("No hay notificaciones antiguas que eliminar");
-      return 0;
-    }
+    if (ids.length === 0) return 0;
 
     const placeholders = ids.map((_, i) => `:id${i}`).join(",");
     const binds = Object.fromEntries(ids.map((id, i) => [`id${i}`, id]));
@@ -221,7 +307,6 @@ export async function eliminarNotificacionesAntiguas() {
     await conn.execute(`DELETE FROM MEMBRESIA WHERE paciente_id IN (${placeholders})`, binds, { autoCommit: true });
     await conn.execute(`DELETE FROM PACIENTE WHERE paciente_id IN (${placeholders})`, binds, { autoCommit: true });
 
-    console.log(`[Limpieza] Eliminados ${ids.length} pacientes y sus notificaciones antiguas`);
     return ids.length;
   } catch (error) {
     console.error("Error en eliminarNotificacionesAntiguas:", error);

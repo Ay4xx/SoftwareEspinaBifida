@@ -1,4 +1,4 @@
-import { insertarMedicina, insertarEquipoMedico, verificarDuplicado, actualizarCantidadMedicina, actualizarCantidadEquipo, getInventarioCompleto  } from "./regservicios.service.js";
+import { insertarMedicina, insertarEquipoMedico, verificarDuplicado, actualizarCantidadMedicina, actualizarCantidadEquipo, getInventarioCompleto, eliminarArticulo  } from "./regservicios.service.js";
 
 export async function crearMedicina(req, res) {
   try {
@@ -87,6 +87,20 @@ export async function listarInventario(req, res) {
     res.json({ ok: true, data });
   } catch (error) {
     console.error("ERROR AL LISTAR INVENTARIO:", error.message);
+    res.status(500).json({ ok: false, message: error.message });
+  }
+}
+
+export async function eliminarArticuloController(req, res) {
+  try {
+    const { id, tipo } = req.params;
+    if (!id || !tipo) {
+      return res.status(400).json({ ok: false, message: "ID y tipo son obligatorios" });
+    }
+    await eliminarArticulo(id, tipo);
+    res.json({ ok: true, message: "Artículo eliminado correctamente" });
+  } catch (error) {
+    console.error("ERROR AL ELIMINAR:", error.message);
     res.status(500).json({ ok: false, message: error.message });
   }
 }

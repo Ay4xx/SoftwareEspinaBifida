@@ -5,7 +5,7 @@ const UN_DIA_MS = 24 * 60 * 60 * 1000;
 export function iniciarJobLimpieza() {
   // Ejecutar al arrancar el servidor
   eliminarNotificacionesAntiguas().catch((err) =>
-    console.error("[Job] Error en limpieza inicial:", err)
+    console.error(" Error en limpieza inicial:", err)
   );
 
   // Repetir cada 24 horas

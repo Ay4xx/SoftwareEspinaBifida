@@ -15,11 +15,28 @@ import inventarioRouter from "./modulos/fiorella/regservicios/regservicios.route
 import gestionUsuarioRoutes from "./modulos/gestionUsuarios/gestionUsuarios.routes.js";
 import estadisticasRoutes from "./modulos/estadisticas/estadisticas.routes.js";
 import membresiaRoutes from "./modulos/membresia/membresia.routes.js";
+import pagoreciboRoutes from "./modulos/pagorecibo/pagorebico.route.js";
 
 const app = express();
-app.use(cors());
+
+export const sseClients = new Set();
+
 app.use(cors({ origin: "http://localhost:3000" }));
 app.use(express.json());
+
+app.get("/api/notificaciones-sse", (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders();
+
+  sseClients.add(res);
+
+  req.on("close", () => {
+    sseClients.delete(res);
+  });
+});
+
 app.use("/api/login", loginRoutes);
 app.use("/api/registro", registroRoutes);
 app.use("/api/pacientes", pacienteRoutes);
@@ -35,4 +52,5 @@ app.use("/api/inventario", inventarioRouter);
 app.use("/api/gestion-usuarios", gestionUsuarioRoutes);
 app.use("/api/estadisticas", estadisticasRoutes);
 app.use("/api/membresia", membresiaRoutes);
+app.use("/api/pagos", pagoreciboRoutes);
 export default app;

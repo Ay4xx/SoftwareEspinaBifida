@@ -44,6 +44,46 @@
   margin: 0;
 }
 
+/* ── Advertencias (registro guardado con errores parciales) ── */
+.registro-advertencias {
+  margin-top: 4px;
+  background-color: #fffbeb;
+  border: 1px solid #f59e0b;
+  border-radius: 10px;
+  padding: 14px 18px;
+  text-align: left;
+  width: 100%;
+  max-width: 380px;
+}
+
+.registro-advertencias-titulo {
+  font-size: 13px;
+  font-weight: 700;
+  color: #92400e;
+  margin: 0 0 8px;
+}
+
+.registro-advertencias-lista {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 10px;
+}
+
+.registro-advertencias-lista li {
+  font-size: 12.5px;
+  color: #78350f;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.registro-advertencias-nota {
+  font-size: 12px;
+  color: #92400e;
+  font-style: italic;
+  margin: 0;
+}
+
+/* ── Card principal ── */
 .registro-card {
   background: white;
   border-radius: 20px;
@@ -116,6 +156,7 @@
   border-radius: 8px;
   color: #b91c1c;
   font-size: 13px;
+  white-space: pre-line;
 }
 
 /* ── Contenedor de botones ── */
@@ -286,4 +327,117 @@
 
 .btn-guardar-cambios:hover {
   background: #002a75;
+}
+
+
+@keyframes fadeOverlay {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(18px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+
+
+.modal-btn-secundario {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.modal-btn-secundario:hover {
+  background-color: #e5e7eb;
+}
+
+.modal-btn-primario {
+  background-color: #001b4d;
+  color: #fff;
+}
+
+.modal-btn-primario:hover {
+  background-color: #00287a;
+}
+
+/* ════════════════════════════════════════
+   NUEVO: Tabs de tutores (aparecen cuando hay dos)
+   ════════════════════════════════════════ */
+
+.tutor-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 0 32px;
+  margin-bottom: 8px;
+}
+
+.tutor-tab {
+  padding: 8px 24px;
+  border-radius: 8px;
+  border: 1.5px solid #d1d5db;
+  background: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.tutor-tab:hover {
+  border-color: #083a99;
+  color: #083a99;
+}
+
+.tutor-tab-activo {
+  background-color: #083a99;
+  border-color: #083a99;
+  color: #fff;
+}
+
+/* ════════════════════════════════════════
+   NUEVO: Botón agregar segundo tutor
+   ════════════════════════════════════════ */
+
+.btn-agregar-tutor {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1.5px dashed #083a99;
+  background: #eff6ff;
+  font-size: 13px;
+  font-weight: 600;
+  color: #083a99;
+  cursor: pointer;
+  transition: 0.15s;
+  margin-left: auto;
+  margin-right: 12px;
+}
+
+.btn-agregar-tutor:hover {
+  background: #dbeafe;
+  border-color: #001b4d;
+  color: #001b4d;
+}
+
+.agregar-tutor-contenedor {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 32px 0;
+}
+
+.btn-agregar-tutor {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1.5px dashed #083a99;
+  background: #eff6ff;
+  font-size: 13px;
+  font-weight: 600;
+  color: #083a99;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.btn-agregar-tutor:hover {
+  background: #dbeafe;
+  border-color: #001b4d;
+  color: #001b4d;
 }
