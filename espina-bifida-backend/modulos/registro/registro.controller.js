@@ -1,4 +1,4 @@
-import { crearPacientePaso1, actualizarPaso2, actualizarPaso3, actualizarPaso4, actualizarPaso5 } from "./registro.service.js";
+import { crearPacientePaso1, actualizarPaso2, actualizarPaso3, actualizarPaso4, actualizarPaso5, guardarDocumentos } from "./registro.service.js";
 import { enviarCorreoPreRegistro, enviarCorreoAltaManual } from "../email/email.service.js";
 
 export async function registrarPaciente(req, res) {
@@ -122,9 +122,24 @@ export async function fotografiaPaciente(req, res) {
   try {
     const { id } = req.params;
     const { usuarioId, nombre, apellido, correo } = req.body;
+    const files = req.files || {};
 
-    if (req.file) {
-      await actualizarPaso5(Number(id), req.file.buffer);
+    const fotoBuffer = files.foto?.[0]?.buffer || null;
+    if (fotoBuffer) {
+      await actualizarPaso5(Number(id), fotoBuffer);
+    }
+
+    const documentos = {
+      docPreregistro:          files.docPreregistro?.[0]?.buffer          || null,
+      docActaNacimiento:       files.docActaNacimiento?.[0]?.buffer       || null,
+      docCurp:                 files.docCurp?.[0]?.buffer                 || null,
+      docComprobanteDomicilio: files.docComprobanteDomicilio?.[0]?.buffer || null,
+      docIneFamilia:           files.docIneFamilia?.[0]?.buffer           || null,
+    };
+
+    const tieneDocumentos = Object.values(documentos).some((b) => b !== null);
+    if (tieneDocumentos) {
+      await guardarDocumentos(Number(id), documentos);
     }
 
     if (usuarioId && correo) {

@@ -119,11 +119,18 @@ export async function actualizarPaso5(pacienteId, foto, formData) {
   const esInvitado = localStorage.getItem("guest") === "true";
 
   const body = new FormData();
-  body.append("foto",      foto);
+  if (foto instanceof File) body.append("foto", foto);
   body.append("usuarioId", esInvitado ? "" : usuario?.id || "");
   body.append("nombre",    formData?.nombres         || "");
   body.append("apellido",  formData?.apellidoPaterno || "");
   body.append("correo",    formData?.correo          || "");
+
+  const documentos = formData?.documentos || {};
+  if (documentos.preregistro          instanceof File) body.append("docPreregistro",          documentos.preregistro);
+  if (documentos.actaNacimiento       instanceof File) body.append("docActaNacimiento",       documentos.actaNacimiento);
+  if (documentos.curp                 instanceof File) body.append("docCurp",                 documentos.curp);
+  if (documentos.comprobanteDomicilio instanceof File) body.append("docComprobanteDomicilio", documentos.comprobanteDomicilio);
+  if (documentos.ineFamilia           instanceof File) body.append("docIneFamilia",           documentos.ineFamilia);
 
   const response = await fetch(`${API_URL}/${pacienteId}/paso5`, {
     method: "PUT",

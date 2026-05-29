@@ -49,6 +49,13 @@ const formInicial = {
   lugarNacimiento: "", hospitalNacimiento: "", tipoSangre: "", usaValvula: "",
   tipoEspinaBifida: "", otrosPadecimiento: "", notas: "",
   foto: null,
+  documentos: {
+    preregistro: null,
+    actaNacimiento: null,
+    curp: null,
+    comprobanteDomicilio: null,
+    ineFamilia: null,
+  },
 };
 
 function RegistroPage() {
@@ -361,9 +368,10 @@ function RegistroPage() {
         }
       }
 
-      if (formData.foto) {
+      const tieneDocumentos = formData.documentos && Object.values(formData.documentos).some((f) => f instanceof File);
+      if (formData.foto || tieneDocumentos) {
         try { await actualizarPaso5(id, formData.foto, formData); }
-        catch (e) { erroresPasos.push("Fotografía: " + (e.message || "No se pudo guardar la fotografía.")); }
+        catch (e) { erroresPasos.push("Fotografía/Documentos: " + (e.message || "No se pudieron guardar.")); }
       }
 
       if (erroresPasos.length > 0) setAdvertencias(erroresPasos);
