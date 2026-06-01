@@ -73,8 +73,8 @@ function RegistrarEntrada({ onCerrar, onGuardado }) {
   }
 
   return (
-    <div className="re-overlay" onClick={onCerrar}>
-      <div className="re-popup" onClick={(e) => e.stopPropagation()}>
+     <div className="re-overlay">
+      <div className="re-popup" >
 
         <div className="re-header">
           <h4>Registrar Entrada</h4>
