@@ -64,8 +64,8 @@ function NuevoArticulo({ onCerrar, onGuardado }) {
   };
 
   return (
-    <div className="na-overlay" onClick={onCerrar}>
-      <div className="na-popup" onClick={(e) => e.stopPropagation()}>
+     <div className="na-overlay" >
+      <div className="na-popup">
 
         <div className="na-header">
           <h4>Nuevo Artículo</h4>

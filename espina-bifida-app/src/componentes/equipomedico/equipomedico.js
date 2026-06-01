@@ -194,8 +194,8 @@ function EquipoMedico() {
   
       {/* Popup selección */}
       {showPopup && (
-        <div className="equipo-overlay" onClick={() => setShowPopup(false)}>
-          <div className="equipo-popup" onClick={(e) => e.stopPropagation()}>
+        <div className="equipo-overlay" >
+          <div className="equipo-popup">
   
             <div className="equipo-popup-header">
               <h4>Seleccionar Equipo Médico</h4>
