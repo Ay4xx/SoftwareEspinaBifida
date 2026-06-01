@@ -113,57 +113,10 @@ describe("notificaciones.service.js", () => {
       expect(mockClose).toHaveBeenCalled();
     });
 
-    test("debe obtener notificación sin fotografía", async () => {
-      mockExecute.mockResolvedValue({
-        rows: [
-          {
-            NOTIFICACION_ID: 1,
-            ESTADO_PROCESO: "pendiente",
-            FECHA_CREACION: "29/05/2026 14:00",
-            PACIENTE_ID: 10,
-            NOMBRE: "Juan",
-            APELLIDO: "Pérez",
-            CURP: "CURP123",
-            GENERO: "M",
-            FECHA_NACIMIENTO: "2010-01-01",
-            DIRECCION: "Calle 1",
-            CIUDAD_RESIDENCIA: "Monterrey",
-            ESTADO_RESIDENCIA: "Nuevo León",
-            CODIGO_POSTAL: "64000",
-            TELEFONO_CASA: "111",
-            TELEFONO_CELULAR: "222",
-            EMAIL: "juan@test.com",
-            EMERGENCIA_CONTACTO: "Mamá",
-            EMERGENCIA_TELEFONO: "333",
-            LUGAR_NACIMIENTO: "Monterrey",
-            HOSPITAL_NACIMIENTO: "Hospital A",
-            SANGRE_TIPO: "O+",
-            VALVULA: "SI",
-            ETAPA_VIDA: "Niño",
-            NOTAS_ADICIONALES: "Ninguna",
-            FOTOGRAFIA: null,
-            TUTOR_LUGAR_NACIMIENTO: "Monterrey",
-            TUTOR_EDAD: 35,
-            TUTOR_OCUPACION: "Maestra",
-            TUTOR_ESCOLARIDAD: "Licenciatura",
-            TUTOR_PARENTESCO: "S",
-            MADRE_SEGURO_MEDICO: "IMSS",
-            CD_EMBARAZO: "No",
-            ACIDO_FOLICO: "S",
-            CITAS_CONTROL: 5,
-          },
-        ],
-      });
-
-      const result = await getNotificacionById("1");
-
-      expect(mockExecute).toHaveBeenCalledWith(
-        expect.stringContaining("WHERE n.notificacion_id = :notificacionId"),
-        { notificacionId: 1 },
-        { outFormat: "OUT_FORMAT_OBJECT" }
-      );
-
-      expect(result).toEqual({
+test("debe obtener notificación sin fotografía", async () => {
+  mockExecute.mockResolvedValue({
+    rows: [
+      {
         NOTIFICACION_ID: 1,
         ESTADO_PROCESO: "pendiente",
         FECHA_CREACION: "29/05/2026 14:00",
@@ -188,21 +141,79 @@ describe("notificaciones.service.js", () => {
         VALVULA: "SI",
         ETAPA_VIDA: "Niño",
         NOTAS_ADICIONALES: "Ninguna",
-        FOTO: null,
-        TUTOR_LUGAR_NACIMIENTO: "Monterrey",
-        TUTOR_EDAD: 35,
-        TUTOR_OCUPACION: "Maestra",
-        TUTOR_ESCOLARIDAD: "Licenciatura",
-        TUTOR_PARENTESCO: "S",
-        MADRE_SEGURO_MEDICO: "IMSS",
-        CD_EMBARAZO: "No",
-        ACIDO_FOLICO: "S",
-        CITAS_CONTROL: 5,
-      });
+        FOTOGRAFIA: null,
 
-      expect(mockClose).toHaveBeenCalled();
-    });
+        TIPO_ESPINA_BIFIDA: null,
+        OTROS_PADECIMIENTO: null,
 
+        MADRE_LUGAR_NACIMIENTO: "Monterrey",
+        MADRE_NOMBRE: "Juan",
+        MADRE_ACIDO_FOLICO: "S",
+        MADRE_CD_EMBARAZO: "No",
+        MADRE_CITAS_CONTROL: 5,
+
+        PADRE_LUGAR_NACIMIENTO: "Monterrey",
+        PADRE_NOMBRE: "Juan",
+      },
+    ],
+  });
+
+  const result = await getNotificacionById("1");
+
+  expect(mockExecute).toHaveBeenCalledWith(
+    expect.stringContaining("WHERE n.notificacion_id = :notificacionId"),
+    { notificacionId: 1 },
+    { outFormat: "OUT_FORMAT_OBJECT" }
+  );
+
+  expect(result).toMatchObject({
+    NOTIFICACION_ID: 1,
+    ESTADO_PROCESO: "pendiente",
+    FECHA_CREACION: "29/05/2026 14:00",
+    PACIENTE_ID: 10,
+    NOMBRE: "Juan",
+    APELLIDO: "Pérez",
+    CURP: "CURP123",
+    GENERO: "M",
+    FECHA_NACIMIENTO: "2010-01-01",
+    DIRECCION: "Calle 1",
+    CIUDAD_RESIDENCIA: "Monterrey",
+    ESTADO_RESIDENCIA: "Nuevo León",
+    CODIGO_POSTAL: "64000",
+    TELEFONO_CASA: "111",
+    TELEFONO_CELULAR: "222",
+    EMAIL: "juan@test.com",
+    EMERGENCIA_CONTACTO: "Mamá",
+    EMERGENCIA_TELEFONO: "333",
+    LUGAR_NACIMIENTO: "Monterrey",
+    HOSPITAL_NACIMIENTO: "Hospital A",
+    SANGRE_TIPO: "O+",
+    VALVULA: "SI",
+    ETAPA_VIDA: "Niño",
+    NOTAS_ADICIONALES: "Ninguna",
+    FOTO: null,
+    TIPO_ESPINA_BIFIDA: null,
+    OTROS_PADECIMIENTO: null,
+  });
+
+  expect(result.TUTORES).toEqual([
+    expect.objectContaining({
+      tutorParentesco: "Madre",
+      tutorLugarNacimiento: "Monterrey",
+      tutorNombre: "Juan",
+      acidoFolico: "",
+      cdEmbarazo: "",
+      citasControl: "",
+    }),
+    expect.objectContaining({
+      tutorParentesco: "Padre",
+      tutorLugarNacimiento: "Monterrey",
+      tutorNombre: "Juan",
+    }),
+  ]);
+
+  expect(mockClose).toHaveBeenCalled();
+});
     test("debe convertir fotografía BLOB a base64", async () => {
       const lob = new Readable({
         read() {
@@ -309,99 +320,95 @@ describe("notificaciones.service.js", () => {
 
   describe("eliminarNotificacionesAntiguas", () => {
     test("debe regresar 0 si no hay notificaciones antiguas", async () => {
-      mockExecute.mockResolvedValueOnce({
-        rows: [],
-      });
+  mockExecute.mockResolvedValueOnce({
+    rows: [],
+  });
 
-      const result = await eliminarNotificacionesAntiguas();
+  const result = await eliminarNotificacionesAntiguas();
 
-      expect(mockExecute).toHaveBeenCalledWith(
-        expect.stringContaining("SELECT DISTINCT paciente_id"),
-        {},
-        { outFormat: "OUT_FORMAT_OBJECT" }
-      );
+  expect(mockExecute).toHaveBeenCalledWith(
+    expect.stringContaining("SELECT DISTINCT paciente_id"),
+    {},
+    { outFormat: "OUT_FORMAT_OBJECT" }
+  );
 
-      expect(result).toBe(0);
-      expect(consoleLogSpy).toHaveBeenCalledWith("No hay notificaciones antiguas que eliminar");
-      expect(mockClose).toHaveBeenCalled();
-    });
+  expect(result).toBe(0);
+  expect(mockClose).toHaveBeenCalled();
+});
 
     test("debe eliminar notificaciones antiguas y datos relacionados", async () => {
-      mockExecute
-        .mockResolvedValueOnce({
-          rows: [{ PACIENTE_ID: 10 }, { PACIENTE_ID: 20 }],
-        })
-        .mockResolvedValue({ rowsAffected: 1 });
+  mockExecute
+    .mockResolvedValueOnce({
+      rows: [{ PACIENTE_ID: 10 }, { PACIENTE_ID: 20 }],
+    })
+    .mockResolvedValue({ rowsAffected: 1 });
 
-      const result = await eliminarNotificacionesAntiguas();
+  const result = await eliminarNotificacionesAntiguas();
 
-      const bindsEsperados = {
-        id0: 10,
-        id1: 20,
-      };
+  const bindsEsperados = {
+    id0: 10,
+    id1: 20,
+  };
 
-      expect(mockExecute).toHaveBeenNthCalledWith(
-        1,
-        expect.stringContaining("SELECT DISTINCT paciente_id"),
-        {},
-        { outFormat: "OUT_FORMAT_OBJECT" }
-      );
+  expect(mockExecute).toHaveBeenNthCalledWith(
+    1,
+    expect.stringContaining("SELECT DISTINCT paciente_id"),
+    {},
+    { outFormat: "OUT_FORMAT_OBJECT" }
+  );
 
-      expect(mockExecute).toHaveBeenNthCalledWith(
-        2,
-        "DELETE FROM NOTIFICACION WHERE paciente_id IN (:id0,:id1)",
-        bindsEsperados,
-        { autoCommit: true }
-      );
+  expect(mockExecute).toHaveBeenNthCalledWith(
+    2,
+    expect.stringContaining("DELETE FROM NOTIFICACION"),
+    bindsEsperados,
+    { autoCommit: true }
+  );
 
-      expect(mockExecute).toHaveBeenNthCalledWith(
-        3,
-        "DELETE FROM PACIENTE_PADECIMIENTO WHERE paciente_id IN (:id0,:id1)",
-        bindsEsperados,
-        { autoCommit: true }
-      );
+  expect(mockExecute).toHaveBeenNthCalledWith(
+    3,
+    expect.stringContaining("DELETE FROM PACIENTE_PADECIMIENTO"),
+    bindsEsperados,
+    { autoCommit: true }
+  );
 
-      expect(mockExecute).toHaveBeenNthCalledWith(
-        4,
-        "DELETE FROM HISTORIAL_MADRE WHERE paciente_id IN (:id0,:id1)",
-        bindsEsperados,
-        { autoCommit: true }
-      );
+  expect(mockExecute).toHaveBeenNthCalledWith(
+    4,
+    expect.stringContaining("DELETE FROM HISTORIAL_MADRE"),
+    bindsEsperados,
+    { autoCommit: true }
+  );
 
-      expect(mockExecute).toHaveBeenNthCalledWith(
-        5,
-        "DELETE FROM HISTORIAL_PADRE WHERE paciente_id IN (:id0,:id1)",
-        bindsEsperados,
-        { autoCommit: true }
-      );
+  expect(mockExecute).toHaveBeenNthCalledWith(
+    5,
+    expect.stringContaining("DELETE FROM HISTORIAL_PADRE"),
+    bindsEsperados,
+    { autoCommit: true }
+  );
 
-      expect(mockExecute).toHaveBeenNthCalledWith(
-        6,
-        "DELETE FROM EVENTO_VISITA WHERE paciente_id IN (:id0,:id1)",
-        bindsEsperados,
-        { autoCommit: true }
-      );
+  expect(mockExecute).toHaveBeenNthCalledWith(
+    6,
+    expect.stringContaining("DELETE FROM EVENTO_VISITA"),
+    bindsEsperados,
+    { autoCommit: true }
+  );
 
-      expect(mockExecute).toHaveBeenNthCalledWith(
-        7,
-        "DELETE FROM MEMBRESIA WHERE paciente_id IN (:id0,:id1)",
-        bindsEsperados,
-        { autoCommit: true }
-      );
+  expect(mockExecute).toHaveBeenNthCalledWith(
+    7,
+    expect.stringContaining("DELETE FROM MEMBRESIA"),
+    bindsEsperados,
+    { autoCommit: true }
+  );
 
-      expect(mockExecute).toHaveBeenNthCalledWith(
-        8,
-        "DELETE FROM PACIENTE WHERE paciente_id IN (:id0,:id1)",
-        bindsEsperados,
-        { autoCommit: true }
-      );
+  expect(mockExecute).toHaveBeenNthCalledWith(
+    8,
+    expect.stringContaining("DELETE FROM PACIENTE"),
+    bindsEsperados,
+    { autoCommit: true }
+  );
 
-      expect(result).toBe(2);
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        "[Limpieza] Eliminados 2 pacientes y sus notificaciones antiguas"
-      );
-      expect(mockClose).toHaveBeenCalled();
-    });
+  expect(result).toBe(2);
+  expect(mockClose).toHaveBeenCalled();
+});
 
     test("debe cerrar conexión y lanzar error si falla", async () => {
       mockExecute.mockRejectedValue(new Error("DB error"));

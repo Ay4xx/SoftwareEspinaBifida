@@ -49,53 +49,53 @@ describe("familia.service.js", () => {
 
   describe("obtenerHistorialFamiliar", () => {
     test("debe obtener historial familiar correctamente", async () => {
-      const rows = [
-        {
-          PADRE_ID: 1,
-          PACIENTE_ID: 10,
-          PADRE_LUGAR_NACIMIENTO: "Monterrey",
-          PADRE_ESCOLARIDAD: "Licenciatura",
-          PADRE_OCUPACION: "Ingeniero",
-          PADRE_EDAD: 40,
-          PADRE_PARENTESCO: "S",
-          PADRE_SEGURO: "IMSS",
+  const rows = [
+    {
+      PADRE_ID: 1,
+      PACIENTE_ID: 10,
+      PADRE_LUGAR_NACIMIENTO: "Monterrey",
+      PADRE_ESCOLARIDAD: "Licenciatura",
+      PADRE_OCUPACION: "Ingeniero",
+      PADRE_EDAD: 40,
+      PADRE_SEGURO: "IMSS",
+      PADRE_NOMBRE: "Padre Test",
 
-          MADRE_ID: 2,
-          MADRE_LUGAR_NACIMIENTO: "Guadalupe",
-          MADRE_ESCOLARIDAD: "Preparatoria",
-          MADRE_OCUPACION: "Maestra",
-          MADRE_EDAD: 38,
-          MADRE_PARENTESCO: "S",
-          CD_EMBARAZO: "No",
-          ACIDO_FOLICO: "S",
-          CITAS_CONTROL: 5,
-          MADRE_SEGURO: "IMSS",
+      MADRE_ID: 2,
+      MADRE_LUGAR_NACIMIENTO: "Guadalupe",
+      MADRE_ESCOLARIDAD: "Preparatoria",
+      MADRE_OCUPACION: "Maestra",
+      MADRE_EDAD: 38,
+      CD_EMBARAZO: "No",
+      ACIDO_FOLICO: "S",
+      CITAS_CONTROL: 5,
+      MADRE_SEGURO: "IMSS",
+      MADRE_NOMBRE: "Madre Test",
 
-          ADICCIONES: "No",
-          HIJO_DTN: "No",
-          FAMILIAR_DTN: "No",
-          EXPO_TOXICOS: "No",
-          DESCRIPCION_EXPO_TOXICOS: null,
-        },
-      ];
+      ADICCIONES: "No",
+      HIJO_DTN: "No",
+      FAMILIAR_DTN: "No",
+      EXPO_TOXICOS: "No",
+      DESCRIPCION_EXPO_TOXICOS: null,
+    },
+  ];
 
-      mockExecute.mockResolvedValue({
-        rows,
-      });
+  mockExecute.mockResolvedValue({
+    rows,
+  });
 
-      const result = await obtenerHistorialFamiliar("10");
+  const result = await obtenerHistorialFamiliar("10");
 
-      expect(mockGetConnection).toHaveBeenCalled();
+  expect(mockGetConnection).toHaveBeenCalled();
 
-      expect(mockExecute).toHaveBeenCalledWith(
-        expect.stringContaining("FROM ADMIN.HISTORIAL_PADRE p"),
-        ["10"],
-        { outFormat: "OUT_FORMAT_OBJECT" }
-      );
+  expect(mockExecute).toHaveBeenCalledWith(
+    expect.stringContaining("FROM ADMIN.HISTORIAL_PADRE p"),
+    { pacienteId: 10 },
+    { outFormat: "OUT_FORMAT_OBJECT" }
+  );
 
-      expect(result).toEqual(rows);
-      expect(mockClose).toHaveBeenCalled();
-    });
+  expect(result).toEqual(rows);
+  expect(mockClose).toHaveBeenCalled();
+});
 
     test("debe regresar arreglo vacío si no hay historial familiar", async () => {
       mockExecute.mockResolvedValue({
@@ -119,19 +119,21 @@ describe("familia.service.js", () => {
     });
 
     test("debe cerrar conexión y lanzar error si falla la consulta", async () => {
-      mockExecute.mockRejectedValue(new Error("Error Oracle"));
+  mockExecute.mockRejectedValue(new Error("Error Oracle"));
 
-      await expect(obtenerHistorialFamiliar("10")).rejects.toThrow(
-        "Error Oracle"
-      );
+  await expect(obtenerHistorialFamiliar("10")).rejects.toThrow(
+    "Error Oracle"
+  );
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        "Error información familiar:",
-        expect.any(Error)
-      );
+  expect(consoleErrorSpy).toHaveBeenCalledWith(
+    "Error SQL:",
+    "Error Oracle",
+    "| ORA-code:",
+    undefined
+  );
 
-      expect(mockClose).toHaveBeenCalled();
-    });
+  expect(mockClose).toHaveBeenCalled();
+});
 
     test("debe lanzar error si falla getConnection", async () => {
       mockGetConnection.mockRejectedValue(new Error("No hay conexión"));

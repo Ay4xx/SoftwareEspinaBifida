@@ -1,4 +1,4 @@
-import { jest, describe, beforeEach, test, expect } from "@jest/globals";
+import { jest, describe, test, expect, beforeEach } from "@jest/globals";
 
 const mockGetEstadisticasModel = jest.fn();
 
@@ -11,238 +11,165 @@ const {
   descargarReporteMensualService,
 } = await import("../../modulos/estadisticas/estadisticas.service.js");
 
-const statsCompletas = {
-  TOTAL_ARTICULOS: 10,
-  EXISTENCIAS_NORMAL: 6,
-  EXISTENCIAS_BAJAS: 3,
-  EXISTENCIAS_AGOTADAS: 1,
-
-  TOTAL_PACIENTES: 20,
-  PACIENTES_ACTIVOS: 18,
-  PACIENTES_INACTIVOS: 2,
-  PACIENTES_NUEVOS_MES: 4,
-
-  VISITAS_MES: 8,
-  SERVICIOS_REALIZADOS: 12,
-  MEDICINAS_ENTREGADAS: 30,
-  EQUIPO_SIN_REGRESAR: 2,
-
-  INGRESOS_MES: 5000,
-  REGISTROS_PENDIENTES: 3,
-  NOTIFICACIONES_MES: 6,
-  TOTAL_REPORTES: 15,
-};
-
-describe("estadisticas.service.js", () => {
+describe("estadisticas.service", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe("getEstadisticasService", () => {
-    test("debe mapear estadísticas correctamente", async () => {
-      mockGetEstadisticasModel.mockResolvedValue(statsCompletas);
+  const mockData = {
+    kpis: {
+      TOTAL_PACIENTES: "10",
+      PACIENTES_VIVOS: "8",
+      PACIENTES_FALLECIDOS: "2",
+      PACIENTES_NUEVOS_MES: "3",
+      PACIENTES_CON_VALVULA: "4",
+      PACIENTES_CON_PADECIMIENTOS: "7",
 
-      const result = await getEstadisticasService();
+      TOTAL_CITAS: "20",
+      CITAS_ATENDIDAS: "12",
+      CITAS_CANCELADAS: "5",
+      CITAS_PENDIENTES: "3",
+      CITAS_MES: "9",
 
-      expect(mockGetEstadisticasModel).toHaveBeenCalled();
+      TOTAL_VISITAS: "30",
+      VISITAS_MES: "6",
+      CUOTAS_TOTALES: "1000",
+      INGRESOS_TOTALES: "900",
+      DESCUENTOS_TOTALES: "100",
+      INGRESO_PROMEDIO_VISITA: "30",
+      PORCENTAJE_PAGO_COMPLETO: "80",
 
-      expect(result).toEqual({
-        totalArticulos: 10,
-        existenciasNormal: 6,
-        existenciasBajas: 3,
-        existenciasAgotadas: 1,
+      MEMBRESIAS_ACTIVAS: "5",
+      MEMBRESIAS_INACTIVAS: "2",
+      MEMBRESIAS_VENCIDAS: "1",
 
-        totalPacientes: 20,
-        pacientesActivos: 18,
-        pacientesInactivos: 2,
-        pacientesNuevosMes: 4,
+      TOTAL_SERVICIOS_REALIZADOS: "15",
+      SERVICIOS_REALIZADOS_MES: "4",
 
-        visitasMes: 8,
-        serviciosRealizados: 12,
-        medicinasEntregadas: 30,
-        equipoSinRegresar: 2,
+      TOTAL_MEDICINAS: "50",
+      STOCK_TOTAL_MEDICINAS: "200",
+      MEDICINAS_BAJO_STOCK: "3",
+      VALOR_INVENTARIO_MEDICINAS: "5000",
+      MEDICINAS_UTILIZADAS: "10",
+      ACTUALIZACIONES_INVENTARIO: "2",
 
-        ingresosMes: 5000,
-        registrosPendientes: 3,
-        notificacionesMes: 6,
-        totalReportes: 15,
-      });
+      TOTAL_EQUIPOS: "12",
+      CANTIDAD_TOTAL_EQUIPOS: "18",
+      EQUIPOS_EN_USO: "9",
+      EQUIPOS_REGRESADOS: "6",
+      PORCENTAJE_RETORNO_EQUIPOS: "70",
+      VALOR_TOTAL_EQUIPOS: "12000",
+
+      PACIENTES_RECHAZADOS: "2",
+      TASA_APROBACION_PACIENTES: "85",
+      NOTIFICACIONES_MES: "11",
+    },
+    series: {
+      pacientesNuevosMes: [{ mes: "Enero", total: 3 }],
+      citasMes: [{ mes: "Enero", total: 9 }],
+      citasAtendidasMes: [{ mes: "Enero", total: 12 }],
+      citasCanceladasMes: [{ mes: "Enero", total: 5 }],
+      visitasMes: [{ mes: "Enero", total: 6 }],
+      ingresosMes: [{ mes: "Enero", total: 900 }],
+      descuentosMes: [{ mes: "Enero", total: 100 }],
+      serviciosMes: [{ mes: "Enero", total: 4 }],
+      medicinasUtilizadasMes: [{ mes: "Enero", total: 10 }],
+      actualizacionesMes: [{ mes: "Enero", total: 2 }],
+      equiposEnUsoMes: [{ mes: "Enero", total: 9 }],
+      notificacionesMes: [{ mes: "Enero", total: 11 }],
+    },
+  };
+
+  test("getEstadisticasService debe regresar las estadísticas formateadas", async () => {
+    mockGetEstadisticasModel.mockResolvedValue(mockData);
+
+    const result = await getEstadisticasService();
+
+    expect(mockGetEstadisticasModel).toHaveBeenCalledTimes(1);
+
+    expect(result.pacientes).toEqual({
+      total: 10,
+      vivos: 8,
+      fallecidos: 2,
+      nuevos_mes: 3,
+      con_valvula: 4,
+      con_padecimientos: 7,
     });
 
-    test("debe regresar 0 cuando los valores vienen null o undefined", async () => {
-      mockGetEstadisticasModel.mockResolvedValue({});
-
-      const result = await getEstadisticasService();
-
-      expect(result).toEqual({
-        totalArticulos: 0,
-        existenciasNormal: 0,
-        existenciasBajas: 0,
-        existenciasAgotadas: 0,
-
-        totalPacientes: 0,
-        pacientesActivos: 0,
-        pacientesInactivos: 0,
-        pacientesNuevosMes: 0,
-
-        visitasMes: 0,
-        serviciosRealizados: 0,
-        medicinasEntregadas: 0,
-        equipoSinRegresar: 0,
-
-        ingresosMes: 0,
-        registrosPendientes: 0,
-        notificacionesMes: 0,
-        totalReportes: 0,
-      });
-    });
+    expect(result.citas.total).toBe(20);
+    expect(result.visitas.ingresos_totales).toBe(900);
+    expect(result.membresias.activas).toBe(5);
+    expect(result.medicinas.stock_total).toBe(200);
+    expect(result.equipo.valor_total).toBe(12000);
+    expect(result.notificaciones.tasa_aprobacion).toBe(85);
+    expect(result.series).toEqual(mockData.series);
   });
 
-  describe("descargarReporteMensualService", () => {
-    test("debe regresar reporte JSON con todas las secciones seleccionadas", async () => {
-      mockGetEstadisticasModel.mockResolvedValue(statsCompletas);
-
-      const result = await descargarReporteMensualService({
-        inventario: true,
-        pacientes: true,
-        servicios: true,
-        reportes: true,
-      });
-
-      expect(result).toEqual({
-        inventario: {
-          totalArticulos: 10,
-          existenciasNormal: 6,
-          existenciasBajas: 3,
-          existenciasAgotadas: 1,
-        },
-        pacientes: {
-          totalPacientes: 20,
-          pacientesActivos: 18,
-          pacientesInactivos: 2,
-          pacientesNuevosMes: 4,
-        },
-        servicios: {
-          visitasMes: 8,
-          serviciosRealizados: 12,
-          medicinasEntregadas: 30,
-          equipoSinRegresar: 2,
-        },
-        reportes: {
-          ingresosMes: 5000,
-          registrosPendientes: 3,
-          notificacionesMes: 6,
-          totalReportes: 15,
-        },
-      });
+  test("getEstadisticasService debe convertir valores inválidos a 0", async () => {
+    mockGetEstadisticasModel.mockResolvedValue({
+      kpis: {
+        TOTAL_PACIENTES: null,
+        PACIENTES_VIVOS: undefined,
+        TOTAL_CITAS: "abc",
+      },
+      series: {},
     });
 
-    test("debe regresar solo inventario si solo inventario está seleccionado", async () => {
-      mockGetEstadisticasModel.mockResolvedValue(statsCompletas);
+    const result = await getEstadisticasService();
 
-      const result = await descargarReporteMensualService({
-        inventario: true,
-      });
+    expect(result.pacientes.total).toBe(0);
+    expect(result.pacientes.vivos).toBe(0);
+    expect(result.citas.total).toBe(0);
+    expect(result.series).toEqual({});
+  });
 
-      expect(result).toEqual({
-        inventario: {
-          totalArticulos: 10,
-          existenciasNormal: 6,
-          existenciasBajas: 3,
-          existenciasAgotadas: 1,
-        },
-      });
+  test("descargarReporteMensualService debe regresar payload completo si no hay secciones seleccionadas", async () => {
+    mockGetEstadisticasModel.mockResolvedValue(mockData);
+
+    const result = await descargarReporteMensualService({
+      tipoArchivo: "json",
     });
 
-    test("debe generar CSV correctamente", async () => {
-      mockGetEstadisticasModel.mockResolvedValue(statsCompletas);
+    expect(result.pacientes.total).toBe(10);
+    expect(result.citas.total).toBe(20);
+    expect(result.series).toEqual(mockData.series);
+  });
 
-      const result = await descargarReporteMensualService({
-        inventario: true,
-        tipoArchivo: "csv",
-      });
+  test("descargarReporteMensualService debe filtrar por secciones seleccionadas", async () => {
+    mockGetEstadisticasModel.mockResolvedValue(mockData);
 
-      expect(result).toContain("INVENTARIO");
-      expect(result).toContain("campo,valor");
-      expect(result).toContain("totalArticulos,10");
-      expect(result).toContain("existenciasNormal,6");
-      expect(result).toContain("existenciasBajas,3");
-      expect(result).toContain("existenciasAgotadas,1");
+    const result = await descargarReporteMensualService({
+      tipoArchivo: "json",
+      pacientes: true,
+      citas: true,
     });
 
-    test("debe generar Excel como buffer", async () => {
-      mockGetEstadisticasModel.mockResolvedValue(statsCompletas);
+    expect(result.pacientes).toBeDefined();
+    expect(result.citas).toBeDefined();
+    expect(result.visitas).toBeUndefined();
+    expect(result.membresias).toBeUndefined();
 
-      const result = await descargarReporteMensualService({
-        pacientes: true,
-        tipoArchivo: "excel",
-      });
+    expect(result.series.pacientesNuevosMes).toEqual(mockData.series.pacientesNuevosMes);
+    expect(result.series.citasMes).toEqual(mockData.series.citasMes);
+    expect(result.series.citasAtendidasMes).toEqual(mockData.series.citasAtendidasMes);
+    expect(result.series.citasCanceladasMes).toEqual(mockData.series.citasCanceladasMes);
+  });
 
-      expect(result).toBeDefined();
-      expect(Buffer.isBuffer(result)).toBe(true);
-      expect(result.length).toBeGreaterThan(0);
+  test("descargarReporteMensualService debe generar CSV", async () => {
+    mockGetEstadisticasModel.mockResolvedValue(mockData);
+
+    const result = await descargarReporteMensualService({
+      tipoArchivo: "csv",
+      pacientes: true,
     });
 
-    test("debe generar PDF como buffer", async () => {
-      mockGetEstadisticasModel.mockResolvedValue(statsCompletas);
+    expect(Buffer.isBuffer(result)).toBe(true);
 
-      const result = await descargarReporteMensualService({
-        reportes: true,
-        tipoArchivo: "pdf",
-      });
+    const csv = result.toString("utf-8");
 
-      expect(result).toBeDefined();
-      expect(Buffer.isBuffer(result)).toBe(true);
-      expect(result.length).toBeGreaterThan(0);
-
-      const inicioPDF = result.subarray(0, 4).toString();
-      expect(inicioPDF).toBe("%PDF");
-    });
-
-    test("debe regresar objeto vacío si no se selecciona ninguna sección", async () => {
-      mockGetEstadisticasModel.mockResolvedValue(statsCompletas);
-
-      const result = await descargarReporteMensualService({});
-
-      expect(result).toEqual({});
-    });
-
-    test("debe usar 0 en el reporte si los valores vienen undefined", async () => {
-      mockGetEstadisticasModel.mockResolvedValue({});
-
-      const result = await descargarReporteMensualService({
-        inventario: true,
-        pacientes: true,
-        servicios: true,
-        reportes: true,
-      });
-
-      expect(result).toEqual({
-        inventario: {
-          totalArticulos: 0,
-          existenciasNormal: 0,
-          existenciasBajas: 0,
-          existenciasAgotadas: 0,
-        },
-        pacientes: {
-          totalPacientes: 0,
-          pacientesActivos: 0,
-          pacientesInactivos: 0,
-          pacientesNuevosMes: 0,
-        },
-        servicios: {
-          visitasMes: 0,
-          serviciosRealizados: 0,
-          medicinasEntregadas: 0,
-          equipoSinRegresar: 0,
-        },
-        reportes: {
-          ingresosMes: 0,
-          registrosPendientes: 0,
-          notificacionesMes: 0,
-          totalReportes: 0,
-        },
-      });
-    });
+    expect(csv).toContain("PACIENTES");
+    expect(csv).toContain("campo,valor");
+    expect(csv).toContain("total,10");
+    expect(csv).toContain("vivos,8");
   });
 });
