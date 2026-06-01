@@ -1,148 +1,159 @@
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import ServiciosPanel from '../../pantallas/regservicios';
+import React from "react";
+import { render, screen, fireEvent } from "@testing-library/react";
+import "@testing-library/jest-dom";
 
-jest.mock('../../componentes/tabnav/tabnav', () => {
+import ServiciosPanel from "../../pantallas/regservicios";
+
+jest.mock("../../componentes/detallepaciente/detallepaciente", () => {
+  return function MockVisualizarInfo() {
+    return <div data-testid="visualizar-info">Visualizar Info</div>;
+  };
+});
+
+jest.mock("../../componentes/detallefamiliar/detallefamiliar", () => {
+  return function MockVisualizarFamiliar() {
+    return <div data-testid="visualizar-familiar">Información Familiar</div>;
+  };
+});
+
+jest.mock("../../componentes/registrocitas/registrocitas", () => {
+  return function MockRegistrarConsulta() {
+    return <div data-testid="registrar-consulta">Citas</div>;
+  };
+});
+
+jest.mock("../../componentes/medicamentos/medicamentos", () => {
+  return function MockMedicamentos() {
+    return <div data-testid="medicamentos">Medicamentos</div>;
+  };
+});
+
+jest.mock("../../componentes/equipomedico/equipomedico", () => {
+  return function MockEquipoMedico() {
+    return <div data-testid="equipo-medico">Equipo médico</div>;
+  };
+});
+
+jest.mock("../../componentes/historial/Historial", () => {
+  return function MockVisualizarHistorial() {
+    return <div data-testid="visualizar-historial">Recibos</div>;
+  };
+});
+
+jest.mock("../../componentes/tabnav/tabnav", () => {
   return function MockTabNav({ tabs, activeTab, onTabChange }) {
     return (
-      <div data-testid="mock-tabnav">
+      <nav data-testid="tab-nav">
         {tabs.map((tab) => (
-          <button key={tab.id} onClick={() => onTabChange(tab.id)}>
+          <button
+            key={tab.id}
+            type="button"
+            data-testid={`tab-${tab.id}`}
+            data-active={activeTab === tab.id ? "true" : "false"}
+            onClick={() => onTabChange(tab.id)}
+          >
             {tab.label}
           </button>
         ))}
-      </div>
+      </nav>
     );
   };
 });
 
-jest.mock('../../componentes/registrocitas/registrocitas', () => {
-  return function MockRegistrarConsulta() {
-    return <div data-testid="mock-registrar-consulta">Registrar Consulta</div>;
-  };
-});
-
-jest.mock('../../componentes/medicamentos/medicamentos', () => {
-  return function MockMedicamentos() {
-    return <div data-testid="mock-medicamentos">Medicamentos</div>;
-  };
-});
-
-jest.mock('../../componentes/equipomedico/equipomedico', () => {
-  return function MockEquipoMedico() {
-    return <div data-testid="mock-equipo-medico">Equipo Médico</div>;
-  };
-});
-
-jest.mock('../../componentes/detallepaciente/detallepaciente', () => {
-  return function MockVisualizarInfo() {
-    return <div data-testid="mock-visualizar-info">Visualizar Información</div>;
-  };
-});
-
-global.fetch = jest.fn();
-
-describe('ServiciosPanel Component', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    fetch.mockClear();
-  });
-
-  test('debe renderizar el panel de servicios', () => {
+describe("ServiciosPanel", () => {
+  test("debe renderizar la información del paciente del lado izquierdo", () => {
     render(<ServiciosPanel />);
-    
-    expect(screen.getByText(/Citas/i)).toBeInTheDocument();
-    expect(screen.getByText(/Medicamentos/i)).toBeInTheDocument();
-    expect(screen.getByText(/Equipo médico/i)).toBeInTheDocument();
+
+    expect(screen.getByTestId("visualizar-info")).toBeInTheDocument();
+    expect(screen.getByText("Visualizar Info")).toBeInTheDocument();
   });
 
-  test('debe mostrar la tab de citas por defecto', () => {
+  test("debe mostrar Información Familiar por defecto", () => {
     render(<ServiciosPanel />);
-    
-    expect(screen.getByTestId('mock-registrar-consulta')).toBeInTheDocument();
+
+    expect(screen.getByTestId("visualizar-familiar")).toBeInTheDocument();
+
+    expect(screen.queryByTestId("registrar-consulta")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("medicamentos")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("equipo-medico")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("visualizar-historial")).not.toBeInTheDocument();
   });
 
-  test('debe cambiar a tab de medicamentos', async () => {
+  test("debe mostrar la navegación de tabs", () => {
     render(<ServiciosPanel />);
-    
-    const medicamentosButton = screen.getByRole('button', { name: /Medicamentos/i });
-    fireEvent.click(medicamentosButton);
-    
-    await waitFor(() => {
-      expect(screen.getByTestId('mock-medicamentos')).toBeInTheDocument();
-    });
+
+    expect(screen.getByTestId("tab-nav")).toBeInTheDocument();
+
+    expect(screen.getByRole("button", { name: "Información Familiar" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Citas" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Medicamentos" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Equipo médico" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Recibos" })).toBeInTheDocument();
   });
 
-  test('debe cambiar a tab de equipo médico', async () => {
+  test("debe marcar como activo el tab de Información Familiar al inicio", () => {
     render(<ServiciosPanel />);
-    
-    const equipoButton = screen.getByRole('button', { name: /Equipo médico/i });
-    fireEvent.click(equipoButton);
-    
-    await waitFor(() => {
-      expect(screen.getByTestId('mock-equipo-medico')).toBeInTheDocument();
-    });
+
+    expect(screen.getByTestId("tab-infopaciente")).toHaveAttribute("data-active", "true");
+    expect(screen.getByTestId("tab-citas")).toHaveAttribute("data-active", "false");
   });
 
-  test('debe navegar entre tabs correctamente', async () => {
+  test("debe cambiar al tab Citas", () => {
     render(<ServiciosPanel />);
-    
-    // Empezar en Citas
-    expect(screen.getByTestId('mock-registrar-consulta')).toBeInTheDocument();
-    
-    // Ir a Medicamentos
-    fireEvent.click(screen.getByRole('button', { name: /Medicamentos/i }));
-    await waitFor(() => {
-      expect(screen.getByTestId('mock-medicamentos')).toBeInTheDocument();
-    });
-    
-    // Volver a Citas
-    fireEvent.click(screen.getByRole('button', { name: /Citas/i }));
-    await waitFor(() => {
-      expect(screen.getByTestId('mock-registrar-consulta')).toBeInTheDocument();
-    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Citas" }));
+
+    expect(screen.getByTestId("registrar-consulta")).toBeInTheDocument();
+    expect(screen.queryByTestId("visualizar-familiar")).not.toBeInTheDocument();
+
+    expect(screen.getByTestId("tab-citas")).toHaveAttribute("data-active", "true");
   });
 
-  test('debe mostrar información del paciente en la sección izquierda', () => {
+  test("debe cambiar al tab Medicamentos", () => {
     render(<ServiciosPanel />);
-    
-    expect(screen.getByTestId('mock-visualizar-info')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Medicamentos" }));
+
+    expect(screen.getByTestId("medicamentos")).toBeInTheDocument();
+    expect(screen.queryByTestId("visualizar-familiar")).not.toBeInTheDocument();
+
+    expect(screen.getByTestId("tab-medicamentos")).toHaveAttribute("data-active", "true");
   });
 
-  test('debe mantener la estructura de dos columnas', () => {
-    const { container } = render(<ServiciosPanel />);
-    
-    const leftColumn = container.querySelector('.inventario-izq');
-    const rightColumn = container.querySelector('.inventario-derecho');
-    
-    expect(leftColumn).toBeInTheDocument();
-    expect(rightColumn).toBeInTheDocument();
-  });
-
-  test('debe renderizar todos los tabs', () => {
+  test("debe cambiar al tab Equipo médico", () => {
     render(<ServiciosPanel />);
-    
-    const tabs = ['Citas', 'Medicamentos', 'Equipo médico'];
-    
-    tabs.forEach((tab) => {
-      expect(screen.getByRole('button', { name: new RegExp(tab, 'i') })).toBeInTheDocument();
-    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Equipo médico" }));
+
+    expect(screen.getByTestId("equipo-medico")).toBeInTheDocument();
+    expect(screen.queryByTestId("visualizar-familiar")).not.toBeInTheDocument();
+
+    expect(screen.getByTestId("tab-equipo")).toHaveAttribute("data-active", "true");
   });
 
-  test('debe manejar cambios de tab sin errores', async () => {
+  test("debe cambiar al tab Recibos", () => {
     render(<ServiciosPanel />);
-    
-    const citasButton = screen.getByRole('button', { name: /Citas/i });
-    const medicamentosButton = screen.getByRole('button', { name: /Medicamentos/i });
-    const equipoButton = screen.getByRole('button', { name: /Equipo médico/i });
-    
-    fireEvent.click(medicamentosButton);
-    fireEvent.click(equipoButton);
-    fireEvent.click(citasButton);
-    
-    await waitFor(() => {
-      expect(screen.getByTestId('mock-registrar-consulta')).toBeInTheDocument();
-    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Recibos" }));
+
+    expect(screen.getByTestId("visualizar-historial")).toBeInTheDocument();
+    expect(screen.queryByTestId("visualizar-familiar")).not.toBeInTheDocument();
+
+    expect(screen.getByTestId("tab-historial")).toHaveAttribute("data-active", "true");
+  });
+
+  test("debe regresar al tab Información Familiar después de cambiar de tab", () => {
+    render(<ServiciosPanel />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Medicamentos" }));
+
+    expect(screen.getByTestId("medicamentos")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Información Familiar" }));
+
+    expect(screen.getByTestId("visualizar-familiar")).toBeInTheDocument();
+    expect(screen.queryByTestId("medicamentos")).not.toBeInTheDocument();
+
+    expect(screen.getByTestId("tab-infopaciente")).toHaveAttribute("data-active", "true");
   });
 });

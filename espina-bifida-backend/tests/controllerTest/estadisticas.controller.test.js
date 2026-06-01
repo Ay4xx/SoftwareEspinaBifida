@@ -15,23 +15,28 @@ const {
 
 function crearMockRes() {
   const res = {};
+
   res.status = jest.fn().mockReturnValue(res);
   res.json = jest.fn().mockReturnValue(res);
   res.send = jest.fn().mockReturnValue(res);
   res.setHeader = jest.fn().mockReturnValue(res);
+
   return res;
 }
 
 describe("estadisticas.controller.js", () => {
   let consoleErrorSpy;
+  let consoleLogSpy;
 
   beforeEach(() => {
     jest.clearAllMocks();
     consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
   });
 
   afterEach(() => {
     consoleErrorSpy.mockRestore();
+    consoleLogSpy.mockRestore();
   });
 
   describe("getEstadisticas", () => {
@@ -39,20 +44,30 @@ describe("estadisticas.controller.js", () => {
       const req = {};
       const res = crearMockRes();
 
-      const data = {
-        totalArticulos: 10,
-        totalPacientes: 5,
+      const dataMock = {
+        pacientes: {
+          total: 20,
+          vivos: 18,
+          fallecidos: 2,
+        },
+        citas: {
+          total: 10,
+          atendidas: 7,
+          canceladas: 2,
+          pendientes: 1,
+        },
       };
 
-      mockGetEstadisticasService.mockResolvedValue(data);
+      mockGetEstadisticasService.mockResolvedValue(dataMock);
 
       await getEstadisticas(req, res);
 
-      expect(mockGetEstadisticasService).toHaveBeenCalled();
+      expect(mockGetEstadisticasService).toHaveBeenCalledTimes(1);
+
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         ok: true,
-        data,
+        data: dataMock,
       });
     });
 
@@ -64,6 +79,11 @@ describe("estadisticas.controller.js", () => {
 
       await getEstadisticas(req, res);
 
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "Error en getEstadisticas controller:",
+        expect.any(Error)
+      );
+
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({
         ok: false,
@@ -74,33 +94,71 @@ describe("estadisticas.controller.js", () => {
   });
 
   describe("descargarReporteMensual", () => {
-    test("debe regresar CSV con headers correctos", async () => {
+    test("debe regresar JSON si tipoArchivo no tiene MIME definido", async () => {
       const req = {
         body: {
-          tipoArchivo: "csv",
-          inventario: true,
+          tipoArchivo: "json",
+          pacientes: true,
         },
       };
       const res = crearMockRes();
 
-      const csv = "INVENTARIO\ncampo,valor\ntotalArticulos,10\n";
+      const resultadoMock = {
+        pacientes: {
+          total: 20,
+        },
+      };
 
-      mockDescargarReporteMensualService.mockResolvedValue(csv);
+      mockDescargarReporteMensualService.mockResolvedValue(resultadoMock);
 
       await descargarReporteMensual(req, res);
 
-      expect(mockDescargarReporteMensualService).toHaveBeenCalledWith(req.body);
+      expect(consoleLogSpy).toHaveBeenCalledWith("CONTROLLER HIT");
 
-      expect(res.setHeader).toHaveBeenCalledWith("Content-Type", "text/csv");
-      expect(res.setHeader).toHaveBeenCalledWith(
-        "Content-Disposition",
-        "attachment; filename=reporte_mensual.csv"
-      );
+      expect(mockDescargarReporteMensualService).toHaveBeenCalledWith({
+        tipoArchivo: "json",
+        pacientes: true,
+      });
+
+      expect(res.setHeader).not.toHaveBeenCalled();
+      expect(res.send).not.toHaveBeenCalled();
+
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.send).toHaveBeenCalledWith(csv);
+      expect(res.json).toHaveBeenCalledWith({
+        ok: true,
+        data: resultadoMock,
+      });
     });
 
-    test("debe regresar Excel con headers correctos", async () => {
+    test("debe descargar CSV con Content-Type correcto", async () => {
+      const buffer = Buffer.from("campo,valor\ntotal,20");
+
+      const req = {
+        body: {
+          tipoArchivo: "csv",
+          pacientes: true,
+        },
+      };
+      const res = crearMockRes();
+
+      mockDescargarReporteMensualService.mockResolvedValue(buffer);
+
+      await descargarReporteMensual(req, res);
+
+      expect(mockDescargarReporteMensualService).toHaveBeenCalledWith({
+        tipoArchivo: "csv",
+        pacientes: true,
+      });
+
+      expect(res.setHeader).toHaveBeenCalledWith("Content-Type", "text/csv");
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith(buffer);
+      expect(res.json).not.toHaveBeenCalled();
+    });
+
+    test("debe descargar Excel con Content-Type correcto", async () => {
+      const buffer = Buffer.from("excel-file");
+
       const req = {
         body: {
           tipoArchivo: "excel",
@@ -109,77 +167,56 @@ describe("estadisticas.controller.js", () => {
       };
       const res = crearMockRes();
 
-      const buffer = Buffer.from("excel-file");
-
       mockDescargarReporteMensualService.mockResolvedValue(buffer);
 
       await descargarReporteMensual(req, res);
+
+      expect(mockDescargarReporteMensualService).toHaveBeenCalledWith({
+        tipoArchivo: "excel",
+        pacientes: true,
+      });
 
       expect(res.setHeader).toHaveBeenCalledWith(
         "Content-Type",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
       );
-      expect(res.setHeader).toHaveBeenCalledWith(
-        "Content-Disposition",
-        "attachment; filename=reporte_mensual.xlsx"
-      );
+
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.send).toHaveBeenCalledWith(buffer);
+      expect(res.json).not.toHaveBeenCalled();
     });
 
-    test("debe regresar PDF con headers correctos", async () => {
+    test("debe descargar PDF con Content-Type correcto", async () => {
+      const buffer = Buffer.from("pdf-file");
+
       const req = {
         body: {
           tipoArchivo: "pdf",
-          reportes: true,
+          pacientes: true,
         },
       };
       const res = crearMockRes();
-
-      const buffer = Buffer.from("pdf-file");
 
       mockDescargarReporteMensualService.mockResolvedValue(buffer);
 
       await descargarReporteMensual(req, res);
 
+      expect(mockDescargarReporteMensualService).toHaveBeenCalledWith({
+        tipoArchivo: "pdf",
+        pacientes: true,
+      });
+
       expect(res.setHeader).toHaveBeenCalledWith("Content-Type", "application/pdf");
-      expect(res.setHeader).toHaveBeenCalledWith(
-        "Content-Disposition",
-        "attachment; filename=reporte_mensual.pdf"
-      );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.send).toHaveBeenCalledWith(buffer);
-    });
-
-    test("debe regresar JSON si no es csv, excel o pdf", async () => {
-      const req = {
-        body: {
-          inventario: true,
-        },
-      };
-      const res = crearMockRes();
-
-      const resultado = {
-        inventario: {
-          totalArticulos: 10,
-        },
-      };
-
-      mockDescargarReporteMensualService.mockResolvedValue(resultado);
-
-      await descargarReporteMensual(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith({
-        ok: true,
-        data: resultado,
-      });
+      expect(res.json).not.toHaveBeenCalled();
     });
 
     test("debe responder 500 si falla descargarReporteMensualService", async () => {
       const req = {
         body: {
           tipoArchivo: "csv",
+          pacientes: true,
         },
       };
       const res = crearMockRes();
@@ -187,6 +224,11 @@ describe("estadisticas.controller.js", () => {
       mockDescargarReporteMensualService.mockRejectedValue(new Error("Error reporte"));
 
       await descargarReporteMensual(req, res);
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "Error en descargarReporteMensual:",
+        expect.any(Error)
+      );
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({

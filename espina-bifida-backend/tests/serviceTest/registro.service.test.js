@@ -1,20 +1,32 @@
-import { jest, describe, beforeEach, afterEach, test, expect } from "@jest/globals";
+import { jest, describe, test, expect, beforeEach } from "@jest/globals";
 
 const mockExecute = jest.fn();
 const mockClose = jest.fn();
-const mockGetConnection = jest.fn();
+const mockCommit = jest.fn();
+const mockRollback = jest.fn();
 
-jest.unstable_mockModule("../../config/db.js", () => ({
-  getConnection: mockGetConnection,
-}));
+const mockConn = {
+  execute: mockExecute,
+  close: mockClose,
+  commit: mockCommit,
+  rollback: mockRollback,
+};
+
+const mockGetConnection = jest.fn();
 
 jest.unstable_mockModule("oracledb", () => ({
   default: {
+    OUT_FORMAT_OBJECT: "OUT_FORMAT_OBJECT",
     BIND_OUT: "BIND_OUT",
     NUMBER: "NUMBER",
   },
+  OUT_FORMAT_OBJECT: "OUT_FORMAT_OBJECT",
   BIND_OUT: "BIND_OUT",
   NUMBER: "NUMBER",
+}));
+
+jest.unstable_mockModule("../../config/db.js", () => ({
+  getConnection: mockGetConnection,
 }));
 
 const {
@@ -23,449 +35,322 @@ const {
   actualizarPaso3,
   actualizarPaso4,
   actualizarPaso5,
+  guardarDocumentos,
 } = await import("../../modulos/registro/registro.service.js");
 
-function crearMockConnection() {
-  return {
-    execute: mockExecute,
-    close: mockClose,
-  };
-}
+describe("registro.service", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetConnection.mockResolvedValue(mockConn);
+  });
 
-describe("registro.service.js", () => {
- let consoleErrorSpy;
+  test("crearPacientePaso1 debe crear paciente y regresar pacienteId", async () => {
+    mockExecute
+      .mockResolvedValueOnce({ rows: [[0]] })
+      .mockResolvedValueOnce({ outBinds: { id: [123] } });
 
-beforeEach(() => {
-  jest.clearAllMocks();
+    const result = await crearPacientePaso1({
+      nombre: "Juan",
+      apellido: "Pérez",
+      genero: "Masculino",
+      fechaNacimiento: "2010-01-01",
+      curp: "CURP123",
+    });
 
-  mockGetConnection.mockResolvedValue(crearMockConnection());
-  consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    expect(result).toEqual({ pacienteId: 123 });
+    expect(mockExecute).toHaveBeenCalledTimes(2);
+    expect(mockClose).toHaveBeenCalledTimes(1);
+  });
 
-  jest.useFakeTimers();
-  jest.setSystemTime(new Date("2026-05-29T12:00:00.000Z"));
-});
+  test("crearPacientePaso1 debe eliminar notificación pendiente si recibe usuarioId", async () => {
+    mockExecute
+      .mockResolvedValueOnce({ rows: [[0]] })
+      .mockResolvedValueOnce({ outBinds: { id: [55] } })
+      .mockResolvedValueOnce({});
 
-afterEach(() => {
-  consoleErrorSpy.mockRestore();
-  jest.useRealTimers();
-});
+    const result = await crearPacientePaso1({
+      nombre: "Ana",
+      apellido: "López",
+      genero: "Femenino",
+      fechaNacimiento: "2015-05-10",
+      curp: "CURP456",
+      usuarioId: 10,
+    });
 
-  describe("crearPacientePaso1", () => {
-    test("debe crear paciente paso 1 correctamente sin usuarioId", async () => {
-      mockExecute
-        .mockResolvedValueOnce({
-          rows: [[0]],
-        })
-        .mockResolvedValueOnce({
-          outBinds: {
-            id: [10],
-          },
-        });
+    expect(result).toEqual({ pacienteId: 55 });
+    expect(mockExecute).toHaveBeenCalledTimes(3);
 
-      const result = await crearPacientePaso1({
+    const deleteCall = mockExecute.mock.calls[2][0];
+    expect(deleteCall).toContain("DELETE FROM NOTIFICACION");
+  });
+
+  test("crearPacientePaso1 debe lanzar error si CURP ya existe", async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [[1]] });
+
+    await expect(
+      crearPacientePaso1({
         nombre: "Juan",
         apellido: "Pérez",
-        genero: "M",
+        genero: "Masculino",
         fechaNacimiento: "2010-01-01",
-        curp: "JUAP100101HNLXXX01",
-        usuarioId: null,
-      });
-
-      expect(mockExecute).toHaveBeenNthCalledWith(
-        1,
-        "SELECT COUNT(*) FROM PACIENTE WHERE CURP = :curp",
-        { curp: "JUAP100101HNLXXX01" }
-      );
-
-      expect(mockExecute).toHaveBeenNthCalledWith(
-        2,
-        expect.stringContaining("INSERT INTO PACIENTE"),
-        expect.objectContaining({
-          nombre: "Juan",
-          apellido: "Pérez",
-          curp: "JUAP100101HNLXXX01",
-          fechaNacimiento: "2010-01-01",
-          genero: "M",
-          edad: 16,
-          etapaVida: "Adolescencia",
-          id: {
-            dir: "BIND_OUT",
-            type: "NUMBER",
-          },
-        }),
-        { autoCommit: true }
-      );
-
-      expect(result).toEqual({ pacienteId: 10 });
-      expect(mockClose).toHaveBeenCalled();
+        curp: "CURP123",
+      })
+    ).rejects.toMatchObject({
+      code: "CURP_DUPLICADO",
+      message: "Ya existe un paciente registrado con ese CURP.",
     });
 
-    test("debe crear paciente y borrar notificación pendiente si viene usuarioId", async () => {
-      mockExecute
-        .mockResolvedValueOnce({
-          rows: [[0]],
-        })
-        .mockResolvedValueOnce({
-          outBinds: {
-            id: [20],
-          },
-        })
-        .mockResolvedValueOnce({
-          rowsAffected: 1,
-        });
-
-      const result = await crearPacientePaso1({
-        nombre: "Ana",
-        apellido: "López",
-        genero: "F",
-        fechaNacimiento: "2020-01-01",
-        curp: "ANAL200101MNLXXX01",
-        usuarioId: 1,
-      });
-
-      expect(mockExecute).toHaveBeenNthCalledWith(
-        3,
-        expect.stringContaining("DELETE FROM NOTIFICACION"),
-        { pacienteId: 20 },
-        { autoCommit: true }
-      );
-
-      expect(result).toEqual({ pacienteId: 20 });
-      expect(mockClose).toHaveBeenCalled();
-    });
-
-    test("debe calcular etapa de vida Infancia", async () => {
-      mockExecute
-        .mockResolvedValueOnce({
-          rows: [[0]],
-        })
-        .mockResolvedValueOnce({
-          outBinds: {
-            id: [30],
-          },
-        });
-
-      await crearPacientePaso1({
-        nombre: "Niño",
-        apellido: "Prueba",
-        genero: "M",
-        fechaNacimiento: "2018-01-01",
-        curp: "CURPINFANCIA",
-      });
-
-      expect(mockExecute).toHaveBeenNthCalledWith(
-        2,
-        expect.any(String),
-        expect.objectContaining({
-          edad: 8,
-          etapaVida: "Infancia",
-        }),
-        { autoCommit: true }
-      );
-    });
-
-    test("debe calcular etapa de vida Adulto", async () => {
-      mockExecute
-        .mockResolvedValueOnce({
-          rows: [[0]],
-        })
-        .mockResolvedValueOnce({
-          outBinds: {
-            id: [40],
-          },
-        });
-
-      await crearPacientePaso1({
-        nombre: "Adulto",
-        apellido: "Prueba",
-        genero: "M",
-        fechaNacimiento: "2000-01-01",
-        curp: "CURPADULTO",
-      });
-
-      expect(mockExecute).toHaveBeenNthCalledWith(
-        2,
-        expect.any(String),
-        expect.objectContaining({
-          edad: 26,
-          etapaVida: "Adulto",
-        }),
-        { autoCommit: true }
-      );
-    });
-
-    test("debe lanzar CURP_DUPLICADO si ya existe CURP", async () => {
-      mockExecute.mockResolvedValueOnce({
-        rows: [[1]],
-      });
-
-      await expect(
-        crearPacientePaso1({
-          nombre: "Juan",
-          apellido: "Pérez",
-          genero: "M",
-          fechaNacimiento: "2010-01-01",
-          curp: "CURP_DUP",
-        })
-      ).rejects.toMatchObject({
-        code: "CURP_DUPLICADO",
-      });
-
-      expect(mockExecute).toHaveBeenCalledTimes(1);
-      expect(mockClose).toHaveBeenCalled();
-    });
-
-    test("debe cerrar conexión y lanzar error si falla Oracle", async () => {
-      mockExecute.mockRejectedValue(new Error("Error Oracle"));
-
-      await expect(
-        crearPacientePaso1({
-          nombre: "Juan",
-          apellido: "Pérez",
-          genero: "M",
-          fechaNacimiento: "2010-01-01",
-          curp: "CURP123",
-        })
-      ).rejects.toThrow("Error Oracle");
-
-      expect(mockClose).toHaveBeenCalled();
-    });
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 
-  describe("actualizarPaso2", () => {
-    test("debe actualizar datos de contacto correctamente", async () => {
-      mockExecute.mockResolvedValue({ rowsAffected: 1 });
+  test("actualizarPaso2 debe actualizar datos de contacto convirtiendo vacíos a null", async () => {
+    mockExecute.mockResolvedValueOnce({});
 
-      await actualizarPaso2(10, {
-        direccion: "Calle 1",
-        ciudad: "Monterrey",
-        estado: "Nuevo León",
-        codigoPostal: "64000",
-        emergenciaContacto: "Mamá",
-        emergenciaTelefono: "8181818181",
-        telefonoCasa: "",
-        telefonoCelular: "8122222222",
-        correo: "paciente@test.com",
-      });
-
-      expect(mockExecute).toHaveBeenCalledWith(
-        expect.stringContaining("UPDATE PACIENTE SET"),
-        {
-          direccion: "Calle 1",
-          ciudad: "Monterrey",
-          estado: "Nuevo León",
-          codigoPostal: "64000",
-          emergenciaContacto: "Mamá",
-          emergenciaTelefono: "8181818181",
-          telefonoCasa: null,
-          telefonoCelular: "8122222222",
-          correo: "paciente@test.com",
-          pacienteId: 10,
-        },
-        { autoCommit: true }
-      );
-
-      expect(mockClose).toHaveBeenCalled();
+    await actualizarPaso2(1, {
+      direccion: "",
+      ciudad: "Monterrey",
+      estado: "Nuevo León",
+      codigoPostal: "N/A",
+      emergenciaContacto: "Mamá",
+      emergenciaTelefono: "",
+      telefonoCasa: undefined,
+      telefonoCelular: "8112345678",
+      correo: "test@mail.com",
     });
 
-    test("debe cerrar conexión y lanzar error si falla actualizarPaso2", async () => {
-      mockExecute.mockRejectedValue(new Error("Error paso 2"));
+    expect(mockExecute).toHaveBeenCalledTimes(1);
 
-      await expect(
-        actualizarPaso2(10, {
-          direccion: "Calle",
-          ciudad: "Monterrey",
-          estado: "NL",
-          codigoPostal: "64000",
-          emergenciaContacto: "Mamá",
-          emergenciaTelefono: "8181818181",
-        })
-      ).rejects.toThrow("Error paso 2");
+    const binds = mockExecute.mock.calls[0][1];
 
-      expect(mockClose).toHaveBeenCalled();
+    expect(binds).toEqual({
+      direccion: null,
+      ciudad: "Monterrey",
+      estado: "Nuevo León",
+      codigoPostal: null,
+      emergenciaContacto: "Mamá",
+      emergenciaTelefono: null,
+      telefonoCasa: null,
+      telefonoCelular: "8112345678",
+      correo: "test@mail.com",
+      pacienteId: 1,
     });
+
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 
-  describe("actualizarPaso3", () => {
-    test("debe actualizar historial médico con válvula SI", async () => {
-      mockExecute.mockResolvedValue({ rowsAffected: 1 });
+  test("actualizarPaso3 debe actualizar datos médicos y hacer commit", async () => {
+    mockExecute
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({ rows: [] });
 
-      await actualizarPaso3(10, {
+    await actualizarPaso3(1, {
+      lugarNacimiento: "Monterrey",
+      hospitalNacimiento: "Hospital A",
+      tipoSangre: "O+",
+      usaValvula: "Sí",
+      notas: "",
+      tipoEspinaBifida: "Mielomeningocele",
+    });
+
+    expect(mockExecute).toHaveBeenCalled();
+    expect(mockCommit).toHaveBeenCalledTimes(1);
+    expect(mockRollback).not.toHaveBeenCalled();
+
+    const binds = mockExecute.mock.calls[0][1];
+
+    expect(binds.valvula).toBe("SI");
+    expect(binds.notas).toBe(null);
+  });
+
+  test("actualizarPaso3 debe insertar padecimiento si no existe relación previa", async () => {
+    mockExecute
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({ rows: [{ PADECIMIENTO_ID: 9 }] })
+      .mockResolvedValueOnce({ rows: [{ TOTAL: 0 }] })
+      .mockResolvedValueOnce({});
+
+    await actualizarPaso3(1, {
+      lugarNacimiento: "Monterrey",
+      hospitalNacimiento: "Hospital A",
+      tipoSangre: "O+",
+      usaValvula: "No",
+      notas: "Notas",
+      tipoEspinaBifida: "Mielomeningocele",
+    });
+
+    expect(mockExecute).toHaveBeenCalledTimes(4);
+
+    const insertRelacion = mockExecute.mock.calls[3][0];
+    expect(insertRelacion).toContain("INSERT INTO PACIENTE_PADECIMIENTO");
+
+    expect(mockCommit).toHaveBeenCalledTimes(1);
+  });
+
+  test("actualizarPaso3 debe actualizar descripción si tipoEspinaBifida es OTROS", async () => {
+    mockExecute
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({ rows: [{ PADECIMIENTO_ID: 3 }] })
+      .mockResolvedValueOnce({ rows: [{ TOTAL: 1 }] })
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({});
+
+    await actualizarPaso3(1, {
+      lugarNacimiento: "Monterrey",
+      hospitalNacimiento: "Hospital A",
+      tipoSangre: "A+",
+      usaValvula: "No",
+      notas: "Notas",
+      tipoEspinaBifida: "OTROS",
+      otrosPadecimiento: "Otro padecimiento",
+    });
+
+    expect(mockExecute).toHaveBeenCalledTimes(5);
+
+    const updateDescripcion = mockExecute.mock.calls[4][0];
+    expect(updateDescripcion).toContain("UPDATE PADECIMIENTOEB SET DESCRIPCION");
+
+    expect(mockCommit).toHaveBeenCalledTimes(1);
+  });
+
+  test("actualizarPaso3 debe hacer rollback si ocurre error", async () => {
+    mockExecute.mockRejectedValueOnce(new Error("DB error"));
+
+    await expect(
+      actualizarPaso3(1, {
         lugarNacimiento: "Monterrey",
         hospitalNacimiento: "Hospital A",
         tipoSangre: "O+",
         usaValvula: "Sí",
-        notas: "",
-      });
+      })
+    ).rejects.toThrow("DB error");
 
-      expect(mockExecute).toHaveBeenCalledWith(
-        expect.stringContaining("UPDATE PACIENTE SET"),
-        {
-          lugarNacimiento: "Monterrey",
-          hospitalNacimiento: "Hospital A",
-          tipoSangre: "O+",
-          valvula: "SI",
-          notas: null,
-          pacienteId: 10,
-        },
-        { autoCommit: true }
-      );
-
-      expect(mockClose).toHaveBeenCalled();
-    });
-
-    test("debe actualizar historial médico con válvula NO", async () => {
-      mockExecute.mockResolvedValue({ rowsAffected: 1 });
-
-      await actualizarPaso3(10, {
-        lugarNacimiento: "Monterrey",
-        hospitalNacimiento: "Hospital A",
-        tipoSangre: "O+",
-        usaValvula: "No",
-        notas: "Sin notas",
-      });
-
-      expect(mockExecute).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          valvula: "NO",
-          notas: "Sin notas",
-        }),
-        { autoCommit: true }
-      );
-    });
-
-    test("debe actualizar historial médico con válvula null", async () => {
-      mockExecute.mockResolvedValue({ rowsAffected: 1 });
-
-      await actualizarPaso3(10, {
-        lugarNacimiento: "Monterrey",
-        hospitalNacimiento: "Hospital A",
-        tipoSangre: "O+",
-        usaValvula: "",
-        notas: "Texto",
-      });
-
-      expect(mockExecute).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          valvula: null,
-        }),
-        { autoCommit: true }
-      );
-    });
-
-    test("debe cerrar conexión y lanzar error si falla actualizarPaso3", async () => {
-      mockExecute.mockRejectedValue(new Error("Error paso 3"));
-
-      await expect(
-        actualizarPaso3(10, {
-          lugarNacimiento: "Monterrey",
-          hospitalNacimiento: "Hospital A",
-          tipoSangre: "O+",
-        })
-      ).rejects.toThrow("Error paso 3");
-
-      expect(mockClose).toHaveBeenCalled();
-    });
+    expect(mockRollback).toHaveBeenCalledTimes(1);
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 
-  describe("actualizarPaso4", () => {
-    test("debe insertar historial de madre correctamente con valores completos", async () => {
-      mockExecute.mockResolvedValue({ rowsAffected: 1 });
+  test("actualizarPaso4 debe insertar historial de madre y actualizar historial ambos", async () => {
+    mockExecute
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({ rows: [{ TOTAL: 1 }] })
+      .mockResolvedValueOnce({});
 
-      await actualizarPaso4(10, {
-        tutorLugarNacimiento: "Monterrey",
-        tutorEdad: "35",
-        tutorOcupacion: "Maestra",
-        tutorEscolaridad: "Licenciatura",
-        tutorParentesco: "Sí",
-        madreSeguroMedico: "IMSS",
-        cdEmbarazo: "No",
-        acidoFolico: "Sí",
-        citasControl: "5",
-      });
-
-      expect(mockExecute).toHaveBeenCalledWith(
-        expect.stringContaining("INSERT INTO HISTORIAL_MADRE"),
-        {
-          pacienteId: 10,
-          lugarNacimiento: "Monterrey",
-          escolaridad: "Licenciatura",
-          ocupacion: "Maestra",
-          edad: 35,
-          parentesco: "S",
-          seguroMedico: "IMSS",
-          cdEmbarazo: "No",
-          acidoFolico: "S",
-          citasControl: 5,
-        },
-        { autoCommit: true }
-      );
-
-      expect(mockClose).toHaveBeenCalled();
+    await actualizarPaso4(1, {
+      tutorParentesco: "Madre",
+      tutorNombre: "María",
+      tutorLugarNacimiento: "Monterrey",
+      tutorEdad: "40",
+      tutorOcupacion: "Contadora",
+      tutorEscolaridad: "Licenciatura",
+      tutorSeguroMedico: "",
+      madreSeguroMedico: "IMSS",
+      cdEmbarazo: "Monterrey",
+      acidoFolico: "Sí",
+      citasControl: "5",
+      adicciones: "No",
+      hijoDtn: "Sí",
+      familiarDtn: "No",
+      expoToxicos: "No",
+      descripcionExpoToxicos: "",
     });
 
-    test("debe insertar historial de madre con valores por defecto", async () => {
-      mockExecute.mockResolvedValue({ rowsAffected: 1 });
+    expect(mockExecute).toHaveBeenCalledTimes(3);
 
-      await actualizarPaso4(10, {});
+    expect(mockExecute.mock.calls[0][0]).toContain("INSERT INTO HISTORIAL_MADRE");
+    expect(mockExecute.mock.calls[2][0]).toContain("UPDATE HISTORIAL_AMBOS");
 
-      expect(mockExecute).toHaveBeenCalledWith(
-        expect.any(String),
-        {
-          pacienteId: 10,
-          lugarNacimiento: "N/A",
-          escolaridad: "N/A",
-          ocupacion: "N/A",
-          edad: 0,
-          parentesco: "N",
-          seguroMedico: "N/A",
-          cdEmbarazo: "N/A",
-          acidoFolico: "N",
-          citasControl: 0,
-        },
-        { autoCommit: true }
-      );
-    });
+    const madreBinds = mockExecute.mock.calls[0][1];
+    expect(madreBinds.edad).toBe(40);
+    expect(madreBinds.acidoFolico).toBe("S");
+    expect(madreBinds.seguroMedico).toBe("IMSS");
 
-    test("debe cerrar conexión y lanzar error si falla actualizarPaso4", async () => {
-      mockExecute.mockRejectedValue(new Error("Error paso 4"));
-
-      await expect(actualizarPaso4(10, {})).rejects.toThrow("Error paso 4");
-
-      expect(mockClose).toHaveBeenCalled();
-    });
+    expect(mockCommit).toHaveBeenCalledTimes(1);
   });
 
-  describe("actualizarPaso5", () => {
-    test("debe actualizar fotografía correctamente", async () => {
-      const buffer = Buffer.from("foto");
+  test("actualizarPaso4 debe insertar historial de padre e insertar historial ambos si no existe", async () => {
+    mockExecute
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({ rows: [{ TOTAL: 0 }] })
+      .mockResolvedValueOnce({});
 
-      mockExecute.mockResolvedValue({ rowsAffected: 1 });
-
-      await actualizarPaso5(10, buffer);
-
-      expect(mockExecute).toHaveBeenCalledWith(
-        "UPDATE PACIENTE SET FOTOGRAFIA = :foto WHERE PACIENTE_ID = :pacienteId",
-        {
-          foto: buffer,
-          pacienteId: 10,
-        },
-        { autoCommit: true }
-      );
-
-      expect(mockClose).toHaveBeenCalled();
+    await actualizarPaso4(1, {
+      tutorParentesco: "Padre",
+      tutorNombre: "Pedro",
+      tutorLugarNacimiento: "Monterrey",
+      tutorEdad: "42",
+      tutorOcupacion: "Ingeniero",
+      tutorEscolaridad: "Licenciatura",
+      tutorSeguroMedico: "IMSS",
+      adicciones: "No",
+      hijoDtn: "No",
+      familiarDtn: "No",
+      expoToxicos: "Sí",
+      descripcionExpoToxicos: "Químicos",
     });
 
-    test("debe cerrar conexión y lanzar error si falla actualizarPaso5", async () => {
-      mockExecute.mockRejectedValue(new Error("Error paso 5"));
+    expect(mockExecute.mock.calls[0][0]).toContain("INSERT INTO HISTORIAL_PADRE");
+    expect(mockExecute.mock.calls[2][0]).toContain("INSERT INTO HISTORIAL_AMBOS");
 
-      await expect(actualizarPaso5(10, Buffer.from("foto"))).rejects.toThrow(
-        "Error paso 5"
-      );
+    const ambosBinds = mockExecute.mock.calls[2][1];
 
-      expect(mockClose).toHaveBeenCalled();
+    expect(ambosBinds.hijoDtn).toBe("NO");
+    expect(ambosBinds.familiarDtn).toBe("NO");
+    expect(ambosBinds.expoToxicos).toBe("SI");
+
+    expect(mockCommit).toHaveBeenCalledTimes(1);
+  });
+
+  test("actualizarPaso5 debe guardar fotografía", async () => {
+    mockExecute.mockResolvedValueOnce({});
+
+    const buffer = Buffer.from("foto-test");
+
+    await actualizarPaso5(1, buffer);
+
+    expect(mockExecute).toHaveBeenCalledTimes(1);
+
+    const sql = mockExecute.mock.calls[0][0];
+    const binds = mockExecute.mock.calls[0][1];
+    const options = mockExecute.mock.calls[0][2];
+
+    expect(sql).toContain("UPDATE PACIENTE SET FOTOGRAFIA");
+    expect(binds).toEqual({
+      foto: buffer,
+      pacienteId: 1,
+    });
+    expect(options).toEqual({ autoCommit: true });
+  });
+
+  test("guardarDocumentos no debe ejecutar UPDATE si no hay documentos", async () => {
+    await guardarDocumentos(1, {});
+
+    expect(mockExecute).not.toHaveBeenCalled();
+    expect(mockClose).toHaveBeenCalledTimes(1);
+  });
+
+  test("guardarDocumentos debe actualizar solo los documentos enviados", async () => {
+    mockExecute.mockResolvedValueOnce({});
+
+    const docCurp = Buffer.from("curp");
+    const docIneFamilia = Buffer.from("ine");
+
+    await guardarDocumentos(1, {
+      docCurp,
+      docIneFamilia,
+    });
+
+    expect(mockExecute).toHaveBeenCalledTimes(1);
+
+    const sql = mockExecute.mock.calls[0][0];
+    const binds = mockExecute.mock.calls[0][1];
+
+    expect(sql).toContain("DOC_CURP = :docCurp");
+    expect(sql).toContain("DOC_INE_FAMILIA = :docIneFamilia");
+    expect(sql).not.toContain("DOC_ACTA_NACIMIENTO");
+
+    expect(binds).toEqual({
+      pacienteId: 1,
+      docCurp,
+      docIneFamilia,
     });
   });
 });

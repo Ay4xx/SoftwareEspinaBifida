@@ -75,7 +75,7 @@ describe("estadisticas.model.js", () => {
       }
     );
 
-    expect(result).toEqual(row);
+    expect(result.kpis).toEqual(row);
     expect(mockClose).toHaveBeenCalled();
   });
 

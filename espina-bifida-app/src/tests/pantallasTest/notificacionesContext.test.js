@@ -1,307 +1,357 @@
-import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
-import { NotificacionesProvider, useNotificaciones } from '../../pantallas/notificacionesContext';
+import React from "react";
+import { render, screen, waitFor, act, fireEvent } from "@testing-library/react";
+import "@testing-library/jest-dom";
 
-globalThis.fetch = jest.fn();
+import {
+  NotificacionesProvider,
+  useNotificaciones,
+} from "../../pantallas/notificacionesContext";
 
-// Componente de prueba que usa el contexto
-const TestComponent = () => {
-  const { pendientesCount, setPendientesCount } = useNotificaciones();
-  
+function TestConsumer() {
+  const { pendientesCount, setPendientesCount, refrescarBadge } =
+    useNotificaciones();
+
   return (
     <div>
-      <div data-testid="pendientes-count">{pendientesCount}</div>
-      <button onClick={() => setPendientesCount(5)}>Set Count to 5</button>
+      <span data-testid="pendientes-count">{pendientesCount}</span>
+
+      <button onClick={() => setPendientesCount(99)}>
+        Cambiar contador
+      </button>
+
+      <button onClick={refrescarBadge}>
+        Refrescar badge
+      </button>
     </div>
   );
-};
+}
 
-describe('NotificacionesContext', () => {
+class MockEventSource {
+  static instances = [];
+
+  constructor(url) {
+    this.url = url;
+    this.onmessage = null;
+    this.onerror = null;
+    this.close = jest.fn();
+
+    MockEventSource.instances.push(this);
+  }
+}
+
+describe("notificacionesContext.jsx", () => {
+  let consoleErrorSpy;
+  let consoleWarnSpy;
+
   beforeEach(() => {
     jest.clearAllMocks();
-    fetch.mockClear();
     localStorage.clear();
-    jest.useFakeTimers();
+
+    MockEventSource.instances = [];
+    global.EventSource = MockEventSource;
+
+    consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+
+    global.fetch = jest.fn().mockResolvedValue({
+      json: jest.fn().mockResolvedValue({
+        ok: true,
+        data: [
+          { id: 1, estado: "pendiente" },
+          { id: 2, estado: "aprobado" },
+          { id: 3, estado: "PENDIENTE" },
+          { id: 4, estado: "rechazado" },
+        ],
+      }),
+    });
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    consoleErrorSpy.mockRestore();
+    consoleWarnSpy.mockRestore();
+    delete global.EventSource;
+    delete global.fetch;
   });
 
-  test('debe proporcionar el contexto de notificaciones', () => {
-    fetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        ok: true,
-        data: [],
-      }),
-    });
-
+  test("debe iniciar el contador en 0 y después cargar pendientes desde fetch", async () => {
     render(
       <NotificacionesProvider>
-        <TestComponent />
+        <TestConsumer />
       </NotificacionesProvider>
     );
 
-    expect(screen.getByTestId('pendientes-count')).toBeInTheDocument();
+    expect(screen.getByTestId("pendientes-count")).toHaveTextContent("0");
+
+    await waitFor(() => {
+      expect(screen.getByTestId("pendientes-count")).toHaveTextContent("2");
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      "http://localhost:3001/api/notificaciones"
+    );
   });
 
-  test('debe inicializar pendientesCount en 0', () => {
-    fetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        ok: true,
-        data: [],
-      }),
-    });
+  test("debe ignorar fetchPendientes si el usuario es invitado", async () => {
+    localStorage.setItem("guest", "true");
 
     render(
       <NotificacionesProvider>
-        <TestComponent />
+        <TestConsumer />
       </NotificacionesProvider>
     );
 
-    expect(screen.getByTestId('pendientes-count')).toHaveTextContent('0');
+    expect(screen.getByTestId("pendientes-count")).toHaveTextContent("0");
+
+    await waitFor(() => {
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    expect(MockEventSource.instances).toHaveLength(0);
   });
 
-  test('debe actualizar pendientesCount cuando hay notificaciones pendientes', async () => {
-    localStorage.setItem('token', 'test-token');
+  test("debe permitir cambiar pendientesCount desde setPendientesCount", async () => {
+  render(
+    <NotificacionesProvider>
+      <TestConsumer />
+    </NotificacionesProvider>
+  );
 
-    fetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({
+  await waitFor(() => {
+    expect(screen.getByTestId("pendientes-count")).toHaveTextContent("2");
+  });
+
+  fireEvent.click(screen.getByText("Cambiar contador"));
+
+  await waitFor(() => {
+    expect(screen.getByTestId("pendientes-count")).toHaveTextContent("99");
+  });
+});
+
+  test("debe refrescar badge manualmente", async () => {
+    render(
+      <NotificacionesProvider>
+        <TestConsumer />
+      </NotificacionesProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("pendientes-count")).toHaveTextContent("2");
+    });
+
+    global.fetch.mockResolvedValueOnce({
+      json: jest.fn().mockResolvedValue({
         ok: true,
         data: [
-          { id: 1, estado: 'pendiente' },
-          { id: 2, estado: 'pendiente' },
-          { id: 3, estado: 'leída' },
+          { id: 1, estado: "pendiente" },
+          { id: 2, estado: "pendiente" },
+          { id: 3, estado: "pendiente" },
         ],
       }),
     });
 
+    screen.getByText("Refrescar badge").click();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("pendientes-count")).toHaveTextContent("3");
+    });
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+  });
+
+  test("debe refrescar badge cuando se dispara evento usuario-login", async () => {
     render(
       <NotificacionesProvider>
-        <TestComponent />
+        <TestConsumer />
       </NotificacionesProvider>
     );
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalled();
+      expect(screen.getByTestId("pendientes-count")).toHaveTextContent("2");
     });
 
-    await waitFor(() => {
-      expect(screen.getByTestId('pendientes-count')).toHaveTextContent('2');
-    });
-  });
-
-  test('debe permitir actualizar pendientesCount', async () => {
-    fetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({
+    global.fetch.mockResolvedValueOnce({
+      json: jest.fn().mockResolvedValue({
         ok: true,
-        data: [],
+        data: [{ id: 10, estado: "pendiente" }],
       }),
     });
 
-    render(
-      <NotificacionesProvider>
-        <TestComponent />
-      </NotificacionesProvider>
-    );
-
-    const button = screen.getByRole('button', { name: /Set Count to 5/ });
-    button.click();
+    act(() => {
+      window.dispatchEvent(new Event("usuario-login"));
+    });
 
     await waitFor(() => {
-      expect(screen.getByTestId('pendientes-count')).toHaveTextContent('5');
+      expect(screen.getByTestId("pendientes-count")).toHaveTextContent("1");
     });
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
   });
 
-  test('debe no hacer fetch si no hay token', async () => {
+  test("debe crear EventSource con la URL correcta", async () => {
     render(
       <NotificacionesProvider>
-        <TestComponent />
-      </NotificacionesProvider>
-    );
-
-    await waitFor(() => {
-      // No debería haber llamadas de fetch sin token
-      expect(fetch).not.toHaveBeenCalled();
-    });
-  });
-
-  test('debe no hacer fetch si el usuario es invitado', async () => {
-    localStorage.setItem('guest', 'true');
-
-    render(
-      <NotificacionesProvider>
-        <TestComponent />
+        <TestConsumer />
       </NotificacionesProvider>
     );
 
     await waitFor(() => {
-      // No debería haber llamadas de fetch si es invitado
-      expect(fetch).not.toHaveBeenCalled();
+      expect(MockEventSource.instances).toHaveLength(1);
     });
+
+    expect(MockEventSource.instances[0].url).toBe(
+      "http://localhost:3001/api/notificaciones-sse"
+    );
   });
 
-  test('debe hacer fetch cada 30 segundos', async () => {
-    localStorage.setItem('token', 'test-token');
+  test("debe refrescar badge cuando llega mensaje SSE tipo actualizar", async () => {
+    render(
+      <NotificacionesProvider>
+        <TestConsumer />
+      </NotificacionesProvider>
+    );
 
-    fetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({
+    await waitFor(() => {
+      expect(screen.getByTestId("pendientes-count")).toHaveTextContent("2");
+    });
+
+    global.fetch.mockResolvedValueOnce({
+      json: jest.fn().mockResolvedValue({
         ok: true,
-        data: [],
+        data: [{ id: 1, estado: "pendiente" }],
       }),
     });
 
+    act(() => {
+      MockEventSource.instances[0].onmessage({
+        data: JSON.stringify({ tipo: "actualizar" }),
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("pendientes-count")).toHaveTextContent("1");
+    });
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+  });
+
+  test("no debe refrescar badge si el mensaje SSE no es tipo actualizar", async () => {
     render(
       <NotificacionesProvider>
-        <TestComponent />
+        <TestConsumer />
       </NotificacionesProvider>
     );
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(screen.getByTestId("pendientes-count")).toHaveTextContent("2");
     });
 
-    jest.advanceTimersByTime(30000);
-
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalledTimes(2);
+    act(() => {
+      MockEventSource.instances[0].onmessage({
+        data: JSON.stringify({ tipo: "otro" }),
+      });
     });
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
-  test('debe limpiar el intervalo al desmontar', async () => {
-    localStorage.setItem('token', 'test-token');
+  test("debe mostrar error si el mensaje SSE no es JSON válido", async () => {
+    render(
+      <NotificacionesProvider>
+        <TestConsumer />
+      </NotificacionesProvider>
+    );
 
-    fetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        ok: true,
-        data: [],
-      }),
+    await waitFor(() => {
+      expect(MockEventSource.instances).toHaveLength(1);
     });
 
+    act(() => {
+      MockEventSource.instances[0].onmessage({
+        data: "json-invalido",
+      });
+    });
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      "[SSE] Error al parsear mensaje:",
+      expect.any(Error)
+    );
+  });
+
+  test("debe mostrar warning si EventSource falla", async () => {
+    render(
+      <NotificacionesProvider>
+        <TestConsumer />
+      </NotificacionesProvider>
+    );
+
+    await waitFor(() => {
+      expect(MockEventSource.instances).toHaveLength(1);
+    });
+
+    act(() => {
+      MockEventSource.instances[0].onerror();
+    });
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      "[SSE] Conexión perdida, reintentando..."
+    );
+  });
+
+  test("debe cerrar EventSource al desmontar el provider", async () => {
     const { unmount } = render(
       <NotificacionesProvider>
-        <TestComponent />
+        <TestConsumer />
       </NotificacionesProvider>
     );
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalled();
+      expect(MockEventSource.instances).toHaveLength(1);
     });
 
-    const initialCallCount = fetch.mock.calls.length;
+    const instance = MockEventSource.instances[0];
 
     unmount();
 
-    jest.advanceTimersByTime(30000);
-
-    // No debería hacer más llamadas después de desmontar
-    expect(fetch.mock.calls.length).toBe(initialCallCount);
+    expect(instance.close).toHaveBeenCalledTimes(1);
   });
 
-  test('debe manejar errores de fetch', async () => {
-    localStorage.setItem('token', 'test-token');
-
-    fetch.mockRejectedValue(new Error('Network error'));
-
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+  test("debe mostrar error si fetch falla", async () => {
+    global.fetch = jest.fn().mockRejectedValue(new Error("Error fetch"));
 
     render(
       <NotificacionesProvider>
-        <TestComponent />
+        <TestConsumer />
       </NotificacionesProvider>
     );
 
     await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalled();
-    });
-
-    consoleSpy.mockRestore();
-  });
-
-  test('debe contar solo notificaciones con estado pendiente', async () => {
-    localStorage.setItem('token', 'test-token');
-
-    fetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        ok: true,
-        data: [
-          { id: 1, estado: 'pendiente' },
-          { id: 2, estado: 'PENDIENTE' },
-          { id: 3, estado: 'Pendiente' },
-          { id: 4, estado: 'leída' },
-          { id: 5, estado: 'archivada' },
-        ],
-      }),
-    });
-
-    render(
-      <NotificacionesProvider>
-        <TestComponent />
-      </NotificacionesProvider>
-    );
-
-    await waitFor(() => {
-      // Debería contar 3 notificaciones pendientes (case-insensitive)
-      expect(screen.getByTestId('pendientes-count')).toHaveTextContent('3');
-    });
-  });
-
-  test('debe manejar respuesta ok: false', async () => {
-    localStorage.setItem('token', 'test-token');
-
-    fetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        ok: false,
-        data: [],
-      }),
-    });
-
-    render(
-      <NotificacionesProvider>
-        <TestComponent />
-      </NotificacionesProvider>
-    );
-
-    await waitFor(() => {
-      // Debería mantener el contador en 0
-      expect(screen.getByTestId('pendientes-count')).toHaveTextContent('0');
-    });
-  });
-
-  test('debe usar el token del localStorage en headers', async () => {
-    localStorage.setItem('token', 'test-token-123');
-
-    fetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        ok: true,
-        data: [],
-      }),
-    });
-
-    render(
-      <NotificacionesProvider>
-        <TestComponent />
-      </NotificacionesProvider>
-    );
-
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            Authorization: 'Bearer test-token-123',
-          }),
-        })
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "[Badge] Error al obtener notificaciones:",
+        expect.any(Error)
       );
     });
+
+    expect(screen.getByTestId("pendientes-count")).toHaveTextContent("0");
+  });
+
+  test("no debe actualizar contador si result.ok es false", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      json: jest.fn().mockResolvedValue({
+        ok: false,
+        data: [{ id: 1, estado: "pendiente" }],
+      }),
+    });
+
+    render(
+      <NotificacionesProvider>
+        <TestConsumer />
+      </NotificacionesProvider>
+    );
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+
+    expect(screen.getByTestId("pendientes-count")).toHaveTextContent("0");
   });
 });
