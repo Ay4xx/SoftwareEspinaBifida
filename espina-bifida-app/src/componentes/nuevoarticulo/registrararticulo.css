@@ -66,12 +66,6 @@
   transition: border 0.2s;
 }
 
-.re-field input:focus,
-.re-field select:focus {
-  border-color: #083a99;
-  background: #ffffff;
-}
-
 .re-error {
   font-size: 13px;
   color: #ef4444;

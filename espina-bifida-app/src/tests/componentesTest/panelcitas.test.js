@@ -55,7 +55,7 @@ describe("PanelCitas", () => {
       />
     );
 
-    fireEvent.click(screen.getByText(/Agregar Paciente/i));
+    fireEvent.click(screen.getByText(/Agregar Cita/i));
     expect(onAddPatient).toHaveBeenCalled();
   });
 

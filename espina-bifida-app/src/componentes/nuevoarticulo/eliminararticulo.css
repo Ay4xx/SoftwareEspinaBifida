@@ -66,11 +66,6 @@
   transition: border 0.2s;
 }
 
-.el-field input:focus,
-.el-field select:focus {
-  border-color: #083a99;
-  background: #ffffff;
-}
 
 .el-error {
   font-size: 13px;

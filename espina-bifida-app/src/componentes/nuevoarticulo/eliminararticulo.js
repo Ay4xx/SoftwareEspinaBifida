@@ -62,8 +62,10 @@ function EliminarArticulo({ onCerrar, onGuardado }) {
   }
 
   return (
-    <div className="el-overlay" onClick={onCerrar}>
-      <div className="el-popup" onClick={(e) => e.stopPropagation()}>
+            <div 
+        className="el-overlay" 
+        >
+      <div className="el-popup" >
 
         <div className="el-header">
           <h4>Eliminar Artículo</h4>

@@ -176,8 +176,8 @@ function Medicamentos() {
 
       {/* Popup selección */}
       {showPopup && (
-        <div className="med-overlay" onClick={() => setShowPopup(false)}>
-          <div className="med-popup" onClick={(e) => e.stopPropagation()}>
+        <div className="med-overlay" >
+          <div className="med-popup" >
 
             <div className="med-popup-header">
               <h4>Seleccionar Medicamentos</h4>
