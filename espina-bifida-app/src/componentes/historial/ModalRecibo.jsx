@@ -321,7 +321,7 @@ function ModalGenerarRecibo({ visitas, pacienteId, onClose }) {
           >
             {generando
               ? "Generando…"
-              : "📄 Generar PDF"}
+              : "Generar PDF"}
           </button>
         </div>
       </div>
