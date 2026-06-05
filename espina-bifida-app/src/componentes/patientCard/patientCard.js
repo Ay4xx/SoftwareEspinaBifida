@@ -171,12 +171,8 @@ function PatientCard({ patient }) {
         </div>
         <div className="info">
           <Calendar size={16} />
-          <span>{formatDate(patient.ultimaVisita)}</span>
+          <span>{formatDate(patient.fechaNacimiento)}</span>
         </div>
-      </div>
-
-      <div className="card-extra">
-        <span className="etapa-vida">{patient.etapaVida}</span>
       </div>
 
       <div className="card-footer">
