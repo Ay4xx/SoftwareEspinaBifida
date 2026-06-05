@@ -57,6 +57,7 @@ export async function getEstadisticasModel() {
 
         /* EQUIPO MÉDICO */
         (SELECT COUNT(*) FROM inventario_equipo_medico) AS total_equipos,
+        (SELECT COUNT(*) FROM inventario_equipo_medico WHERE cantidad_total <= 5) AS equipos_bajo_stock,
         (SELECT NVL(SUM(cantidad_total),0) FROM inventario_equipo_medico) AS cantidad_total_equipos,
         (SELECT COUNT(*) FROM eventos_equipo_medico WHERE equipo_regresado = 'NO') AS equipos_en_uso,
         (SELECT COUNT(*) FROM eventos_equipo_medico WHERE equipo_regresado = 'SI') AS equipos_regresados,

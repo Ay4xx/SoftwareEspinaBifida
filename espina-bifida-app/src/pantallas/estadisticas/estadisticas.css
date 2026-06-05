@@ -110,7 +110,9 @@
 .kpi-card:hover {
   box-shadow: 0 4px 16px rgba(0,0,0,.07);
 }
-
+.kpi-card-long {
+  width: 200px;
+}
 .kpi-icon-wrap {
   width: 40px;
   height: 40px;

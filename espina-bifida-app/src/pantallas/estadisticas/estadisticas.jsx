@@ -32,9 +32,17 @@ const COLORS = {
 };
 
 /* ── small reusable components ── */
-function KpiCard({ icon: Icon, label, value, sub, color = "blue", trend }) {
+function KpiCard({
+  icon: Icon,
+  label,
+  value,
+  sub,
+  color = "blue",
+  trend,
+  className = ""
+}) {
   return (
-    <div className={`kpi-card kpi-${color}`}>
+    <div className={`kpi-card kpi-${color} ${className}`}>
       <div className="kpi-icon-wrap">
         <Icon size={20} strokeWidth={2} />
       </div>
@@ -524,15 +532,16 @@ export default function EstadisticasPage() {
             <KpiCard icon={Pill} label="Total medicinas"   value={fmt(medicinas.total)}                color="blue" />
             <KpiCard icon={Pill} label="Stock total"       value={fmt(medicinas.stock_total)}          color="teal" />
             <KpiCard icon={Pill} label="Bajo stock"        value={fmt(medicinas.bajo_stock)}           color="amber" sub={pct(medicinas.bajo_stock, medicinas.total)} />
-            <KpiCard icon={Pill} label="Valor inventario"  value={fmtMoney(medicinas.valor_inventario)} color="green" />
+            <KpiCard className="kpi-card-long"  icon={Pill} label="Valor inventario"  value={fmtMoney(medicinas.valor_inventario)} color="green" />
           </div>
 
           <SectionHeader title="Equipo médico" />
           <div className="kpi-grid kpi-grid-4">
             <KpiCard icon={Package} label="Total equipos"       value={fmt(equipo.total)}              color="blue" />
             <KpiCard icon={Package} label="Cantidad disponible" value={fmt(equipo.cantidad_total)}     color="teal" />
+            <KpiCard icon={Package} label="Bajo stock"          value={fmt(equipo.bajo_stock)}         color="amber" sub={`${pct(equipo.bajo_stock, equipo.total)}`} />
             <KpiCard icon={Package} label="En uso"              value={fmt(equipo.en_uso)}             color="coral" sub={`${pct(equipo.en_uso, equipo.total)}`} />
-            <KpiCard icon={Package} label="Valor total"         value={fmtMoney(equipo.valor_total)}   color="purple" />
+            <KpiCard className="kpi-card-long"  icon={Package} label="Valor total"         value={fmtMoney(equipo.valor_total)}   color="purple" />
           </div>
 
           <div className="charts-row-2">
