@@ -147,6 +147,7 @@
 }
 
 .el-guardar:hover { background: #062d7a; }
+
 .el-confirm-btns {
   display: flex;
   gap: 12px;
