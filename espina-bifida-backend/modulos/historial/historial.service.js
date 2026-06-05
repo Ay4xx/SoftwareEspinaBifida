@@ -52,3 +52,82 @@ export async function obtenerHistorialPorPaciente(pacienteId) {
     }
   }
 }
+
+export async function eliminarEvento(eventoId) {
+  let conn;
+
+  try {
+    conn = await getConnection();
+
+    await conn.execute(
+      `UPDATE INVENTARIO_MEDICINAS i
+       SET CANTIDAD_TOTAL = CANTIDAD_TOTAL + (
+         SELECT NVL(SUM(CANTIDAD_RESTA), 0)
+         FROM EVENTOS_MEDICINAS em
+         WHERE em.MEDICINA_ID = i.MEDICINA_ID
+           AND em.EVENTO_ID = :eventoId
+       )
+       WHERE EXISTS (
+         SELECT 1 FROM EVENTOS_MEDICINAS em
+         WHERE em.MEDICINA_ID = i.MEDICINA_ID
+           AND em.EVENTO_ID = :eventoId
+       )`,
+      { eventoId }
+    );
+
+    await conn.execute(
+      `UPDATE INVENTARIO_EQUIPO_MEDICO i
+       SET CANTIDAD_TOTAL = CANTIDAD_TOTAL + (
+         SELECT NVL(SUM(CANTIDAD_RESTA), 0)
+         FROM EVENTOS_EQUIPO_MEDICO ep
+         WHERE ep.EQUIPO_M_ID = i.EQUIPO_M_ID
+           AND ep.EVENTO_ID = :eventoId
+       )
+       WHERE EXISTS (
+         SELECT 1 FROM EVENTOS_EQUIPO_MEDICO ep
+         WHERE ep.EQUIPO_M_ID = i.EQUIPO_M_ID
+           AND ep.EVENTO_ID = :eventoId
+       )`,
+      { eventoId }
+    );
+
+    await conn.execute(
+      `DELETE FROM EVENTOS_MEDICINAS WHERE EVENTO_ID = :eventoId`,
+      { eventoId }
+    );
+
+    await conn.execute(
+      `DELETE FROM EVENTOS_EQUIPO_MEDICO WHERE EVENTO_ID = :eventoId`,
+      { eventoId }
+    );
+
+    await conn.execute(
+      `DELETE FROM EVENTOS_SERVICIOS WHERE EVENTO_ID = :eventoId`,
+      { eventoId }
+    );
+
+    await conn.execute(
+      `DELETE FROM EVENTO_VISITA WHERE EVENTO_ID = :eventoId`,
+      { eventoId }
+    );
+
+    await conn.commit();
+  } catch (error) {
+    if (conn) {
+      try {
+        await conn.rollback();
+      } catch (rollbackError) {
+        console.error("Error durante rollback:", rollbackError);
+      }
+    }
+    throw error;
+  } finally {
+    if (conn) {
+      try {
+        await conn.close();
+      } catch (err) {
+        console.error("Error al cerrar conexi�n:", err);
+      }
+    }
+  }
+}

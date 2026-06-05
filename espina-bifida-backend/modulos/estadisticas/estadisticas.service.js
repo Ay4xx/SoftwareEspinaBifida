@@ -15,7 +15,8 @@ function runPython(scriptName, jsonPayload) {
     console.log("Script path:", scriptPath);
     console.log("Payload size:", jsonPayload.length, "chars");
 
-    const py = spawn("py", [scriptPath]);
+    const pythonCmd = process.platform === "win32" ? "py" : "python3";
+    const py = spawn(pythonCmd, [scriptPath]);
 
     const stdout = [];
     const stderr = [];
