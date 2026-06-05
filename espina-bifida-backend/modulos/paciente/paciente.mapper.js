@@ -18,7 +18,8 @@ export function mapPacienteToCard(row) {
     name: nombreCompleto,
     nombre,
     apellido,
-    subtitle: "Paciente registrado",
+    curp: row.CURP || "Sin CURP",
+    subtitle: row.CURP || "Sin CURP",
     status:
       row.ESTATUS_MEMBRESIA && row.ESTATUS_MEMBRESIA.toLowerCase() === "activo"
         ? "Activo"

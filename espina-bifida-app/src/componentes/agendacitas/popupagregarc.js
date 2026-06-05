@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./popupagregarc.css";
 import { X } from "lucide-react";
 
@@ -15,25 +15,52 @@ function PopupAgregarCita({
     motivo: "",
     notas: "",
   });
+  
 
   const [loading, setLoading] = useState(false);
   const [popup, setPopup] = useState(null);
   const [popupMensaje, setPopupMensaje] = useState("");
+  const [searchPaciente, setSearchPaciente] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchTimeoutRef = useRef(null);
 
   if (!isOpen) return null;
 
   const handleChange = (e) => {
+      setFormData({
+        ...formData,
+        [e.target.name]: e.target.value,
+      });
+    };
+
+    const resetForm = () => {
     setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
+      id_paciente: "",
+      hora_cita: "",
+      estatus_cita: "PENDIENTE",
+      motivo: "",
+      notas: "",
     });
+
+    setSearchPaciente("");
+    setSearchResults([]);
+    setIsSearching(false);
   };
 
   const handleSubmit = async (e) => {
 
     e.preventDefault();
 
-    if (!formData.id_paciente) {
+    // Try to resolve patient id from the typed search text if not selected
+    let idToUse = formData.id_paciente;
+    if (!idToUse && searchPaciente) {
+      const m = searchPaciente.match(/\((\d+)\)\s*$/);
+      if (m) idToUse = m[1];
+      else if (/^\d+$/.test(searchPaciente.trim())) idToUse = searchPaciente.trim();
+    }
+
+    if (!idToUse) {
       setPopup("error");
       setPopupMensaje("Debes ingresar el ID del paciente.");
       return;
@@ -59,21 +86,15 @@ function PopupAgregarCita({
         .toISOString()
         .split("T")[0];
 
-      const response = await fetch(
-        "http://localhost:3001/api/citas",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type": "application/json",
-          },
-
-          body: JSON.stringify({
-            ...formData,
-            fecha_cita: fecha,
-          }),
-        }
-      );
+      const response = await fetch("http://localhost:3001/api/citas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          id_paciente: idToUse,
+          fecha_cita: fecha,
+        }),
+      });
 
       const data = await response.json();
 
@@ -92,6 +113,10 @@ function PopupAgregarCita({
           motivo: "",
           notas: "",
         });
+
+        setSearchPaciente("");
+        setSearchResults([]);
+        setIsSearching(false);
       }
 
     } catch (error) {
@@ -126,7 +151,10 @@ function PopupAgregarCita({
 
           <button
             className="close-btn"
-            onClick={onClose}
+            onClick={() => {
+              resetForm();
+              onClose();
+            }}
           >
             <X size={22} />
           </button>
@@ -143,15 +171,90 @@ function PopupAgregarCita({
           {/* PACIENTE */}
 
           <div className="form-group">
-            <label>ID Paciente</label>
+            <label>Paciente</label>
 
             <input
-              type="number"
+              type="text"
               name="id_paciente"
-              value={formData.id_paciente}
-              onChange={handleChange}
+              placeholder="ID o nombre del paciente"
+              value={searchPaciente || formData.id_paciente}
+              onChange={(e) => {
+                const v = e.target.value;
+                setSearchPaciente(v);
+
+                // If input is only digits, treat as ID
+                if (/^\d+$/.test(v.trim())) {
+                  handleChange({ target: { name: "id_paciente", value: v.trim() } });
+                  setSearchResults([]);
+                  setIsSearching(false);
+                } else {
+                  // clear id while user types a name
+                  handleChange({ target: { name: "id_paciente", value: "" } });
+
+                  // debounce search
+                  if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+                  if (v.trim()) {
+                    setIsSearching(true);
+                    searchTimeoutRef.current = setTimeout(async () => {
+                      try {
+                        const resp = await fetch(`http://localhost:3001/api/pacientes/cards?search=${encodeURIComponent(v.trim())}`);
+                        const json = await resp.json();
+                        if (json.ok && Array.isArray(json.data)) {
+                          setSearchResults(json.data);
+                        } else {
+                          setSearchResults([]);
+                        }
+                      } catch (err) {
+                        console.error("Error buscando pacientes:", err);
+                        setSearchResults([]);
+                      }
+                    }, 300);
+                  } else {
+                    setSearchResults([]);
+                    setIsSearching(false);
+                  }
+                }
+              }}
               required
             />
+
+            {searchResults && searchResults.length > 0 && (
+              <ul className="paciente-search-results">
+                {searchResults.map((p) => (
+                  <li
+                    key={p.id}
+                    className="paciente-search-item"
+                    onClick={() => {
+                      const display = `${p.nombre} ${p.apellido} (${p.id})`;
+                      setSearchPaciente(display);
+                      handleChange({
+                        target: {
+                          name: "id_paciente",
+                          value: String(p.id),
+                        },
+                      });
+                      setSearchResults([]);
+                      setIsSearching(false);
+                    }}
+                  >
+                    <div className="paciente-nombre">
+                      {p.nombre} {p.apellido}
+                    </div>
+
+                    <div className="paciente-id">
+                      ID #{p.id}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {isSearching && searchPaciente &&
+            searchResults.length === 0 && (
+              <div className="paciente-no-results">
+                No se encontraron pacientes
+              </div>
+            )}
           </div>
 
           {/* HORA */}
@@ -201,7 +304,10 @@ function PopupAgregarCita({
             <button
               type="button"
               className="cancel-btn"
-              onClick={onClose}
+              onClick={() => {
+                resetForm();
+                onClose();
+              }}
             >
               Cancelar
             </button>
@@ -225,10 +331,7 @@ function PopupAgregarCita({
       </div>
 
       {popup && (
-        <div
-          className="med-overlay"
-          onClick={() => setPopup(null)}
-        >
+        <div className="med-overlay">
 
           <div
             className="med-popup-msg"
