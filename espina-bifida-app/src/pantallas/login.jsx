@@ -104,6 +104,23 @@ const Login = () => {
             />
           </div>
 
+          <div style={{ textAlign: "right", marginTop: -4, marginBottom: 8 }}>
+            <button
+              type="button"
+              style={{
+                background: "none",
+                border: "none",
+                color: "#4f46e5",
+                fontSize: 13,
+                cursor: "pointer",
+                padding: 0,
+              }}
+              onClick={() => navigate("/forgot-password")}
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
+          </div>
+
           {errorMessage && <p className="login-error">{errorMessage}</p>}
 
           <button
