@@ -29,5 +29,7 @@ export function mapPacienteToCard(row) {
       .join(", "),
     totalConsultas: row.TOTAL_CONSULTAS || 0,
     ultimaVisita: row.FECHA_ULTIMA_VISITA || null,
+    fechaNacimiento: row.FECHA_NACIMIENTO || null,
+    etapaVida: row.ETAPA_VIDA || "Sin especificar",
   };
 }

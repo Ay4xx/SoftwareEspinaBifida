@@ -9,7 +9,7 @@ export async function getPacienteCards(search = "") {
     conn = await getConnection();
     const sql = `
       SELECT
-        p.paciente_id, p.nombre, p.apellido, p.fotografia, p.curp,
+        p.paciente_id, p.nombre, p.apellido, p.fotografia, p.curp, p.fecha_nacimiento,
         p.ciudad_residencia, p.estado_residencia,
         p.fecha_ultima_visita, p.etapa_vida,
         m.estatus AS estatus_membresia,
