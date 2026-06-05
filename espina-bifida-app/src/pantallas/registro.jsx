@@ -12,7 +12,6 @@ import {
 } from "../services/registroService";
 import { useLocation, useNavigate } from "react-router-dom";
 
-// ── Constantes ────────────────────────────────────────────────────────────────
 
 const TOTAL_PASOS        = 5;
 const NOTIFICACIONES_URL = "http://localhost:3001/api/notificaciones";
@@ -42,7 +41,6 @@ const FORM_INICIAL = {
   documentos: { preregistro: null, actaNacimiento: null, curp: null, comprobanteDomicilio: null, ineFamilia: null },
 };
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function mapearPacienteAForm(p, fotoBase = null) {
   return {
@@ -113,7 +111,6 @@ function mapearTutores(tutores, setTutorMadre, setTutorPadre, setHistorialFamili
   });
 }
 
-// ── Componente pantalla de éxito ──────────────────────────────────────────────
 
 function PantallaExito({ titulo, subtitulo, advertencias }) {
   return (
@@ -137,7 +134,7 @@ function PantallaExito({ titulo, subtitulo, advertencias }) {
   );
 }
 
-// ── Página principal ──────────────────────────────────────────────────────────
+
 
 function RegistroPage() {
   const location = useLocation();
@@ -180,8 +177,7 @@ function RegistroPage() {
     setTabActivo("Madre");
   };
 
-  // ── Cargar desde notificación ─────────────────────────────────────────────
-
+  
   useEffect(() => {
     if (!modoRevision || !notificacionId) return;
     fetch(`${NOTIFICACIONES_URL}/${notificacionId}`)
@@ -197,8 +193,7 @@ function RegistroPage() {
       .catch(() => {});
   }, [notificacionId, modoRevision]);
 
-  // ── Cargar desde paciente directo ─────────────────────────────────────────
-
+  
   useEffect(() => {
     if (!modoRevision || !pacienteIdFromState) return;
     fetch(`${PACIENTES_URL}/${pacienteIdFromState}`)
@@ -215,7 +210,7 @@ function RegistroPage() {
       .catch(() => {});
   }, [pacienteIdFromState, modoRevision]);
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+  
 
   const handleChange = (nuevosDatos) => {
     setFormData((prev) => ({ ...prev, ...nuevosDatos }));
@@ -362,10 +357,9 @@ function RegistroPage() {
     } catch (err) { alert(err.message || "Error al rechazar"); }
   };
 
-  // ── Render ─────────────────────────────────────────────────────────────────
 
   const botonBorrar =
-    modoRevision && pacienteIdFromState ? (
+    modoRevision && (pacienteIdFromState || pacienteId) ? (
       <button
         type="button"
         onClick={() => setMostrarConfirmacion(true)}
