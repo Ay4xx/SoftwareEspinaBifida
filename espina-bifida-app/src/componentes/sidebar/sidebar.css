@@ -86,3 +86,11 @@
 .logout:hover {
   background-color: rgba(248, 113, 113, 0.15);
 }
+
+button.menu-item {
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
