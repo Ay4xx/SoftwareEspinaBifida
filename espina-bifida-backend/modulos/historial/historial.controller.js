@@ -1,4 +1,4 @@
-import { obtenerHistorialPorPaciente } from "./historial.service.js";
+import { obtenerHistorialPorPaciente, eliminarEvento } from "./historial.service.js";
 
 export async function getHistorial(req, res) {
   try {
@@ -10,5 +10,18 @@ export async function getHistorial(req, res) {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error al obtener historial" });
+  }
+}
+
+export async function deleteEvento(req, res) {
+  try {
+    const { eventoId } = req.params;
+
+    await eliminarEvento(eventoId);
+
+    res.json({ ok: true, message: "Evento eliminado y stock restaurado correctamente" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al eliminar evento" });
   }
 }
