@@ -8,7 +8,7 @@ function EliminarArticulo({ onCerrar, onGuardado }) {
   const [seleccionado, setSeleccionado] = useState("");
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
-  const [exito, setExito] = useState(false);
+  const [paso, setPaso] = useState("form"); // "form" | "confirmar" | "exito"
 
   useEffect(() => {
     if (!categoria) return;
@@ -24,46 +24,74 @@ function EliminarArticulo({ onCerrar, onGuardado }) {
       .catch(console.error);
   }, [categoria]);
 
-  const handleEliminar = async () => {
+  const articuloSeleccionado = articulos.find(
+    (a) => String(a.ID) === String(seleccionado)
+  );
+
+  const handleConfirmar = () => {
     if (!categoria) { setError("Selecciona una categoría."); return; }
     if (!seleccionado) { setError("Selecciona un artículo."); return; }
+    setPaso("confirmar");
+  };
 
+  const handleEliminar = async () => {
     setCargando(true);
     try {
       const res = await fetch(
         `http://localhost:3001/api/inventario/${categoria}/${seleccionado}`,
         { method: "DELETE" }
       );
-
       const json = await res.json();
       if (json.ok) {
-        setExito(true);
+        setPaso("exito");
       } else {
         setError(json.message);
+        setPaso("form");
       }
     } catch (err) {
       setError("Error de conexión con el servidor.");
+      setPaso("form");
     } finally {
       setCargando(false);
     }
   };
 
-  if (exito) {
+  if (paso === "confirmar") {
+    return (
+      <div className="el-overlay">
+        <div className="el-popup-msg">
+          <div className="el-popup-icon"></div>
+          <h4>¿Estás seguro?</h4>
+          <p>Se eliminará <strong>{articuloSeleccionado?.DESCRIPCION}</strong> del inventario. Esta acción no se puede deshacer.</p>
+          <div className="el-confirm-btns">
+            <button className="el-cancelar" onClick={() => setPaso("form")}>Cancelar</button>
+            <button className="el-eliminar" onClick={handleEliminar} disabled={cargando}>
+              {cargando ? "Eliminando..." : "Sí, eliminar"}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (paso === "exito") {
     return (
       <div className="el-overlay">
         <div className="el-popup-msg">
           <div className="el-popup-icon"></div>
           <h4>Artículo eliminado</h4>
           <p>El artículo fue eliminado correctamente.</p>
-          <button className="el-guardar" onClick={() => { setExito(false); onGuardado(); }}>Aceptar</button>
+          <button className="el-guardar" onClick={() => { setPaso("form"); onGuardado(); }}>
+            Aceptar
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="el-overlay" onClick={onCerrar}>
-      <div className="el-popup" onClick={(e) => e.stopPropagation()}>
+    <div className="el-overlay">
+      <div className="el-popup">
 
         <div className="el-header">
           <h4>Eliminar Artículo</h4>
@@ -97,8 +125,8 @@ function EliminarArticulo({ onCerrar, onGuardado }) {
 
         <div className="el-footer">
           <button className="el-cancelar" onClick={onCerrar}>Cancelar</button>
-          <button className="el-eliminar" onClick={handleEliminar} disabled={cargando}>
-            {cargando ? "Eliminando..." : "Eliminar"}
+          <button className="el-eliminar" onClick={handleConfirmar}>
+            Eliminar
           </button>
         </div>
 

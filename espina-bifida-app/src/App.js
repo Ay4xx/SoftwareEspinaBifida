@@ -199,4 +199,5 @@ function App() {
   );
 }
 
+export { getRol, RutaProtegida, AppContent };
 export default App;

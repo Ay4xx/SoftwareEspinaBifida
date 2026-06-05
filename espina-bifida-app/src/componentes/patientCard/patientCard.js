@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { MapPin, Calendar, Plus, IdCard, Pencil } from "lucide-react";
+import { MapPin, Calendar, Plus, Pencil } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import placeholederPic from "../../assets/placeholder.png";
 import "./patientCard.css";

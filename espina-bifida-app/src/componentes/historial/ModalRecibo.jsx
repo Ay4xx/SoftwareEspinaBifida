@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import html2pdf from "html2pdf.js";
-import { calcularTotal } from "./helpers";
+import { calcularTotal } from "./helper";
 
 function parseFechaES(fechaStr) {
   const [d, m, y] = fechaStr.split("/").map(Number);
