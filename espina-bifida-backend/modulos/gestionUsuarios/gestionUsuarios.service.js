@@ -5,6 +5,32 @@ import { mapUsuario } from "./gestionUsuarios.mapper.js";
 
 const TIPOS_VALIDOS = ["ADMINISTRADOR", "COORDINADOR", "SUPERADMIN"];
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function fotoToBase64(row) {
+  if (row.FOTO) {
+    row.FOTO = `data:image/jpeg;base64,${row.FOTO.toString("base64")}`;
+  }
+}
+
+function validarTipoUsuario(tipoUsuario) {
+  if (tipoUsuario !== undefined && !TIPOS_VALIDOS.includes(tipoUsuario?.toUpperCase()))
+    throw { status: 400, message: `Tipo de usuario inválido. Valores: ${TIPOS_VALIDOS.join(", ")}` };
+  if (tipoUsuario?.toUpperCase() === "SUPERADMIN")
+    throw { status: 403, message: "No se puede asignar el rol de Super Admin desde aquí" };
+}
+
+async function verificarExistencia(conn, id) {
+  const existe = await conn.execute(
+    `SELECT 1 FROM USUARIO WHERE USUARIO_ID = :id`,
+    [id],
+    { outFormat: oracledb.OUT_FORMAT_OBJECT }
+  );
+  if (!existe.rows.length)
+    throw { status: 404, message: "Usuario no encontrado" };
+}
+
+// ── Servicios públicos ────────────────────────────────────────────────────────
 
 export async function listarUsuarios({ busqueda = "", pagina = 1, limite = 20 }) {
   let conn;
@@ -37,9 +63,7 @@ export async function listarUsuarios({ busqueda = "", pagina = 1, limite = 20 })
 
     return {
       usuarios: result.rows.map((row) => {
-        if (row.FOTO) {
-          row.FOTO = `data:image/jpeg;base64,${row.FOTO.toString("base64")}`;
-        }
+        fotoToBase64(row);
         return mapUsuario(row);
       }),
       total:  total.rows[0].TOTAL,
@@ -69,16 +93,12 @@ export async function obtenerUsuario(id) {
     if (!result.rows.length) return null;
 
     const row = result.rows[0];
-    if (row.FOTO) {
-      row.FOTO = `data:image/jpeg;base64,${row.FOTO.toString("base64")}`;
-    }
-
+    fotoToBase64(row);
     return mapUsuario(row);
   } finally {
     if (conn) await conn.close();
   }
 }
-
 
 export async function crearUsuario({ nombre, username, password, confirmarPassword, tipoUsuario, foto }) {
   if (!nombre?.trim())
@@ -91,10 +111,7 @@ export async function crearUsuario({ nombre, username, password, confirmarPasswo
     throw { status: 400, message: "La contraseña debe tener mínimo 8 caracteres" };
   if (password !== confirmarPassword)
     throw { status: 400, message: "Las contraseñas no coinciden" };
-  if (!TIPOS_VALIDOS.includes(tipoUsuario?.toUpperCase()))
-    throw { status: 400, message: `Tipo de usuario inválido. Valores: ${TIPOS_VALIDOS.join(", ")}` };
-  if (tipoUsuario?.toUpperCase() === "SUPERADMIN")
-    throw { status: 403, message: "No se puede asignar el rol de Super Admin desde aquí" };
+  validarTipoUsuario(tipoUsuario);
 
   let conn;
   try {
@@ -139,28 +156,18 @@ export async function crearUsuario({ nombre, username, password, confirmarPasswo
   }
 }
 
-
 export async function actualizarUsuario(id, { nombre, username, tipoUsuario, foto }) {
-  if (nombre    !== undefined && !nombre.trim())
+  if (nombre   !== undefined && !nombre.trim())
     throw { status: 400, message: "El nombre no puede estar vacío" };
-  if (username  !== undefined && !username.trim())
+  if (username !== undefined && !username.trim())
     throw { status: 400, message: "El correo no puede estar vacío" };
-  if (tipoUsuario !== undefined && !TIPOS_VALIDOS.includes(tipoUsuario?.toUpperCase()))
-    throw { status: 400, message: `Tipo de usuario inválido. Valores: ${TIPOS_VALIDOS.join(", ")}` };
-  if (tipoUsuario?.toUpperCase() === "SUPERADMIN")
-    throw { status: 403, message: "No se puede asignar el rol de Super Admin desde aquí" };
+  validarTipoUsuario(tipoUsuario);
 
   let conn;
   try {
     conn = await getConnection();
 
-    const existe = await conn.execute(
-      `SELECT 1 FROM USUARIO WHERE USUARIO_ID = :id`,
-      [id],
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
-    if (!existe.rows.length)
-      throw { status: 404, message: "Usuario no encontrado" };
+    await verificarExistencia(conn, id);
 
     if (username) {
       const duplicado = await conn.execute(
@@ -203,16 +210,12 @@ export async function actualizarUsuario(id, { nombre, username, tipoUsuario, fot
     );
 
     const row = actualizado.rows[0];
-    if (row.FOTO) {
-      row.FOTO = `data:image/jpeg;base64,${row.FOTO.toString("base64")}`;
-    }
-
+    fotoToBase64(row);
     return mapUsuario(row);
   } finally {
     if (conn) await conn.close();
   }
 }
-
 
 export async function eliminarUsuario(id, usuarioActualId) {
   if (id === usuarioActualId)
@@ -222,13 +225,7 @@ export async function eliminarUsuario(id, usuarioActualId) {
   try {
     conn = await getConnection();
 
-    const existe = await conn.execute(
-      `SELECT 1 FROM USUARIO WHERE USUARIO_ID = :id`,
-      [id],
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
-    if (!existe.rows.length)
-      throw { status: 404, message: "Usuario no encontrado" };
+    await verificarExistencia(conn, id);
 
     await conn.execute(
       `DELETE FROM USUARIO WHERE USUARIO_ID = :id`,
