@@ -3,7 +3,7 @@ import "./DatosPersonales.css";
 import { UserRound } from "lucide-react";
 import { validarCURP } from "../../../utils/validaciones";
 
-function DatosPersonales({ datos, onChange }) {
+function DatosPersonales({ datos, onChange, botonBorrar }) {
   const [errorCURP, setErrorCURP] = useState(null);
 
   const handleInput = (e) => {
@@ -23,12 +23,22 @@ function DatosPersonales({ datos, onChange }) {
 
   return (
     <div className="dp-seccion">
-      <div className="dp-seccion-header">
-        <div className="dp-icono">
-          <UserRound size={18} color="white" />
+      <div
+        className="dp-seccion-header"
+        style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
+      >
+        {/* Lado izquierdo: ícono + título */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div className="dp-icono">
+            <UserRound size={18} color="white" />
+          </div>
+          <span className="dp-seccion-titulo">Datos Personales</span>
         </div>
-        <span className="dp-seccion-titulo">Datos Personales</span>
+
+        {/* Lado derecho: botón borrar (solo en modoRevision) */}
+        {botonBorrar}
       </div>
+
       <hr className="dp-divisor" />
 
       <div className="dp-formulario">
@@ -53,16 +63,15 @@ function DatosPersonales({ datos, onChange }) {
               placeholder="Ej. González"
             />
           </div>
-        </div> 
-
+        </div>
 
         <div className="dp-campo-full">
           <label>Género</label>
           <div className="dp-genero-opciones">
             {[
               { valor: "masculino", label: "Masculino", simbolo: "♂" },
-              { valor: "femenino", label: "Femenino", simbolo: "♀" },
-              { valor: "otro", label: "Otro", simbolo: "⚧" },
+              { valor: "femenino",  label: "Femenino",  simbolo: "♀" },
+              { valor: "otro",      label: "Otro",      simbolo: "⚧" },
             ].map((opcion) => (
               <button
                 key={opcion.valor}
@@ -101,7 +110,13 @@ function DatosPersonales({ datos, onChange }) {
               onChange={handleInput}
               placeholder="Ej. GOML901012MNLLRR09"
               maxLength={18}
-              className={errorCURP ? "dp-input-error" : datos.curp && datos.curp.length === 18 ? "dp-input-valido" : ""}
+              className={
+                errorCURP
+                  ? "dp-input-error"
+                  : datos.curp && datos.curp.length === 18
+                  ? "dp-input-valido"
+                  : ""
+              }
             />
             {errorCURP && <span className="dp-error-msg">{errorCURP}</span>}
             {!errorCURP && datos.curp && datos.curp.length === 18 && (

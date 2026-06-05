@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./registro.css";
-import { ArrowLeft, ArrowRight, Check, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, X, Trash2 } from "lucide-react";
 import DatosPersonales from "../componentes/registro/DatosPersonales/DatosPersonales";
 import Contacto from "../componentes/registro/Contacto/Contacto";
 import HistorialMedico from "../componentes/registro/HistorialMedico/HistorialMedico";
@@ -141,26 +141,28 @@ function PantallaExito({ titulo, subtitulo, advertencias }) {
 
 function RegistroPage() {
   const location = useLocation();
-  const navigate = useNavigate();
+  const navigate  = useNavigate();
 
-  const modoRevision       = location.state?.modoRevision  || false;
-  const notificacionId     = location.state?.notificacionId || null;
+  const modoRevision        = location.state?.modoRevision   || false;
+  const notificacionId      = location.state?.notificacionId || null;
   const pacienteIdFromState = location.state?.pacienteId ? String(location.state.pacienteId) : null;
 
-  const [paso, setPaso]                         = useState(1);
-  const [guardado, setGuardado]                 = useState(false);
-  const [enviando, setEnviando]                 = useState(false);
-  const [errorPaso, setErrorPaso]               = useState(null);
-  const [advertencias, setAdvertencias]         = useState([]);
-  const [notificacionEstado, setNotificacionEstado] = useState(null);
-  const [accionRealizada, setAccionRealizada]   = useState(null);
-  const [pacienteId, setPacienteId]             = useState(null);
-  const [cambiosGuardados, setCambiosGuardados] = useState(false);
-  const [formData, setFormData]                 = useState(FORM_INICIAL);
-  const [tutorMadre, setTutorMadre]             = useState(tutorVacio("Madre"));
-  const [tutorPadre, setTutorPadre]             = useState(tutorVacio("Padre"));
-  const [historialFamiliar, setHistorialFamiliar] = useState({ ...HISTORIAL_FAMILIAR_VACIO });
-  const [tabActivo, setTabActivo]               = useState("Madre");
+  const [paso, setPaso]                               = useState(1);
+  const [guardado, setGuardado]                       = useState(false);
+  const [enviando, setEnviando]                       = useState(false);
+  const [errorPaso, setErrorPaso]                     = useState(null);
+  const [advertencias, setAdvertencias]               = useState([]);
+  const [notificacionEstado, setNotificacionEstado]   = useState(null);
+  const [accionRealizada, setAccionRealizada]         = useState(null);
+  const [pacienteId, setPacienteId]                   = useState(null);
+  const [cambiosGuardados, setCambiosGuardados]       = useState(false);
+  const [formData, setFormData]                       = useState(FORM_INICIAL);
+  const [tutorMadre, setTutorMadre]                   = useState(tutorVacio("Madre"));
+  const [tutorPadre, setTutorPadre]                   = useState(tutorVacio("Padre"));
+  const [historialFamiliar, setHistorialFamiliar]     = useState({ ...HISTORIAL_FAMILIAR_VACIO });
+  const [tabActivo, setTabActivo]                     = useState("Madre");
+  const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
+  const [borrando, setBorrando]                       = useState(false);
 
   const esInvitado = localStorage.getItem("guest") === "true";
 
@@ -222,7 +224,7 @@ function RegistroPage() {
 
   const handleChangeTutor = (nuevosDatos) => {
     const datosHistorial = {};
-    const datosTutor = {};
+    const datosTutor     = {};
 
     Object.entries(nuevosDatos).forEach(([key, val]) => {
       if (CAMPOS_HISTORIAL.includes(key)) datosHistorial[key] = val;
@@ -244,6 +246,20 @@ function RegistroPage() {
       setTimeout(() => setCambiosGuardados(false), 3000);
     } catch (err) {
       alert(err.message || "Error al guardar cambios");
+    }
+  };
+
+  const handleBorrarPaciente = async () => {
+    setBorrando(true);
+    try {
+      const response = await fetch(`${PACIENTES_URL}/${pacienteId}`, { method: "DELETE" });
+      const result   = await response.json();
+      if (!result.ok) throw new Error(result.message || "No se pudo borrar el paciente");
+      setMostrarConfirmacion(false);
+      navigate("/usuarios");
+    } catch (err) {
+      alert(err.message || "Error al borrar el paciente");
+      setBorrando(false);
     }
   };
 
@@ -269,9 +285,7 @@ function RegistroPage() {
     if (paso < TOTAL_PASOS) setPaso(paso + 1);
   };
 
-  const pasoAnterior = () => {
-    if (paso > 1) setPaso(paso - 1);
-  };
+  const pasoAnterior = () => { if (paso > 1) setPaso(paso - 1); };
 
   const handleSubmit = async () => {
     if (enviando) return;
@@ -281,7 +295,7 @@ function RegistroPage() {
 
     try {
       const resultado = await crearPacientePaso1(formData);
-      const id = resultado.data.pacienteId;
+      const id        = resultado.data.pacienteId;
 
       try { await actualizarPaso2(id, formData); }
       catch (e) { erroresPasos.push("Contacto: " + (e.message || "No se pudieron guardar los datos de contacto.")); }
@@ -294,7 +308,8 @@ function RegistroPage() {
         catch (e) { erroresPasos.push(`${tutor.tutorParentesco}: ` + (e.message || "No se pudo guardar el historial del tutor.")); }
       }
 
-      const tieneDocumentos = formData.documentos && Object.values(formData.documentos).some((f) => f instanceof File);
+      const tieneDocumentos = formData.documentos &&
+        Object.values(formData.documentos).some((f) => f instanceof File);
       if (formData.foto || tieneDocumentos) {
         try { await actualizarPaso5(id, formData.foto, formData); }
         catch (e) { erroresPasos.push("Fotografía/Documentos: " + (e.message || "No se pudieron guardar.")); }
@@ -349,9 +364,26 @@ function RegistroPage() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
+  const botonBorrar =
+    modoRevision && pacienteIdFromState ? (
+      <button
+        type="button"
+        onClick={() => setMostrarConfirmacion(true)}
+        title="Borrar paciente"
+        style={{
+          display: "flex", alignItems: "center", gap: 6,
+          background: "#fee2e2", color: "#dc2626", border: "1px solid #fecaca",
+          borderRadius: 8, padding: "8px 14px", cursor: "pointer",
+          fontSize: 14, fontWeight: 500, whiteSpace: "nowrap",
+        }}
+      >
+        <Trash2 size={16} /> Borrar paciente
+      </button>
+    ) : null;
+
   const renderPaso = () => {
     switch (paso) {
-      case 1: return <DatosPersonales datos={formData} onChange={handleChange} />;
+      case 1: return <DatosPersonales datos={formData} onChange={handleChange} botonBorrar={botonBorrar} />;
       case 2: return <Contacto datos={formData} onChange={handleChange} />;
       case 3: return <HistorialMedico datos={formData} onChange={handleChange} />;
       case 4:
@@ -420,11 +452,14 @@ function RegistroPage() {
           <span className="registro-paso-badge">Paso {paso} de {TOTAL_PASOS}</span>
           <span className="registro-porcentaje">{porcentaje} % completado</span>
         </div>
+
         <div className="registro-encabezado">
           <h1>Datos del Paciente</h1>
-          <p>{modoRevision
-            ? "Revisa y edita la información del paciente antes de aprobar o rechazar."
-            : "Complete la información del nuevo miembro en las secciones a continuación."}</p>
+          <p>
+            {modoRevision
+              ? "Revisa y edita la información del paciente antes de aprobar o rechazar."
+              : "Complete la información del nuevo miembro en las secciones a continuación."}
+          </p>
         </div>
 
         {renderPaso()}
@@ -481,6 +516,58 @@ function RegistroPage() {
           )}
         </div>
       </div>
+
+      {/* Modal confirmación borrar */}
+      {mostrarConfirmacion && (
+        <div
+          style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)",
+            display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000,
+          }}
+          onClick={() => !borrando && setMostrarConfirmacion(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "#fff", borderRadius: 12, padding: 28,
+              maxWidth: 420, width: "90%", textAlign: "center",
+              boxShadow: "0 10px 40px rgba(0,0,0,0.2)",
+            }}
+          >
+            <div style={{ fontSize: 44, marginBottom: 8 }}>⚠️</div>
+            <h2 style={{ margin: "0 0 8px", fontSize: 20 }}>¿Borrar este paciente?</h2>
+            <p style={{ color: "#6b7280", fontSize: 14, marginBottom: 22 }}>
+              Esta acción eliminará de forma permanente al paciente y todos sus datos
+              relacionados (historiales, visitas, citas, membresía). No se puede deshacer.
+            </p>
+            <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+              <button
+                type="button"
+                onClick={() => setMostrarConfirmacion(false)}
+                disabled={borrando}
+                style={{
+                  padding: "10px 20px", borderRadius: 8, border: "1px solid #d1d5db",
+                  background: "#fff", cursor: "pointer", fontSize: 14,
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleBorrarPaciente}
+                disabled={borrando}
+                style={{
+                  padding: "10px 20px", borderRadius: 8, border: "none",
+                  background: "#dc2626", color: "#fff", cursor: "pointer",
+                  fontSize: 14, fontWeight: 500,
+                }}
+              >
+                {borrando ? "Borrando..." : "Sí, borrar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -689,3 +689,48 @@ export async function updateHistorialMadre(pacienteId, datos = {}) {
     if (conn) await conn.close();
   }
 }
+
+export async function borrarPacienteService(pacienteId) {
+  let conn;
+  try {
+    conn = await getConnection();
+    const id = { id: pacienteId };
+
+    await conn.execute(
+      `DELETE FROM EVENTOS_EQUIPO_MEDICO
+        WHERE EVENTO_ID IN (SELECT EVENTO_ID FROM EVENTO_VISITA WHERE PACIENTE_ID = :id)`,
+      id
+    );
+    await conn.execute(
+      `DELETE FROM EVENTOS_MEDICINAS
+        WHERE EVENTO_ID IN (SELECT EVENTO_ID FROM EVENTO_VISITA WHERE PACIENTE_ID = :id)`,
+      id
+    );
+    await conn.execute(
+      `DELETE FROM EVENTOS_SERVICIOS
+        WHERE EVENTO_ID IN (SELECT EVENTO_ID FROM EVENTO_VISITA WHERE PACIENTE_ID = :id)`,
+      id
+    );
+
+    await conn.execute(`DELETE FROM EVENTO_VISITA WHERE PACIENTE_ID = :id`, id);
+
+    await conn.execute(`DELETE FROM AGENDA_CITAS          WHERE ID_PACIENTE = :id`, id);
+    await conn.execute(`DELETE FROM PACIENTE_PADECIMIENTO WHERE PACIENTE_ID = :id`, id);
+    await conn.execute(`DELETE FROM HISTORIAL_AMBOS       WHERE PACIENTE_ID = :id`, id);
+    await conn.execute(`DELETE FROM HISTORIAL_MADRE       WHERE PACIENTE_ID = :id`, id);
+    await conn.execute(`DELETE FROM HISTORIAL_PADRE       WHERE PACIENTE_ID = :id`, id);
+    await conn.execute(`DELETE FROM MEMBRESIA             WHERE PACIENTE_ID = :id`, id);
+    await conn.execute(`DELETE FROM NOTIFICACION          WHERE PACIENTE_ID = :id`, id);
+
+    const result = await conn.execute(`DELETE FROM PACIENTE WHERE PACIENTE_ID = :id`, id);
+
+    await conn.commit();
+    return result.rowsAffected > 0;
+  } catch (error) {
+    if (conn) { try { await conn.rollback(); } catch (_) {} }
+    console.error("Error en borrarPacienteService:", error);
+    throw error;
+  } finally {
+    if (conn) await conn.close();
+  }
+}
