@@ -32,9 +32,17 @@ const COLORS = {
 };
 
 /* ── small reusable components ── */
-function KpiCard({ icon: Icon, label, value, sub, color = "blue", trend }) {
+function KpiCard({
+  icon: Icon,
+  label,
+  value,
+  sub,
+  color = "blue",
+  trend,
+  className = ""
+}) {
   return (
-    <div className={`kpi-card kpi-${color}`}>
+    <div className={`kpi-card kpi-${color} ${className}`}>
       <div className="kpi-icon-wrap">
         <Icon size={20} strokeWidth={2} />
       </div>
@@ -305,7 +313,7 @@ export default function EstadisticasPage() {
             <KpiCard icon={Pill}        label="Medicinas usadas"   value={fmt(medicinas.utilizadas)}      color="amber"  sub={`${fmt(medicinas.bajo_stock)} bajo stock`} />
             <KpiCard icon={Package}     label="Equipo en uso"      value={fmt(equipo.en_uso)}             color="coral"  sub={`${equipo.porcentaje_retorno}% retorno`} />
             <KpiCard icon={Heart}       label="Membresías activas" value={fmt(membresias.activas)}        color="pink"   sub={`${fmt(membresias.vencidas)} vencidas`} />
-            <KpiCard icon={Bell}        label="Preregistros mes" value={fmt(notificaciones.mes)}        color="gray"   sub={`${notificaciones.tasa_aprobacion}% aprobación`} />
+            <KpiCard icon={Bell}        label="Preregistros mes"   value={fmt(notificaciones.mes)}        color="gray"   sub={`${notificaciones.tasa_aprobacion}% aprobación`} />
           </div>
 
           <div className="charts-row-2">
@@ -347,15 +355,14 @@ export default function EstadisticasPage() {
       {/* ══════════════ PACIENTES ══════════════ */}
       {activeSection === "pacientes" && (
         <section>
+          {/* ── Vivos y Fallecidos removidos de aquí ── */}
           <div className="kpi-grid kpi-grid-4">
-            <KpiCard icon={Users}    label="Total"       value={fmt(pacientes.total)}           color="blue" />
-            <KpiCard icon={Heart}    label="Vivos"       value={fmt(pacientes.vivos)}           color="green" sub={pct(pacientes.vivos, pacientes.total)} />
-            <KpiCard icon={Users}    label="Fallecidos"  value={fmt(pacientes.fallecidos)}      color="red"   sub={pct(pacientes.fallecidos, pacientes.total)} />
-            <KpiCard icon={Users}    label="Nuevos mes"  value={fmt(pacientes.nuevos_mes)}      color="purple" />
-            <KpiCard icon={Activity} label="Con válvula"  value={fmt(pacientes.con_valvula)}    color="teal" />
-            <KpiCard icon={Stethoscope} label="Con padecimientos" value={fmt(pacientes.con_padecimientos)} color="amber" />
-            <KpiCard icon={Heart}    label="Membresías activas"  value={fmt(membresias.activas)} color="pink"  sub={`${fmt(membresias.vencidas)} vencidas`} />
-            <KpiCard icon={Users}    label="Membresías inactivas" value={fmt(membresias.inactivas)} color="gray" />
+            <KpiCard icon={Users}          label="Total"                 value={fmt(pacientes.total)}                color="blue" />
+            <KpiCard icon={Users}          label="Nuevos mes"            value={fmt(pacientes.nuevos_mes)}           color="purple" />
+            <KpiCard icon={Activity}       label="Con válvula"           value={fmt(pacientes.con_valvula)}          color="teal" />
+            <KpiCard icon={Stethoscope}    label="Con padecimientos"     value={fmt(pacientes.con_padecimientos)}    color="amber" />
+            <KpiCard icon={Heart}          label="Membresías activas"    value={fmt(membresias.activas)}             color="pink"  sub={`${fmt(membresias.vencidas)} vencidas`} />
+            <KpiCard icon={Users}          label="Membresías inactivas"  value={fmt(membresias.inactivas)}           color="gray" />
           </div>
 
           <div className="charts-row-2">
@@ -393,9 +400,9 @@ export default function EstadisticasPage() {
       {activeSection === "citas" && (
         <section>
           <div className="kpi-grid kpi-grid-4">
-            <KpiCard icon={CalendarDays} label="Total citas"    value={fmt(citas.total)}     color="blue" />
-            <KpiCard icon={CalendarDays} label="Atendidas"      value={fmt(citas.atendidas)} color="green" sub={pct(citas.atendidas, citas.total)} />
-            <KpiCard icon={CalendarDays} label="Canceladas"     value={fmt(citas.canceladas)} color="red"  sub={pct(citas.canceladas, citas.total)} />
+            <KpiCard icon={CalendarDays} label="Total citas"    value={fmt(citas.total)}      color="blue" />
+            <KpiCard icon={CalendarDays} label="Atendidas"      value={fmt(citas.atendidas)}  color="green" sub={pct(citas.atendidas, citas.total)} />
+            <KpiCard icon={CalendarDays} label="Canceladas"     value={fmt(citas.canceladas)} color="red"   sub={pct(citas.canceladas, citas.total)} />
             <KpiCard icon={CalendarDays} label="Pendientes"     value={fmt(citas.pendientes)} color="amber" />
           </div>
 
@@ -407,9 +414,9 @@ export default function EstadisticasPage() {
                   <XAxis dataKey="mes" tick={{ fontSize: 11 }} tickLine={false} />
                   <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Line type="monotone" dataKey="total_citas" name="Total"     stroke={COLORS.blue}   strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="atendidas"   name="Atendidas" stroke={COLORS.teal}   strokeWidth={2} dot={false} strokeDasharray="4 2" />
-                  <Line type="monotone" dataKey="canceladas"  name="Canceladas" stroke={COLORS.red}   strokeWidth={2} dot={false} strokeDasharray="2 3" />
+                  <Line type="monotone" dataKey="total_citas" name="Total"      stroke={COLORS.blue} strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="atendidas"   name="Atendidas"  stroke={COLORS.teal} strokeWidth={2} dot={false} strokeDasharray="4 2" />
+                  <Line type="monotone" dataKey="canceladas"  name="Canceladas" stroke={COLORS.red}  strokeWidth={2} dot={false} strokeDasharray="2 3" />
                 </LineChart>
               </ResponsiveContainer>
               <ChartLegend items={[
@@ -428,11 +435,11 @@ export default function EstadisticasPage() {
             title="Detalle de citas por mes"
             rows={tablaCitas}
             columns={[
-              { key: "mes",       label: "Mes" },
-              { key: "total",     label: "Total",     numeric: true, format: fmt },
-              { key: "atendidas", label: "Atendidas", numeric: true, format: fmt },
-              { key: "canceladas",label: "Canceladas",numeric: true, format: fmt },
-              { key: "tasa",      label: "Tasa atención" },
+              { key: "mes",        label: "Mes" },
+              { key: "total",      label: "Total",      numeric: true, format: fmt },
+              { key: "atendidas",  label: "Atendidas",  numeric: true, format: fmt },
+              { key: "canceladas", label: "Canceladas", numeric: true, format: fmt },
+              { key: "tasa",       label: "Tasa atención" },
             ]}
             filterKey="mes"
             filterLabel="Filtrar por mes…"
@@ -444,14 +451,14 @@ export default function EstadisticasPage() {
       {activeSection === "visitas" && (
         <section>
           <div className="kpi-grid kpi-grid-4">
-            <KpiCard icon={Activity}   label="Total visitas"     value={fmt(visitas.total)}              color="blue" />
-            <KpiCard icon={DollarSign} label="Ingresos totales"  value={fmtMoney(visitas.ingresos_totales)} color="green" />
-            <KpiCard icon={DollarSign} label="Descuentos"        value={fmtMoney(visitas.descuentos_totales)} color="amber" />
-            <KpiCard icon={DollarSign} label="Pago promedio"     value={fmtMoney(visitas.ingreso_promedio)} color="teal" />
-            <KpiCard icon={Stethoscope}label="Servicios totales" value={fmt(servicios.total)}            color="purple" />
-            <KpiCard icon={Stethoscope}label="Servicios del mes" value={fmt(servicios.mes)}              color="coral" />
-            <KpiCard icon={Activity}   label="% pago completo"   value={`${visitas.porcentaje_pago}%`}   color="gray" />
-            <KpiCard icon={Pill}       label="Medicinas entregadas" value={fmt(medicinas.utilizadas)}    color="pink" />
+            <KpiCard icon={Activity}    label="Total visitas"        value={fmt(visitas.total)}                  color="blue" />
+            <KpiCard icon={DollarSign}  label="Ingresos totales"     value={fmtMoney(visitas.ingresos_totales)}  color="green" />
+            <KpiCard icon={DollarSign}  label="Descuentos"           value={fmtMoney(visitas.descuentos_totales)} color="amber" />
+            <KpiCard icon={DollarSign}  label="Pago promedio"        value={fmtMoney(visitas.ingreso_promedio)}  color="teal" />
+            <KpiCard icon={Stethoscope} label="Servicios totales"    value={fmt(servicios.total)}                color="purple" />
+            <KpiCard icon={Stethoscope} label="Servicios del mes"    value={fmt(servicios.mes)}                  color="coral" />
+            <KpiCard icon={Activity}    label="% pago completo"      value={`${visitas.porcentaje_pago}%`}       color="gray" />
+            <KpiCard icon={Pill}        label="Medicinas entregadas" value={fmt(medicinas.utilizadas)}           color="pink" />
           </div>
 
           <div className="charts-row-2">
@@ -493,10 +500,10 @@ export default function EstadisticasPage() {
             title="Ingresos por mes"
             rows={tablaIngresos}
             columns={[
-              { key: "mes",       label: "Mes" },
-              { key: "ingresos",  label: "Ingresos",  numeric: true, format: fmtMoney },
-              { key: "descuentos",label: "Descuentos",numeric: true, format: fmtMoney },
-              { key: "neto",      label: "Neto",      numeric: true, format: fmtMoney },
+              { key: "mes",        label: "Mes" },
+              { key: "ingresos",   label: "Ingresos",   numeric: true, format: fmtMoney },
+              { key: "descuentos", label: "Descuentos", numeric: true, format: fmtMoney },
+              { key: "neto",       label: "Neto",       numeric: true, format: fmtMoney },
             ]}
             filterKey="mes"
             filterLabel="Filtrar por mes…"
@@ -522,18 +529,19 @@ export default function EstadisticasPage() {
         <section>
           <SectionHeader title="Medicinas" />
           <div className="kpi-grid kpi-grid-4">
-            <KpiCard icon={Pill}    label="Total medicinas"     value={fmt(medicinas.total)}               color="blue" />
-            <KpiCard icon={Pill}    label="Stock total"         value={fmt(medicinas.stock_total)}         color="teal" />
-            <KpiCard icon={Pill}    label="Bajo stock"          value={fmt(medicinas.bajo_stock)}          color="amber" sub={pct(medicinas.bajo_stock, medicinas.total)} />
-            <KpiCard icon={Pill}    label="Valor inventario"    value={fmtMoney(medicinas.valor_inventario)} color="green" />
+            <KpiCard icon={Pill} label="Total medicinas"   value={fmt(medicinas.total)}                color="blue" />
+            <KpiCard icon={Pill} label="Stock total"       value={fmt(medicinas.stock_total)}          color="teal" />
+            <KpiCard icon={Pill} label="Bajo stock"        value={fmt(medicinas.bajo_stock)}           color="amber" sub={pct(medicinas.bajo_stock, medicinas.total)} />
+            <KpiCard className="kpi-card-long"  icon={Pill} label="Valor inventario"  value={fmtMoney(medicinas.valor_inventario)} color="green" />
           </div>
 
-          <SectionHeader title="Equipo médico" description="" />
+          <SectionHeader title="Equipo médico" />
           <div className="kpi-grid kpi-grid-4">
-            <KpiCard icon={Package} label="Total equipos"       value={fmt(equipo.total)}                  color="blue" />
-            <KpiCard icon={Package} label="Cantidad disponible" value={fmt(equipo.cantidad_total)}         color="teal" />
-            <KpiCard icon={Package} label="En uso"              value={fmt(equipo.en_uso)}                 color="coral" sub={`${pct(equipo.en_uso, equipo.total)}`} />
-            <KpiCard icon={Package} label="Valor total"         value={fmtMoney(equipo.valor_total)}       color="purple" />
+            <KpiCard icon={Package} label="Total equipos"       value={fmt(equipo.total)}              color="blue" />
+            <KpiCard icon={Package} label="Cantidad disponible" value={fmt(equipo.cantidad_total)}     color="teal" />
+            <KpiCard icon={Package} label="Bajo stock"          value={fmt(equipo.bajo_stock)}         color="amber" sub={`${pct(equipo.bajo_stock, equipo.total)}`} />
+            <KpiCard icon={Package} label="En uso"              value={fmt(equipo.en_uso)}             color="coral" sub={`${pct(equipo.en_uso, equipo.total)}`} />
+            <KpiCard className="kpi-card-long"  icon={Package} label="Valor total"         value={fmtMoney(equipo.valor_total)}   color="purple" />
           </div>
 
           <div className="charts-row-2">
@@ -592,9 +600,9 @@ export default function EstadisticasPage() {
       {activeSection === "notificaciones" && (
         <section>
           <div className="kpi-grid kpi-grid-4">
-            <KpiCard icon={Bell} label="Este mes"       value={fmt(notificaciones.mes)}               color="blue" />
-            <KpiCard icon={Bell} label="Rechazados"     value={fmt(notificaciones.rechazados)}         color="red" />
-            <KpiCard icon={Bell} label="Tasa aprobación" value={`${notificaciones.tasa_aprobacion}%`} color="green" />
+            <KpiCard icon={Bell} label="Este mes"         value={fmt(notificaciones.mes)}               color="blue" />
+            <KpiCard icon={Bell} label="Rechazados"       value={fmt(notificaciones.rechazados)}         color="red" />
+            <KpiCard icon={Bell} label="Tasa aprobación"  value={`${notificaciones.tasa_aprobacion}%`}  color="green" />
           </div>
 
           <div className="charts-row-2">

@@ -115,7 +115,7 @@ export default function ReporteMensualModal({ open, onClose }) {
   };
 
   return (
-    <div className="rm-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="rm-overlay">
       <div className="rm-modal">
 
         {/* header */}

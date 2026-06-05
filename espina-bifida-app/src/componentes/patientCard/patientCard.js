@@ -105,7 +105,7 @@ function PatientCard({ patient }) {
           />
           <div>
             <h3>{patient.name}</h3>
-            <p>{patient.subtitle}</p>
+            <p>{patient.curp || patient.subtitle}</p>
           </div>
         </div>
 
@@ -171,12 +171,8 @@ function PatientCard({ patient }) {
         </div>
         <div className="info">
           <Calendar size={16} />
-          <span>{formatDate(patient.ultimaVisita)}</span>
+          <span>{formatDate(patient.fechaNacimiento)}</span>
         </div>
-      </div>
-
-      <div className="card-extra">
-        <span className="etapa-vida">{patient.etapaVida}</span>
       </div>
 
       <div className="card-footer">
