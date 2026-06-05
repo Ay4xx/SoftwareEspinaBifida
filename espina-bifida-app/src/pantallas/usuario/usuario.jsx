@@ -9,10 +9,10 @@ function UsuariosPage() {
   const location = useLocation();
 
   const [patients, setPatients] = useState([]);
-  const [search, setSearch] = useState("");
-  const [tab, setTab] = useState("todos");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [search,   setSearch]   = useState("");
+  const [tab,      setTab]      = useState("todos");
+  const [loading,  setLoading]  = useState(true);
+  const [error,    setError]    = useState("");
 
   useEffect(() => {
     const fetchPatients = async () => {
@@ -20,15 +20,10 @@ function UsuariosPage() {
         setLoading(true);
         setError("");
 
-        const res = await fetch(
-          `http://localhost:3001/api/pacientes/cards?search=${encodeURIComponent(search)}`
-        );
-
+        const res  = await fetch(`http://localhost:3001/api/pacientes/cards?search=${encodeURIComponent(search)}`);
         const data = await res.json();
 
-        if (!data.ok) {
-          throw new Error(data.message || "Error al cargar pacientes");
-        }
+        if (!data.ok) throw new Error(data.message || "Error al cargar pacientes");
 
         setPatients(data.data || []);
       } catch (error) {
@@ -42,8 +37,11 @@ function UsuariosPage() {
     fetchPatients();
   }, [search, location.key]);
 
+  const totalActivos   = patients.filter((p) => p.status === "Activo").length;
+  const totalInactivos = patients.filter((p) => p.status === "Inactivo").length;
+
   const filteredPatients = patients.filter((p) => {
-    if (tab === "activos") return p.status === "Activo";
+    if (tab === "activos")   return p.status === "Activo";
     if (tab === "inactivos") return p.status === "Inactivo";
     return true;
   });
@@ -52,31 +50,14 @@ function UsuariosPage() {
     <div className="usuarios-page">
       <div className="usuarios-topbar">
         <div className="usuarios-tabs">
-          <button
-            className={`tab ${tab === "todos" ? "active" : ""}`}
-            onClick={() => setTab("todos")}
-          >
+          <button className={`tab ${tab === "todos" ? "active" : ""}`} onClick={() => setTab("todos")}>
             Todos <span>{patients.length}</span>
           </button>
-
-          <button
-            className={`tab ${tab === "activos" ? "active" : ""}`}
-            onClick={() => setTab("activos")}
-          >
-            Activos{" "}
-            <span>
-              {patients.filter((p) => p.status === "Activo").length}
-            </span>
+          <button className={`tab ${tab === "activos" ? "active" : ""}`} onClick={() => setTab("activos")}>
+            Activos <span>{totalActivos}</span>
           </button>
-
-          <button
-            className={`tab ${tab === "inactivos" ? "active" : ""}`}
-            onClick={() => setTab("inactivos")}
-          >
-            Inactivos{" "}
-            <span>
-              {patients.filter((p) => p.status === "Inactivo").length}
-            </span>
+          <button className={`tab ${tab === "inactivos" ? "active" : ""}`} onClick={() => setTab("inactivos")}>
+            Inactivos <span>{totalInactivos}</span>
           </button>
         </div>
 
@@ -95,12 +76,9 @@ function UsuariosPage() {
 
       <div className="usuarios-grid">
         {loading
-          ? Array.from({ length: 6 }).map((_, index) => (
-              <PatientCardSkeleton key={index} />
-            ))
-          : filteredPatients.map((patient) => (
-              <PatientCard key={patient.id} patient={patient} />
-            ))}
+          ? Array.from({ length: 6 }).map((_, index) => <PatientCardSkeleton key={index} />)
+          : filteredPatients.map((patient) => <PatientCard key={patient.id} patient={patient} />)
+        }
       </div>
     </div>
   );
