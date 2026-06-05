@@ -226,15 +226,16 @@ def pie_chart(labels, values, title, figsize=(5,5)):
 
 def generate(stats_json: str) -> bytes:
     data = json.loads(stats_json)
-    pacientes      = data.get("pacientes",     {})
-    citas          = data.get("citas",         {})
-    visitas        = data.get("visitas",       {})
-    membresias     = data.get("membresias",    {})
-    servicios      = data.get("servicios",     {})
-    medicinas      = data.get("medicinas",     {})
-    equipo         = data.get("equipo",        {})
-    notificaciones = data.get("notificaciones",{})
-    series         = data.get("series",        {})
+    # ── Leer solo las secciones presentes en el payload ──────────────────────
+    pacientes      = data.get("pacientes")
+    citas          = data.get("citas")
+    visitas        = data.get("visitas")
+    membresias     = data.get("membresias")
+    servicios      = data.get("servicios")
+    medicinas      = data.get("medicinas")
+    equipo         = data.get("equipo")
+    notificaciones = data.get("notificaciones")
+    series         = data.get("series", {})
 
     st = make_styles()
     buf = io.BytesIO()
@@ -242,8 +243,16 @@ def generate(stats_json: str) -> bytes:
                              leftMargin=0.75*inch, rightMargin=0.75*inch,
                              topMargin=0.75*inch, bottomMargin=0.75*inch)
     story = []
+    first_section = True  # Para no poner PageBreak antes de la primera sección
 
     def sp(n=8): return Spacer(1, n)
+
+    def page_break_if_needed():
+        nonlocal first_section
+        if first_section:
+            first_section = False
+        else:
+            story.append(PageBreak())
 
     # ── PORTADA ───────────────────────────────────────────────────────────────
     story.append(sp(20))
@@ -252,214 +261,246 @@ def generate(stats_json: str) -> bytes:
     story.append(HRFlowable(width="100%", thickness=1.5, color=C_MID, spaceAfter=16))
 
     # ── 1. PACIENTES ──────────────────────────────────────────────────────────
-    story.append(section_heading("1. Pacientes", st))
-    story.append(sp(8))
-    story.append(kpi_table([
-        ("Total pacientes",      fmt(pacientes.get("total",0))),
-        ("Pacientes vivos",      fmt(pacientes.get("vivos",0))),
-        ("Pacientes fallecidos", fmt(pacientes.get("fallecidos",0))),
-        ("Nuevos este mes",      fmt(pacientes.get("nuevos_mes",0))),
-        ("Con válvula",          fmt(pacientes.get("con_valvula",0))),
-        ("Con padecimientos",    fmt(pacientes.get("con_padecimientos",0))),
-    ], st, accent=C_LBLUE, cols=3))
-    story.append(sp(14))
+    if pacientes is not None:
+        page_break_if_needed()
+        story.append(section_heading("1. Pacientes", st))
+        story.append(sp(8))
+        story.append(kpi_table([
+            ("Total pacientes",      fmt(pacientes.get("total",0))),
+            ("Pacientes vivos",      fmt(pacientes.get("vivos",0))),
+            ("Pacientes fallecidos", fmt(pacientes.get("fallecidos",0))),
+            ("Nuevos este mes",      fmt(pacientes.get("nuevos_mes",0))),
+            ("Con válvula",          fmt(pacientes.get("con_valvula",0))),
+            ("Con padecimientos",    fmt(pacientes.get("con_padecimientos",0))),
+        ], st, accent=C_LBLUE, cols=3))
+        story.append(sp(14))
 
-    pac_serie = series.get("pacientesNuevosMes", [])
-    if pac_serie:
-        labels = [r.get("mes","") for r in pac_serie]
-        vals   = [r.get("total",0) for r in pac_serie]
-        fig = bar_chart(labels, [("Pacientes nuevos", vals)], "Pacientes nuevos por mes")
-        story.append(chart_to_image(fig))
-        story.append(sp(10))
+        pac_serie = series.get("pacientesNuevosMes", [])
+        if pac_serie:
+            labels = [r.get("mes","") for r in pac_serie]
+            vals   = [r.get("total",0) for r in pac_serie]
+            fig = bar_chart(labels, [("Pacientes nuevos", vals)], "Pacientes nuevos por mes")
+            story.append(chart_to_image(fig))
+            story.append(sp(10))
 
-    story.append(kpi_table([
-        ("Membresías activas",   fmt(membresias.get("activas",0))),
-        ("Membresías inactivas", fmt(membresias.get("inactivas",0))),
-        ("Membresías vencidas",  fmt(membresias.get("vencidas",0))),
-    ], st, accent=C_LGREEN, cols=3))
-    story.append(sp(6))
+    # ── MEMBRESÍAS (dentro de pacientes o independiente) ──────────────────────
+    if membresias is not None:
+        # Si pacientes ya se renderizó en esta página, continuar; si no, nueva sección
+        if pacientes is None:
+            page_break_if_needed()
+            story.append(section_heading("Membresías", st))
+            story.append(sp(8))
 
-    mb_vals = [membresias.get("activas",0), membresias.get("inactivas",0), membresias.get("vencidas",0)]
-    if sum(mb_vals) > 0:
-        fig = pie_chart(["Activas","Inactivas","Vencidas"], mb_vals, "Distribución de membresías")
-        story.append(chart_to_image(fig, height=5))
-    story.append(sp(16))
+        story.append(kpi_table([
+            ("Membresías activas",   fmt(membresias.get("activas",0))),
+            ("Membresías inactivas", fmt(membresias.get("inactivas",0))),
+            ("Membresías vencidas",  fmt(membresias.get("vencidas",0))),
+        ], st, accent=C_LGREEN, cols=3))
+        story.append(sp(6))
+
+        mb_vals = [membresias.get("activas",0), membresias.get("inactivas",0), membresias.get("vencidas",0)]
+        if sum(mb_vals) > 0:
+            fig = pie_chart(["Activas","Inactivas","Vencidas"], mb_vals, "Distribución de membresías")
+            story.append(chart_to_image(fig, height=5))
+        story.append(sp(16))
 
     # ── 2. CITAS ──────────────────────────────────────────────────────────────
-    story.append(PageBreak())
-    story.append(section_heading("2. Citas", st))
-    story.append(sp(8))
-    story.append(kpi_table([
-        ("Total citas",   fmt(citas.get("total",0))),
-        ("Atendidas",     fmt(citas.get("atendidas",0))),
-        ("Canceladas",    fmt(citas.get("canceladas",0))),
-        ("Pendientes",    fmt(citas.get("pendientes",0))),
-    ], st, accent=C_LBLUE, cols=4))
-    story.append(sp(14))
+    if citas is not None:
+        page_break_if_needed()
+        story.append(section_heading("2. Citas", st))
+        story.append(sp(8))
+        story.append(kpi_table([
+            ("Total citas",   fmt(citas.get("total",0))),
+            ("Atendidas",     fmt(citas.get("atendidas",0))),
+            ("Canceladas",    fmt(citas.get("canceladas",0))),
+            ("Pendientes",    fmt(citas.get("pendientes",0))),
+        ], st, accent=C_LBLUE, cols=4))
+        story.append(sp(14))
 
-    def merge_by_mes(*lists_keys):
-        merged = {}
-        for lst, key in lists_keys:
-            for r in lst:
-                m = r.get("mes","")
-                if m not in merged: merged[m] = {"mes": m}
-                merged[m][key] = r.get("total",0)
-        return [merged[k] for k in sorted(merged.keys())]
+        def merge_by_mes(*lists_keys):
+            merged = {}
+            for lst, key in lists_keys:
+                for r in lst:
+                    m = r.get("mes","")
+                    if m not in merged: merged[m] = {"mes": m}
+                    merged[m][key] = r.get("total",0)
+            return [merged[k] for k in sorted(merged.keys())]
 
-    citas_data = merge_by_mes(
-        (series.get("citasMes",[]),          "total"),
-        (series.get("citasAtendidasMes",[]), "atendidas"),
-        (series.get("citasCanceladasMes",[]),"canceladas"),
-    )
-    if citas_data:
-        labels = [r["mes"] for r in citas_data]
-        fig = line_chart(labels, [
-            ("Total",     [r.get("total",0)     for r in citas_data]),
-            ("Atendidas", [r.get("atendidas",0) for r in citas_data]),
-            ("Canceladas",[r.get("canceladas",0)for r in citas_data]),
-        ], "Evolución de citas por mes")
-        story.append(chart_to_image(fig))
-        story.append(sp(10))
+        citas_data = merge_by_mes(
+            (series.get("citasMes",[]),          "total"),
+            (series.get("citasAtendidasMes",[]), "atendidas"),
+            (series.get("citasCanceladasMes",[]),"canceladas"),
+        )
+        if citas_data:
+            labels = [r["mes"] for r in citas_data]
+            fig = line_chart(labels, [
+                ("Total",     [r.get("total",0)     for r in citas_data]),
+                ("Atendidas", [r.get("atendidas",0) for r in citas_data]),
+                ("Canceladas",[r.get("canceladas",0)for r in citas_data]),
+            ], "Evolución de citas por mes")
+            story.append(chart_to_image(fig))
+            story.append(sp(10))
 
-        trows = [[r["mes"], fmt(r.get("total",0)), fmt(r.get("atendidas",0)),
-                  fmt(r.get("canceladas",0)),
-                  f"{(r.get('atendidas',0)/r['total']*100):.1f}%" if r.get("total",0) else "—"
-                 ] for r in citas_data]
-        story.append(data_table(
-            ["Mes","Total","Atendidas","Canceladas","Tasa Atención"],
-            trows,
-            col_widths=[1.3*inch,1.1*inch,1.1*inch,1.1*inch,1.1*inch]
-        ))
-    story.append(sp(16))
+            trows = [[r["mes"], fmt(r.get("total",0)), fmt(r.get("atendidas",0)),
+                      fmt(r.get("canceladas",0)),
+                      f"{(r.get('atendidas',0)/r['total']*100):.1f}%" if r.get("total",0) else "—"
+                     ] for r in citas_data]
+            story.append(data_table(
+                ["Mes","Total","Atendidas","Canceladas","Tasa Atención"],
+                trows,
+                col_widths=[1.3*inch,1.1*inch,1.1*inch,1.1*inch,1.1*inch]
+            ))
+        story.append(sp(16))
 
     # ── 3. VISITAS E INGRESOS ────────────────────────────────────────────────
-    story.append(PageBreak())
-    story.append(section_heading("3. Visitas e Ingresos", st))
-    story.append(sp(8))
-    story.append(kpi_table([
-        ("Total visitas",       fmt(visitas.get("total",0))),
-        ("Visitas este mes",    fmt(visitas.get("mes",0))),
-        ("Ingresos totales",    fmt_money(visitas.get("ingresos_totales",0))),
-        ("Descuentos totales",  fmt_money(visitas.get("descuentos_totales",0))),
-        ("Ingreso promedio",    fmt_money(visitas.get("ingreso_promedio",0))),
-        ("% pago completo",     f"{visitas.get('porcentaje_pago',0)}%"),
-    ], st, accent=C_LGREEN, cols=3))
-    story.append(sp(14))
+    if visitas is not None:
+        page_break_if_needed()
+        story.append(section_heading("3. Visitas e Ingresos", st))
+        story.append(sp(8))
+        story.append(kpi_table([
+            ("Total visitas",       fmt(visitas.get("total",0))),
+            ("Visitas este mes",    fmt(visitas.get("mes",0))),
+            ("Ingresos totales",    fmt_money(visitas.get("ingresos_totales",0))),
+            ("Descuentos totales",  fmt_money(visitas.get("descuentos_totales",0))),
+            ("Ingreso promedio",    fmt_money(visitas.get("ingreso_promedio",0))),
+            ("% pago completo",     f"{visitas.get('porcentaje_pago',0)}%"),
+        ], st, accent=C_LGREEN, cols=3))
+        story.append(sp(14))
 
-    ing_data = merge_by_mes(
-        (series.get("ingresosMes",[]),   "ingresos"),
-        (series.get("descuentosMes",[]), "descuentos"),
-    )
-    if ing_data:
-        labels = [r["mes"] for r in ing_data]
-        fig = bar_chart(labels, [
-            ("Ingresos",   [r.get("ingresos",0)   for r in ing_data]),
-            ("Descuentos", [r.get("descuentos",0) for r in ing_data]),
-        ], "Ingresos vs Descuentos por mes", money=True)
-        story.append(chart_to_image(fig))
-        story.append(sp(10))
+        def merge_by_mes(*lists_keys):
+            merged = {}
+            for lst, key in lists_keys:
+                for r in lst:
+                    m = r.get("mes","")
+                    if m not in merged: merged[m] = {"mes": m}
+                    merged[m][key] = r.get("total",0)
+            return [merged[k] for k in sorted(merged.keys())]
 
-        trows_i = [[r["mes"],
-                    fmt_money(r.get("ingresos",0)),
-                    fmt_money(r.get("descuentos",0)),
-                    fmt_money(r.get("ingresos",0)-r.get("descuentos",0))]
-                   for r in ing_data]
-        story.append(data_table(
-            ["Mes","Ingresos","Descuentos","Neto"],
-            trows_i,
-            col_widths=[1.5*inch,1.7*inch,1.7*inch,1.6*inch]
-        ))
-    story.append(sp(14))
+        ing_data = merge_by_mes(
+            (series.get("ingresosMes",[]),   "ingresos"),
+            (series.get("descuentosMes",[]), "descuentos"),
+        )
+        if ing_data:
+            labels = [r["mes"] for r in ing_data]
+            fig = bar_chart(labels, [
+                ("Ingresos",   [r.get("ingresos",0)   for r in ing_data]),
+                ("Descuentos", [r.get("descuentos",0) for r in ing_data]),
+            ], "Ingresos vs Descuentos por mes", money=True)
+            story.append(chart_to_image(fig))
+            story.append(sp(10))
 
-    srv_data = merge_by_mes(
-        (series.get("visitasMes",[]),              "visitas"),
-        (series.get("serviciosMes",[]),            "servicios"),
-        (series.get("medicinasUtilizadasMes",[]),  "medicinas"),
-    )
-    if srv_data:
-        labels = [r["mes"] for r in srv_data]
-        fig = line_chart(labels, [
-            ("Visitas",   [r.get("visitas",0)   for r in srv_data]),
-            ("Servicios", [r.get("servicios",0) for r in srv_data]),
-            ("Medicinas", [r.get("medicinas",0) for r in srv_data]),
-        ], "Servicios y visitas por mes")
-        story.append(chart_to_image(fig))
-        story.append(sp(10))
+            trows_i = [[r["mes"],
+                        fmt_money(r.get("ingresos",0)),
+                        fmt_money(r.get("descuentos",0)),
+                        fmt_money(r.get("ingresos",0)-r.get("descuentos",0))]
+                       for r in ing_data]
+            story.append(data_table(
+                ["Mes","Ingresos","Descuentos","Neto"],
+                trows_i,
+                col_widths=[1.5*inch,1.7*inch,1.7*inch,1.6*inch]
+            ))
+        story.append(sp(14))
 
-        trows_s = [[r["mes"], fmt(r.get("visitas",0)), fmt(r.get("servicios",0)), fmt(r.get("medicinas",0))]
-                   for r in srv_data]
-        story.append(data_table(
-            ["Mes","Visitas","Servicios","Medicinas"],
-            trows_s,
-            col_widths=[1.5*inch, 1.7*inch, 1.65*inch, 1.65*inch]
-        ))
+        srv_data = merge_by_mes(
+            (series.get("visitasMes",[]),              "visitas"),
+            (series.get("serviciosMes",[]),            "servicios"),
+            (series.get("medicinasUtilizadasMes",[]),  "medicinas"),
+        )
+        if srv_data:
+            labels = [r["mes"] for r in srv_data]
+            fig = line_chart(labels, [
+                ("Visitas",   [r.get("visitas",0)   for r in srv_data]),
+                ("Servicios", [r.get("servicios",0) for r in srv_data]),
+                ("Medicinas", [r.get("medicinas",0) for r in srv_data]),
+            ], "Servicios y visitas por mes")
+            story.append(chart_to_image(fig))
+            story.append(sp(10))
+
+            trows_s = [[r["mes"], fmt(r.get("visitas",0)), fmt(r.get("servicios",0)), fmt(r.get("medicinas",0))]
+                       for r in srv_data]
+            story.append(data_table(
+                ["Mes","Visitas","Servicios","Medicinas"],
+                trows_s,
+                col_widths=[1.5*inch, 1.7*inch, 1.65*inch, 1.65*inch]
+            ))
 
     # ── 4. INVENTARIO ─────────────────────────────────────────────────────────
-    story.append(PageBreak())
-    story.append(section_heading("4. Inventario", st))
-    story.append(sp(8))
-    story.append(Paragraph("<b>Medicinas</b>", ParagraphStyle("h3", fontName="Helvetica-Bold",
-                fontSize=10, textColor=C_MID, spaceAfter=6)))
-    story.append(kpi_table([
-        ("Total medicinas",      fmt(medicinas.get("total",0))),
-        ("Stock total",          fmt(medicinas.get("stock_total",0))),
-        ("Bajo stock",           fmt(medicinas.get("bajo_stock",0))),
-        ("Valor inventario",     fmt_money(medicinas.get("valor_inventario",0))),
-        ("Medicinas utilizadas", fmt(medicinas.get("utilizadas",0))),
-        ("Actualizaciones",      fmt(medicinas.get("actualizaciones_inventario",0))),
-    ], st, accent=C_LBLUE, cols=3))
-    story.append(sp(12))
+    inv_section_started = False
 
-    med_mes_data = series.get("medicinasUtilizadasMes", [])
-    if med_mes_data:
-        labels = [r.get("mes","") for r in med_mes_data]
-        vals   = [r.get("total",0) for r in med_mes_data]
-        fig = bar_chart(labels, [("Medicinas utilizadas", vals)], "Medicinas utilizadas por mes")
-        story.append(chart_to_image(fig, height=2.8))
-        story.append(sp(10))
+    if medicinas is not None:
+        page_break_if_needed()
+        inv_section_started = True
+        story.append(section_heading("4. Inventario", st))
+        story.append(sp(8))
+        story.append(Paragraph("<b>Medicinas</b>", ParagraphStyle("h3", fontName="Helvetica-Bold",
+                    fontSize=10, textColor=C_MID, spaceAfter=6)))
+        story.append(kpi_table([
+            ("Total medicinas",      fmt(medicinas.get("total",0))),
+            ("Stock total",          fmt(medicinas.get("stock_total",0))),
+            ("Bajo stock",           fmt(medicinas.get("bajo_stock",0))),
+            ("Valor inventario",     fmt_money(medicinas.get("valor_inventario",0))),
+            ("Medicinas utilizadas", fmt(medicinas.get("utilizadas",0))),
+            ("Actualizaciones",      fmt(medicinas.get("actualizaciones_inventario",0))),
+        ], st, accent=C_LBLUE, cols=3))
+        story.append(sp(12))
 
-    story.append(Paragraph("<b>Equipo médico</b>", ParagraphStyle("h3", fontName="Helvetica-Bold",
-                fontSize=10, textColor=C_MID, spaceAfter=6)))
-    story.append(kpi_table([
-        ("Total equipos",      fmt(equipo.get("total",0))),
-        ("Cantidad disponible",fmt(equipo.get("cantidad_total",0))),
-        ("En uso",             fmt(equipo.get("en_uso",0))),
-        ("Regresados",         fmt(equipo.get("regresados",0))),
-        ("% retorno",          f"{equipo.get('porcentaje_retorno',0)}%"),
-        ("Valor total",        fmt_money(equipo.get("valor_total",0))),
-    ], st, accent=C_LAMBER, cols=3))
-    story.append(sp(12))
+        med_mes_data = series.get("medicinasUtilizadasMes", [])
+        if med_mes_data:
+            labels = [r.get("mes","") for r in med_mes_data]
+            vals   = [r.get("total",0) for r in med_mes_data]
+            fig = bar_chart(labels, [("Medicinas utilizadas", vals)], "Medicinas utilizadas por mes")
+            story.append(chart_to_image(fig, height=2.8))
+            story.append(sp(10))
 
-    eq_vals = [equipo.get("en_uso",0), equipo.get("regresados",0)]
-    if sum(eq_vals) > 0:
-        fig = pie_chart(["En uso","Regresados"], eq_vals, "Estado del equipo médico", figsize=(5,5))
-        story.append(chart_to_image(fig, height=5))
+    if equipo is not None:
+        if not inv_section_started:
+            page_break_if_needed()
+            story.append(section_heading("4. Inventario", st))
+            story.append(sp(8))
+
+        story.append(Paragraph("<b>Equipo médico</b>", ParagraphStyle("h3", fontName="Helvetica-Bold",
+                    fontSize=10, textColor=C_MID, spaceAfter=6)))
+        story.append(kpi_table([
+            ("Total equipos",      fmt(equipo.get("total",0))),
+            ("Cantidad disponible",fmt(equipo.get("cantidad_total",0))),
+            ("En uso",             fmt(equipo.get("en_uso",0))),
+            ("Regresados",         fmt(equipo.get("regresados",0))),
+            ("% retorno",          f"{equipo.get('porcentaje_retorno',0)}%"),
+            ("Valor total",        fmt_money(equipo.get("valor_total",0))),
+        ], st, accent=C_LAMBER, cols=3))
+        story.append(sp(12))
+
+        eq_vals = [equipo.get("en_uso",0), equipo.get("regresados",0)]
+        if sum(eq_vals) > 0:
+            fig = pie_chart(["En uso","Regresados"], eq_vals, "Estado del equipo médico", figsize=(5,5))
+            story.append(chart_to_image(fig, height=5))
 
     # ── 5. NOTIFICACIONES ─────────────────────────────────────────────────────
-    story.append(PageBreak())
-    story.append(section_heading("5. Notificaciones", st))
-    story.append(sp(8))
-    story.append(kpi_table([
-        ("Este mes",         fmt(notificaciones.get("mes",0))),
-        ("Rechazados",       fmt(notificaciones.get("rechazados",0))),
-        ("Tasa aprobación",  f"{notificaciones.get('tasa_aprobacion',0)}%"),
-    ], st, accent=C_LRED, cols=3))
-    story.append(sp(14))
+    if notificaciones is not None:
+        page_break_if_needed()
+        story.append(section_heading("5. Notificaciones", st))
+        story.append(sp(8))
+        story.append(kpi_table([
+            ("Este mes",         fmt(notificaciones.get("mes",0))),
+            ("Rechazados",       fmt(notificaciones.get("rechazados",0))),
+            ("Tasa aprobación",  f"{notificaciones.get('tasa_aprobacion',0)}%"),
+        ], st, accent=C_LRED, cols=3))
+        story.append(sp(14))
 
-    notif_serie = series.get("notificacionesMes", [])
-    if notif_serie:
-        labels = [r.get("mes","") for r in notif_serie]
-        vals   = [r.get("total",0) for r in notif_serie]
-        fig = bar_chart(labels, [("Notificaciones", vals)], "Notificaciones por mes")
-        story.append(chart_to_image(fig, height=2.8))
-        story.append(sp(10))
+        notif_serie = series.get("notificacionesMes", [])
+        if notif_serie:
+            labels = [r.get("mes","") for r in notif_serie]
+            vals   = [r.get("total",0) for r in notif_serie]
+            fig = bar_chart(labels, [("Notificaciones", vals)], "Notificaciones por mes")
+            story.append(chart_to_image(fig, height=2.8))
+            story.append(sp(10))
 
-        trows_n = [[r.get("mes",""), fmt(r.get("total",0))] for r in notif_serie]
-        story.append(data_table(
-            ["Mes","Total Notificaciones"],
-            trows_n,
-            col_widths=[2.5*inch, 4*inch]
-        ))
+            trows_n = [[r.get("mes",""), fmt(r.get("total",0))] for r in notif_serie]
+            story.append(data_table(
+                ["Mes","Total Notificaciones"],
+                trows_n,
+                col_widths=[2.5*inch, 4*inch]
+            ))
 
     doc.build(story)
     return buf.getvalue()
