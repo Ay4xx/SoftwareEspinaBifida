@@ -145,9 +145,18 @@ function CalendarioRecibo({ visitas, fechaSeleccionada, onSelect }) {
 function ModalGenerarRecibo({ visitas, pacienteId, onClose }) {
   const [fechaSeleccionada, setFechaSeleccionada] = useState("");
   const [generando, setGenerando] = useState(false);
+  const [visitaIndex, setVisitaIndex] = useState(0);
+
+  const visitasDelDia =
+    visitas.filter(v => v.fecha === fechaSeleccionada);
 
   const visitaSeleccionada =
-    visitas.find(v => v.fecha === fechaSeleccionada);
+    visitasDelDia[visitaIndex];
+
+  const handleFechaSelect = (fecha) => {
+    setFechaSeleccionada(fecha);
+    setVisitaIndex(0);
+  };
 
   const handleGenerar = () => {
     if (!visitaSeleccionada) return;
@@ -194,12 +203,12 @@ function ModalGenerarRecibo({ visitas, pacienteId, onClose }) {
             <strong>$${total.toLocaleString("es-MX")}</strong>
           </p>
           <p style="display:flex; justify-content:space-between;">
-            <span>Monto recibido:</span>
+            <span>Monto abonado:</span>
             <strong>$${montoPagado.toLocaleString("es-MX")}</strong>
           </p>
           ${diferencia !== 0 ? `
           <p style="display:flex; justify-content:space-between;">
-            <span>${diferencia < 0 ? 'Saldo pendiente' : 'Cambio'}:</span>
+            <span>${diferencia < 0 ? 'Monto restante' : 'Cambio'}:</span>
             <strong>$${Math.abs(diferencia).toLocaleString("es-MX")}</strong>
           </p>` : ''}
         </div>
@@ -256,8 +265,32 @@ function ModalGenerarRecibo({ visitas, pacienteId, onClose }) {
           <CalendarioRecibo
             visitas={visitas}
             fechaSeleccionada={fechaSeleccionada}
-            onSelect={setFechaSeleccionada}
+            onSelect={handleFechaSelect}
           />
+
+          {visitasDelDia.length > 1 && (
+            <div style={{ marginBottom: "16px" }}>
+              <label>Selecciona el recibo:</label>
+
+              <select
+                value={visitaIndex}
+                onChange={(e) =>
+                  setVisitaIndex(Number(e.target.value))
+                }
+                style={{
+                  width: "100%",
+                  padding: "8px",
+                  marginTop: "6px"
+                }}
+              >
+                {visitasDelDia.map((_, index) => (
+                  <option key={index} value={index}>
+                    Recibo #{index + 1}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {visitaSeleccionada && (
             <div className="recibo-preview">

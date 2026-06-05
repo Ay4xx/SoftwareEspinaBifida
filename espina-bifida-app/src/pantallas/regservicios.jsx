@@ -18,7 +18,7 @@ const tabs = [
 ];
 
 function ServiciosPanel() {
-  const [activeTab, setActiveTab] = useState("infopaciente");
+  const [activeTab, setActiveTab] = useState("historial");
 
   return (
     <div className="inventario-contenedor">
