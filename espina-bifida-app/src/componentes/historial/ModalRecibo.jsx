@@ -149,12 +149,6 @@ function ModalGenerarRecibo({ visitas, pacienteId, onClose }) {
   const visitaSeleccionada =
     visitas.find(v => v.fecha === fechaSeleccionada);
 
-  const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
-
   const handleGenerar = () => {
     if (!visitaSeleccionada) return;
     setGenerando(true);
@@ -240,7 +234,7 @@ function ModalGenerarRecibo({ visitas, pacienteId, onClose }) {
   };
 
   return (
-    <div className="modal-backdrop" onClick={handleBackdropClick}>
+    <div className="modal-backdrop">
       <div className="modal-pago" style={{ maxWidth: 440 }}>
         <div className="modal-header">
           <div>
