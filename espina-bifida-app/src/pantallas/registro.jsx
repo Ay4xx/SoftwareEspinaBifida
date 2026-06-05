@@ -7,43 +7,31 @@ import HistorialMedico from "../componentes/registro/HistorialMedico/HistorialMe
 import HistorialTutor from "../componentes/registro/HistorialTutor/HistorialTutor";
 import Fotografia from "../componentes/registro/Fotografia/Fotografia";
 import {
-  crearPacientePaso1,
-  actualizarPaso2,
-  actualizarPaso3,
-  actualizarPaso4,
-  actualizarPaso5,
-  actualizarPaciente,
+  crearPacientePaso1, actualizarPaso2, actualizarPaso3,
+  actualizarPaso4, actualizarPaso5, actualizarPaciente,
 } from "../services/registroService";
-import { validarCURP } from "../utils/validaciones";
 import { useLocation, useNavigate } from "react-router-dom";
 
-const TOTAL_PASOS       = 5;
+// ── Constantes ────────────────────────────────────────────────────────────────
+
+const TOTAL_PASOS        = 5;
 const NOTIFICACIONES_URL = "http://localhost:3001/api/notificaciones";
 const PACIENTES_URL      = "http://localhost:3001/api/pacientes";
 
+const CAMPOS_HISTORIAL = ["adicciones", "hijoDtn", "familiarDtn", "expoToxicos", "descripcionExpoToxicos"];
+
 const tutorVacio = (parentesco) => ({
   tutorParentesco: parentesco,
-  tutorNombre: "",
-  tutorEdad: "",
-  tutorLugarNacimiento: "",
-  tutorOcupacion: "",
-  tutorEscolaridad: "",
-  tutorSeguroMedico: "",
-  cdEmbarazo: "",
-  citasControl: "",
-  madreSeguroMedico: "",
-  acidoFolico: "",
+  tutorNombre: "", tutorEdad: "", tutorLugarNacimiento: "",
+  tutorOcupacion: "", tutorEscolaridad: "", tutorSeguroMedico: "",
+  cdEmbarazo: "", citasControl: "", madreSeguroMedico: "", acidoFolico: "",
 });
 
 const HISTORIAL_FAMILIAR_VACIO = {
-  adicciones: "",
-  hijoDtn: "",
-  familiarDtn: "",
-  expoToxicos: "",
-  descripcionExpoToxicos: "",
+  adicciones: "", hijoDtn: "", familiarDtn: "", expoToxicos: "", descripcionExpoToxicos: "",
 };
 
-const formInicial = {
+const FORM_INICIAL = {
   nombres: "", apellidoPaterno: "", genero: "", fechaNacimiento: "", curp: "",
   direccion: "", ciudad: "", codigoPostal: "", estado: "",
   telefonoCasa: "", telefonoCelular: "", correo: "",
@@ -51,37 +39,128 @@ const formInicial = {
   lugarNacimiento: "", hospitalNacimiento: "", tipoSangre: "", usaValvula: "",
   tipoEspinaBifida: "", otrosPadecimiento: "", notas: "",
   foto: null,
-  documentos: {
-    preregistro: null,
-    actaNacimiento: null,
-    curp: null,
-    comprobanteDomicilio: null,
-    ineFamilia: null,
-  },
+  documentos: { preregistro: null, actaNacimiento: null, curp: null, comprobanteDomicilio: null, ineFamilia: null },
 };
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function mapearPacienteAForm(p, fotoBase = null) {
+  return {
+    nombres:            p.NOMBRE              || "",
+    apellidoPaterno:    p.APELLIDO            || "",
+    curp:               p.CURP                || "",
+    genero:             p.GENERO              || "",
+    fechaNacimiento:    p.FECHA_NACIMIENTO    || "",
+    direccion:          p.DIRECCION           || "",
+    ciudad:             p.CIUDAD_RESIDENCIA   || "",
+    estado:             p.ESTADO_RESIDENCIA   || "",
+    codigoPostal:       p.CODIGO_POSTAL       || "",
+    telefonoCasa:       p.TELEFONO_CASA       || "",
+    telefonoCelular:    p.TELEFONO_CELULAR    || "",
+    correo:             p.EMAIL               || "",
+    emergenciaContacto: p.EMERGENCIA_CONTACTO || "",
+    emergenciaTelefono: p.EMERGENCIA_TELEFONO || "",
+    lugarNacimiento:    p.LUGAR_NACIMIENTO    || "",
+    hospitalNacimiento: p.HOSPITAL_NACIMIENTO || "",
+    tipoSangre:         p.SANGRE_TIPO         || "",
+    usaValvula:         p.VALVULA === "SI" ? "Sí" : p.VALVULA === "NO" ? "No" : "",
+    notas:              p.NOTAS_ADICIONALES   || "",
+    tipoEspinaBifida:   p.TIPO_ESPINA_BIFIDA  || "",
+    otrosPadecimiento:  p.OTROS_PADECIMIENTO  || "",
+    foto:               fotoBase,
+  };
+}
+
+function mapearTutores(tutores, setTutorMadre, setTutorPadre, setHistorialFamiliar) {
+  tutores.forEach((t) => {
+    const base = {
+      tutorParentesco:      t.tutorParentesco      || "",
+      tutorNombre:          t.tutorNombre          || "",
+      tutorEdad:            t.tutorEdad            || "",
+      tutorLugarNacimiento: t.tutorLugarNacimiento || "",
+      tutorOcupacion:       t.tutorOcupacion       || "",
+      tutorEscolaridad:     t.tutorEscolaridad     || "",
+      tutorSeguroMedico:    t.tutorSeguroMedico    || "",
+    };
+
+    if (t.tutorParentesco === "Madre") {
+      setTutorMadre({
+        ...base,
+        cdEmbarazo:        t.cdEmbarazo        || "",
+        citasControl:      t.citasControl      || "",
+        madreSeguroMedico: t.madreSeguroMedico || "",
+        acidoFolico:       t.acidoFolico       || "",
+      });
+      setHistorialFamiliar({
+        adicciones:             t.adicciones             || "",
+        hijoDtn:                t.hijoDtn                || "",
+        familiarDtn:            t.familiarDtn            || "",
+        expoToxicos:            t.expoToxicos            || "",
+        descripcionExpoToxicos: t.descripcionExpoToxicos || "",
+      });
+    }
+
+    if (t.tutorParentesco === "Padre") {
+      setTutorPadre({ ...base, cdEmbarazo: "", citasControl: "", madreSeguroMedico: "", acidoFolico: "" });
+      setHistorialFamiliar((prev) => ({
+        adicciones:             prev.adicciones             || t.adicciones             || "",
+        hijoDtn:                prev.hijoDtn                || t.hijoDtn                || "",
+        familiarDtn:            prev.familiarDtn            || t.familiarDtn            || "",
+        expoToxicos:            prev.expoToxicos            || t.expoToxicos            || "",
+        descripcionExpoToxicos: prev.descripcionExpoToxicos || t.descripcionExpoToxicos || "",
+      }));
+    }
+  });
+}
+
+// ── Componente pantalla de éxito ──────────────────────────────────────────────
+
+function PantallaExito({ titulo, subtitulo, advertencias }) {
+  return (
+    <div className="registro-wrapper">
+      <div className="registro-exito">
+        <div className="registro-exito-icono"><Check size={40} color="white" /></div>
+        <h2>{titulo}</h2>
+        {advertencias && advertencias.length > 0 ? (
+          <div className="registro-advertencias">
+            <p className="registro-advertencias-titulo">Algunos datos opcionales no se guardaron:</p>
+            <ul className="registro-advertencias-lista">
+              {advertencias.map((adv, i) => <li key={i}>• {adv}</li>)}
+            </ul>
+            <p className="registro-advertencias-nota">Puedes editarlos más tarde desde el perfil del paciente.</p>
+          </div>
+        ) : (
+          <p>{subtitulo}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Página principal ──────────────────────────────────────────────────────────
 
 function RegistroPage() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const modoRevision = location.state?.modoRevision || false;
-  const notificacionId = location.state?.notificacionId || null;
+  const modoRevision       = location.state?.modoRevision  || false;
+  const notificacionId     = location.state?.notificacionId || null;
   const pacienteIdFromState = location.state?.pacienteId ? String(location.state.pacienteId) : null;
 
-  const [paso, setPaso] = useState(1);
-  const [guardado, setGuardado] = useState(false);
-  const [enviando, setEnviando] = useState(false);
-  const [errorPaso, setErrorPaso] = useState(null);
-  const [advertencias, setAdvertencias] = useState([]);
+  const [paso, setPaso]                         = useState(1);
+  const [guardado, setGuardado]                 = useState(false);
+  const [enviando, setEnviando]                 = useState(false);
+  const [errorPaso, setErrorPaso]               = useState(null);
+  const [advertencias, setAdvertencias]         = useState([]);
   const [notificacionEstado, setNotificacionEstado] = useState(null);
-  const [accionRealizada, setAccionRealizada] = useState(null);
-  const [pacienteId, setPacienteId] = useState(null);
+  const [accionRealizada, setAccionRealizada]   = useState(null);
+  const [pacienteId, setPacienteId]             = useState(null);
   const [cambiosGuardados, setCambiosGuardados] = useState(false);
-  const [formData, setFormData] = useState(formInicial);
-  const [tutorMadre, setTutorMadre] = useState(tutorVacio("Madre"));
-  const [tutorPadre, setTutorPadre] = useState(tutorVacio("Padre"));
+  const [formData, setFormData]                 = useState(FORM_INICIAL);
+  const [tutorMadre, setTutorMadre]             = useState(tutorVacio("Madre"));
+  const [tutorPadre, setTutorPadre]             = useState(tutorVacio("Padre"));
   const [historialFamiliar, setHistorialFamiliar] = useState({ ...HISTORIAL_FAMILIAR_VACIO });
-  const [tabActivo, setTabActivo] = useState("Madre");
+  const [tabActivo, setTabActivo]               = useState("Madre");
 
   const esInvitado = localStorage.getItem("guest") === "true";
 
@@ -90,7 +169,17 @@ function RegistroPage() {
     { ...tutorPadre, ...historialFamiliar },
   ];
 
-  // Cargar desde notificación
+  const resetearFormulario = () => {
+    setPaso(1);
+    setFormData(FORM_INICIAL);
+    setTutorMadre(tutorVacio("Madre"));
+    setTutorPadre(tutorVacio("Padre"));
+    setHistorialFamiliar({ ...HISTORIAL_FAMILIAR_VACIO });
+    setTabActivo("Madre");
+  };
+
+  // ── Cargar desde notificación ─────────────────────────────────────────────
+
   useEffect(() => {
     if (!modoRevision || !notificacionId) return;
     fetch(`${NOTIFICACIONES_URL}/${notificacionId}`)
@@ -98,81 +187,16 @@ function RegistroPage() {
       .then((result) => {
         if (!result.ok) return;
         const p = result.data;
-
-
         setNotificacionEstado(p.ESTADO_PROCESO);
         setPacienteId(p.PACIENTE_ID);
-        setFormData((prev) => ({
-          ...prev,
-          nombres: p.NOMBRE || "", apellidoPaterno: p.APELLIDO || "",
-          curp: p.CURP || "", genero: p.GENERO || "",
-          fechaNacimiento: p.FECHA_NACIMIENTO || "",
-          direccion: p.DIRECCION || "", ciudad: p.CIUDAD_RESIDENCIA || "",
-          estado: p.ESTADO_RESIDENCIA || "", codigoPostal: p.CODIGO_POSTAL || "",
-          telefonoCasa: p.TELEFONO_CASA || "", telefonoCelular: p.TELEFONO_CELULAR || "",
-          correo: p.EMAIL || "", emergenciaContacto: p.EMERGENCIA_CONTACTO || "",
-          emergenciaTelefono: p.EMERGENCIA_TELEFONO || "",
-          lugarNacimiento: p.LUGAR_NACIMIENTO || "", hospitalNacimiento: p.HOSPITAL_NACIMIENTO || "",
-          tipoSangre: p.SANGRE_TIPO || "",
-          usaValvula: p.VALVULA === "SI" ? "Sí" : p.VALVULA === "NO" ? "No" : "",
-          notas: p.NOTAS_ADICIONALES || "",
-          tipoEspinaBifida:  p.TIPO_ESPINA_BIFIDA  || "",
-          otrosPadecimiento: p.OTROS_PADECIMIENTO  || "",
-          foto: p.FOTO || null,
-        }));
-        if (p.TUTORES && p.TUTORES.length > 0) {
-          p.TUTORES.forEach((t) => {
-            if (t.tutorParentesco === "Madre") {
-              setTutorMadre({
-                tutorParentesco:    "Madre",
-                tutorNombre:        t.tutorNombre        || "",
-                tutorEdad:          t.tutorEdad          || "",
-                tutorLugarNacimiento: t.tutorLugarNacimiento || "",
-                tutorOcupacion:     t.tutorOcupacion     || "",
-                tutorEscolaridad:   t.tutorEscolaridad   || "",
-                tutorSeguroMedico:  t.tutorSeguroMedico  || "",
-                cdEmbarazo:         t.cdEmbarazo         || "",
-                citasControl:       t.citasControl       || "",
-                madreSeguroMedico:  t.madreSeguroMedico  || "",
-                acidoFolico:        t.acidoFolico        || "",
-              });
-              setHistorialFamiliar({
-                adicciones:             t.adicciones             || "",
-                hijoDtn:                t.hijoDtn                || "",
-                familiarDtn:            t.familiarDtn            || "",
-                expoToxicos:            t.expoToxicos            || "",
-                descripcionExpoToxicos: t.descripcionExpoToxicos || "",
-              });
-            }
-            if (t.tutorParentesco === "Padre") {
-              setTutorPadre({
-                tutorParentesco:    "Padre",
-                tutorNombre:        t.tutorNombre        || "",
-                tutorEdad:          t.tutorEdad          || "",
-                tutorLugarNacimiento: t.tutorLugarNacimiento || "",
-                tutorOcupacion:     t.tutorOcupacion     || "",
-                tutorEscolaridad:   t.tutorEscolaridad   || "",
-                tutorSeguroMedico:  t.tutorSeguroMedico  || "",
-                cdEmbarazo:         "",
-                citasControl:       "",
-                madreSeguroMedico:  "",
-                acidoFolico:        "",
-              });
-              setHistorialFamiliar((prev) => ({
-                adicciones:             prev.adicciones             || t.adicciones             || "",
-                hijoDtn:                prev.hijoDtn                || t.hijoDtn                || "",
-                familiarDtn:            prev.familiarDtn            || t.familiarDtn            || "",
-                expoToxicos:            prev.expoToxicos            || t.expoToxicos            || "",
-                descripcionExpoToxicos: prev.descripcionExpoToxicos || t.descripcionExpoToxicos || "",
-              }));
-            }
-          });
-        }
+        setFormData((prev) => ({ ...prev, ...mapearPacienteAForm(p, p.FOTO || null) }));
+        if (p.TUTORES?.length > 0) mapearTutores(p.TUTORES, setTutorMadre, setTutorPadre, setHistorialFamiliar);
       })
       .catch(() => {});
   }, [notificacionId, modoRevision]);
 
-  // Cargar desde paciente directo
+  // ── Cargar desde paciente directo ─────────────────────────────────────────
+
   useEffect(() => {
     if (!modoRevision || !pacienteIdFromState) return;
     fetch(`${PACIENTES_URL}/${pacienteIdFromState}`)
@@ -180,79 +204,16 @@ function RegistroPage() {
       .then((result) => {
         if (!result.ok) return;
         const p = result.data;
-
-
         setPacienteId(p.PACIENTE_ID);
         setNotificacionEstado("aprobado");
-        setFormData((prev) => ({
-          ...prev,
-          nombres: p.NOMBRE || "", apellidoPaterno: p.APELLIDO || "",
-          curp: p.CURP || "", genero: p.GENERO || "",
-          fechaNacimiento: p.FECHA_NACIMIENTO || "",
-          direccion: p.DIRECCION || "", ciudad: p.CIUDAD_RESIDENCIA || "",
-          estado: p.ESTADO_RESIDENCIA || "", codigoPostal: p.CODIGO_POSTAL || "",
-          telefonoCasa: p.TELEFONO_CASA || "", telefonoCelular: p.TELEFONO_CELULAR || "",
-          correo: p.EMAIL || "", emergenciaContacto: p.EMERGENCIA_CONTACTO || "",
-          emergenciaTelefono: p.EMERGENCIA_TELEFONO || "",
-          lugarNacimiento: p.LUGAR_NACIMIENTO || "", hospitalNacimiento: p.HOSPITAL_NACIMIENTO || "",
-          tipoSangre: p.SANGRE_TIPO || "",
-          usaValvula: p.VALVULA === "SI" ? "Sí" : p.VALVULA === "NO" ? "No" : "",
-          notas: p.NOTAS_ADICIONALES || "",
-          tipoEspinaBifida:  p.TIPO_ESPINA_BIFIDA  || "",
-          otrosPadecimiento: p.OTROS_PADECIMIENTO  || "",
-          foto: p.FOTO ? `http://localhost:3001${p.FOTO}` : null,
-        }));
-        if (p.TUTORES && p.TUTORES.length > 0) {
-          p.TUTORES.forEach((t) => {
-            if (t.tutorParentesco === "Madre") {
-              setTutorMadre({
-                tutorParentesco:      "Madre",
-                tutorNombre:          t.tutorNombre        || "",
-                tutorEdad:            t.tutorEdad          || "",
-                tutorLugarNacimiento: t.tutorLugarNacimiento || "",
-                tutorOcupacion:       t.tutorOcupacion     || "",
-                tutorEscolaridad:     t.tutorEscolaridad   || "",
-                tutorSeguroMedico:    t.tutorSeguroMedico  || "",
-                cdEmbarazo:           t.cdEmbarazo         || "",
-                citasControl:         t.citasControl       || "",
-                madreSeguroMedico:    t.madreSeguroMedico  || "",
-                acidoFolico:          t.acidoFolico        || "",
-              });
-              setHistorialFamiliar({
-                adicciones:             t.adicciones             || "",
-                hijoDtn:                t.hijoDtn                || "",
-                familiarDtn:            t.familiarDtn            || "",
-                expoToxicos:            t.expoToxicos            || "",
-                descripcionExpoToxicos: t.descripcionExpoToxicos || "",
-              });
-            }
-            if (t.tutorParentesco === "Padre") {
-              setTutorPadre({
-                tutorParentesco:      "Padre",
-                tutorNombre:          t.tutorNombre        || "",
-                tutorEdad:            t.tutorEdad          || "",
-                tutorLugarNacimiento: t.tutorLugarNacimiento || "",
-                tutorOcupacion:       t.tutorOcupacion     || "",
-                tutorEscolaridad:     t.tutorEscolaridad   || "",
-                tutorSeguroMedico:    t.tutorSeguroMedico  || "",
-                cdEmbarazo:           "",
-                citasControl:         "",
-                madreSeguroMedico:    "",
-                acidoFolico:          "",
-              });
-              setHistorialFamiliar((prev) => ({
-                adicciones:             prev.adicciones             || t.adicciones             || "",
-                hijoDtn:                prev.hijoDtn                || t.hijoDtn                || "",
-                familiarDtn:            prev.familiarDtn            || t.familiarDtn            || "",
-                expoToxicos:            prev.expoToxicos            || t.expoToxicos            || "",
-                descripcionExpoToxicos: prev.descripcionExpoToxicos || t.descripcionExpoToxicos || "",
-              }));
-            }
-          });
-        }
+        const fotoUrl = p.FOTO ? `http://localhost:3001${p.FOTO}` : null;
+        setFormData((prev) => ({ ...prev, ...mapearPacienteAForm(p, fotoUrl) }));
+        if (p.TUTORES?.length > 0) mapearTutores(p.TUTORES, setTutorMadre, setTutorPadre, setHistorialFamiliar);
       })
       .catch(() => {});
   }, [pacienteIdFromState, modoRevision]);
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
 
   const handleChange = (nuevosDatos) => {
     setFormData((prev) => ({ ...prev, ...nuevosDatos }));
@@ -260,18 +221,15 @@ function RegistroPage() {
   };
 
   const handleChangeTutor = (nuevosDatos) => {
-    const camposHistorial = ["adicciones", "hijoDtn", "familiarDtn", "expoToxicos", "descripcionExpoToxicos"];
     const datosHistorial = {};
     const datosTutor = {};
 
     Object.entries(nuevosDatos).forEach(([key, val]) => {
-      if (camposHistorial.includes(key)) datosHistorial[key] = val;
+      if (CAMPOS_HISTORIAL.includes(key)) datosHistorial[key] = val;
       else datosTutor[key] = val;
     });
 
-    if (Object.keys(datosHistorial).length > 0) {
-      setHistorialFamiliar((prev) => ({ ...prev, ...datosHistorial }));
-    }
+    if (Object.keys(datosHistorial).length > 0) setHistorialFamiliar((prev) => ({ ...prev, ...datosHistorial }));
     if (Object.keys(datosTutor).length > 0) {
       if (tabActivo === "Madre") setTutorMadre((prev) => ({ ...prev, ...datosTutor }));
       else setTutorPadre((prev) => ({ ...prev, ...datosTutor }));
@@ -290,16 +248,15 @@ function RegistroPage() {
   };
 
   const validarPaso = () => {
-    if (paso === 1) {
-      const curp = formData.curp;
-      if (!curp) return "La CURP es obligatoria para continuar.";
-      const ESTADOS = ["AS","BC","BS","CC","CL","CM","CS","CH","DF","DG","GT","GR",
-        "HG","JC","MC","MN","MS","NT","NL","OC","PL","QT","QR","SP","SL","SR","TC","TS","TL","VZ","YN","ZS","NE"];
-      const regex = new RegExp(
-        `^[A-Z][AEIOU][A-Z]{2}\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01])[HMX](${ESTADOS.join("|")})[B-DF-HJ-NP-TV-Z]{3}[0-9A-Z]\\d$`
-      );
-      if (!regex.test(curp)) return "La CURP ingresada no tiene un formato válido. Verifica e intenta de nuevo.";
-    }
+    if (paso !== 1) return null;
+    const curp = formData.curp;
+    if (!curp) return "La CURP es obligatoria para continuar.";
+    const ESTADOS = ["AS","BC","BS","CC","CL","CM","CS","CH","DF","DG","GT","GR",
+      "HG","JC","MC","MN","MS","NT","NL","OC","PL","QT","QR","SP","SL","SR","TC","TS","TL","VZ","YN","ZS","NE"];
+    const regex = new RegExp(
+      `^[A-Z][AEIOU][A-Z]{2}\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01])[HMX](${ESTADOS.join("|")})[B-DF-HJ-NP-TV-Z]{3}[0-9A-Z]\\d$`
+    );
+    if (!regex.test(curp)) return "La CURP ingresada no tiene un formato válido. Verifica e intenta de nuevo.";
     return null;
   };
 
@@ -334,9 +291,7 @@ function RegistroPage() {
 
       for (const tutor of getTutoresParaGuardar()) {
         try { await actualizarPaso4(id, tutor); }
-        catch (e) {
-          erroresPasos.push(`${tutor.tutorParentesco}: ` + (e.message || "No se pudo guardar el historial del tutor."));
-        }
+        catch (e) { erroresPasos.push(`${tutor.tutorParentesco}: ` + (e.message || "No se pudo guardar el historial del tutor.")); }
       }
 
       const tieneDocumentos = formData.documentos && Object.values(formData.documentos).some((f) => f instanceof File);
@@ -351,12 +306,7 @@ function RegistroPage() {
       setTimeout(() => {
         setGuardado(false);
         setAdvertencias([]);
-        setPaso(1);
-        setFormData(formInicial);
-        setTutorMadre(tutorVacio("Madre"));
-        setTutorPadre(tutorVacio("Padre"));
-        setHistorialFamiliar({ ...HISTORIAL_FAMILIAR_VACIO });
-        setTabActivo("Madre");
+        resetearFormulario();
         if (esInvitado) navigate("/registro");
         else navigate("/usuarios");
       }, erroresPasos.length > 0 ? 5000 : 2000);
@@ -397,15 +347,14 @@ function RegistroPage() {
     } catch (err) { alert(err.message || "Error al rechazar"); }
   };
 
-  const porcentaje = Math.round((paso / TOTAL_PASOS) * 100);
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   const renderPaso = () => {
     switch (paso) {
       case 1: return <DatosPersonales datos={formData} onChange={handleChange} />;
       case 2: return <Contacto datos={formData} onChange={handleChange} />;
       case 3: return <HistorialMedico datos={formData} onChange={handleChange} />;
-      case 4: {
-
+      case 4:
         return (
           <>
             <div className="tutor-tabs">
@@ -421,16 +370,12 @@ function RegistroPage() {
               ))}
             </div>
             <HistorialTutor
-              datos={{
-                ...(tabActivo === "Madre" ? tutorMadre : tutorPadre),
-                ...historialFamiliar,
-              }}
+              datos={{ ...(tabActivo === "Madre" ? tutorMadre : tutorPadre), ...historialFamiliar }}
               onChange={handleChangeTutor}
               onAgregarTutor={null}
             />
           </>
         );
-      }
       case 5:
         return (
           <Fotografia
@@ -446,37 +391,24 @@ function RegistroPage() {
 
   if (accionRealizada) {
     return (
-      <div className="registro-wrapper">
-        <div className="registro-exito">
-          <div className="registro-exito-icono"><Check size={40} color="white" /></div>
-          <h2>{accionRealizada === "aprobado" ? "¡Paciente aprobado exitosamente!" : "Registro rechazado correctamente"}</h2>
-          <p>Regresando a notificaciones...</p>
-        </div>
-      </div>
+      <PantallaExito
+        titulo={accionRealizada === "aprobado" ? "¡Paciente aprobado exitosamente!" : "Registro rechazado correctamente"}
+        subtitulo="Regresando a notificaciones..."
+      />
     );
   }
 
   if (guardado) {
     return (
-      <div className="registro-wrapper">
-        <div className="registro-exito">
-          <div className="registro-exito-icono"><Check size={40} color="white" /></div>
-          <h2>¡Registro guardado exitosamente!</h2>
-          {advertencias.length > 0 ? (
-            <div className="registro-advertencias">
-              <p className="registro-advertencias-titulo">Algunos datos opcionales no se guardaron:</p>
-              <ul className="registro-advertencias-lista">
-                {advertencias.map((adv, i) => <li key={i}>• {adv}</li>)}
-              </ul>
-              <p className="registro-advertencias-nota">Puedes editarlos más tarde desde el perfil del paciente.</p>
-            </div>
-          ) : (
-            <p>{esInvitado ? "Registro enviado correctamente" : "Redirigiendo al registro de usuarios"}</p>
-          )}
-        </div>
-      </div>
+      <PantallaExito
+        titulo="¡Registro guardado exitosamente!"
+        subtitulo={esInvitado ? "Registro enviado correctamente" : "Redirigiendo al registro de usuarios"}
+        advertencias={advertencias}
+      />
     );
   }
+
+  const porcentaje = Math.round((paso / TOTAL_PASOS) * 100);
 
   return (
     <div className="registro-wrapper">
