@@ -16,6 +16,7 @@ import gestionUsuarioRoutes from "./modulos/gestionUsuarios/gestionUsuarios.rout
 import estadisticasRoutes from "./modulos/estadisticas/estadisticas.routes.js";
 import membresiaRoutes from "./modulos/membresia/membresia.routes.js";
 import pagoreciboRoutes from "./modulos/pagorecibo/pagorebico.route.js";
+import forgotPasswordRoutes from "./modulos/password/forgotPassword.router.js";
 
 const app = express();
 
@@ -38,6 +39,7 @@ app.get("/api/notificaciones-sse", (req, res) => {
 });
 
 app.use("/api/login", loginRoutes);
+app.use("/api/forgot-password", forgotPasswordRoutes);
 app.use("/api/registro", registroRoutes);
 app.use("/api/pacientes", pacienteRoutes);
 app.use("/api/medicos", medicoRouter);

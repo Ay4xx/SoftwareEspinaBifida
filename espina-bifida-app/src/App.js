@@ -23,6 +23,8 @@ import EstadisticasPage from "./pantallas/estadisticas/estadisticas";
 import AgendaCitasPage from "./pantallas/agendacitas";
 import { NotificacionesProvider } from "./pantallas/notificacionesContext";
 import GestionUsuarios from "./pantallas/gestionUsuarios";
+import ForgotPassword from "./pantallas/forgotPassword";
+import ResetPassword from "./pantallas/resetPassword";
 
 
 function getRol() {
@@ -57,12 +59,16 @@ function AppContent() {
   const isGuest = localStorage.getItem("guest") === "true";
 
   const showBars = !!token && !isGuest;
-  const isLogin  = location.pathname === "/login";
 
-  if (isLogin) {
+  // Páginas públicas: sin sidebar ni header
+  const isPublicPage = ["/login", "/forgot-password", "/reset-password"].includes(location.pathname);
+
+  if (isPublicPage) {
     return (
       <Routes>
-        <Route path="/login" element={<Login />} />
+        <Route path="/login"           element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password"  element={<ResetPassword />} />
       </Routes>
     );
   }
@@ -118,14 +124,14 @@ function AppContent() {
 
             {/* Solo Coordinador + SuperAdmin */}
             <Route
-            path="/registro"
-            element={isGuest ? <RegistroPage /> : (
-              <RutaProtegida
-                element={<RegistroPage />}
-                rolesPermitidos={["COORDINADOR", "SUPERADMIN"]}
-              />
-            )}
-          />
+              path="/registro"
+              element={isGuest ? <RegistroPage /> : (
+                <RutaProtegida
+                  element={<RegistroPage />}
+                  rolesPermitidos={["COORDINADOR", "SUPERADMIN"]}
+                />
+              )}
+            />
             <Route
               path="/notificaciones"
               element={
@@ -176,8 +182,6 @@ function AppContent() {
                 />
               }
             />
-                        
-
 
             <Route path="*" element={<Navigate to="/login" />} />
           </Routes>

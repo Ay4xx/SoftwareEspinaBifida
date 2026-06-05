@@ -35,8 +35,8 @@ export async function getEstadisticasModel() {
         (SELECT ROUND(NVL(SUM(monto_recibido),0)*100/NULLIF(NVL(SUM(cuota),0),0),2) FROM evento_visita) AS porcentaje_pago_completo,
 
         /* MEMBRESÍAS */
-        (SELECT COUNT(DISTINCT paciente_id) FROM membresia WHERE UPPER(estatus) = 'ACTIVA') AS membresias_activas,
-        (SELECT COUNT(DISTINCT paciente_id) FROM membresia WHERE UPPER(estatus) = 'INACTIVA') AS membresias_inactivas,
+        (SELECT COUNT(DISTINCT paciente_id) FROM membresia WHERE estatus = 'activo') AS membresias_activas,
+        (SELECT COUNT(DISTINCT paciente_id) FROM membresia WHERE estatus = 'inactivo') AS membresias_inactivas,
         (SELECT COUNT(*) FROM membresia WHERE fecha_fin < SYSDATE) AS membresias_vencidas,
 
         /* SERVICIOS */

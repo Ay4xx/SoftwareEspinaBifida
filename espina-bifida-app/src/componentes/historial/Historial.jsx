@@ -108,24 +108,18 @@ function VisualizarHistorial() {
                         </strong>
                       </p>
 
-                      {!visita.montoRecibido ? (
-                        <button
-                          className="btn-modificar-pago"
-                          onClick={() => abrirModal(visita, year)}
-                        >
-                          Realizar pago
-                        </button>
-                      ) : (
-                        <p className="monto-pagado-real">
-                          Pagado:
-                          <strong>
-                            $
-                            {Number(
-                              visita.montoRecibido
-                            ).toLocaleString("es-MX")}
-                          </strong>
-                        </p>
-                      )}
+                     {visita.montoRecibido ? (
+                            <p className="monto-pagado-real">
+                              Pagado: <strong>${visita.montoRecibido.toLocaleString("es-MX")}</strong>
+                            </p>
+                          ) : (
+                            <button
+                              className="btn-modificar-pago"
+                              onClick={() => abrirModal(visita, year)}
+                            >
+                              Realizar pago
+                            </button>
+                          )}
                     </div>
                   </div>
                 </div>
