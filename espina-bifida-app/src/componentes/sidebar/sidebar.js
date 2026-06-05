@@ -108,10 +108,14 @@ function Sidebar() {
       <div className="sidebar-footer">
         <p className="menu-title">Sistema</p>
 
-        <div className="menu-item logout" onClick={handleLogout}>
-          <LogOut size={18} />
-          <span>Cerrar sesión</span>
-        </div>
+        <button 
+        className="menu-item logout" 
+        onClick={handleLogout}
+        onKeyDown={(e) => e.key === "Enter" && handleLogout()}
+      >
+        <LogOut size={18} />
+        <span>Cerrar sesión</span>
+      </button>
       </div>
     </aside>
   );
