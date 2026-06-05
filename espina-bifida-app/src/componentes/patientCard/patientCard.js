@@ -105,7 +105,7 @@ function PatientCard({ patient }) {
           />
           <div>
             <h3>{patient.name}</h3>
-            <p>{patient.subtitle}</p>
+            <p>{patient.curp || patient.subtitle}</p>
           </div>
         </div>
 
