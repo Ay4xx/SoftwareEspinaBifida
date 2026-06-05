@@ -162,6 +162,7 @@ function buildStatsObject(k, series) {
     },
     equipo: {
       total:              Number(k.TOTAL_EQUIPOS)              || 0,
+      bajo_stock:         Number(k.EQUIPOS_BAJO_STOCK)         || 0,
       cantidad_total:     Number(k.CANTIDAD_TOTAL_EQUIPOS)     || 0,
       en_uso:             Number(k.EQUIPOS_EN_USO)             || 0,
       regresados:         Number(k.EQUIPOS_REGRESADOS)         || 0,

@@ -167,7 +167,7 @@ function VisualizarHistorial() {
 
                     <div className="footer-visita">
                       <p className="total">
-                        Total
+                        Total:{" "}
                         <strong>
                           $
                           {calcularTotal(visita).toLocaleString("es-MX")}

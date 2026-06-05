@@ -157,6 +157,7 @@
 .total strong {
   font-weight: 500;
   color: #111;
+  padding-left: 4px;
 }
 /* ── Agregar al final de historial.css ─────────────────────────────── */
 

@@ -32,9 +32,17 @@ const COLORS = {
 };
 
 /* ── small reusable components ── */
-function KpiCard({ icon: Icon, label, value, sub, color = "blue", trend }) {
+function KpiCard({
+  icon: Icon,
+  label,
+  value,
+  sub,
+  color = "blue",
+  trend,
+  className = ""
+}) {
   return (
-    <div className={`kpi-card kpi-${color}`}>
+    <div className={`kpi-card kpi-${color} ${className}`}>
       <div className="kpi-icon-wrap">
         <Icon size={20} strokeWidth={2} />
       </div>
@@ -263,8 +271,13 @@ export default function EstadisticasPage() {
     { key: "citas",        label: "Citas" },
     { key: "visitas",      label: "Visitas e ingresos" },
     { key: "inventario",   label: "Inventario" },
-    { key: "notificaciones", label: "Notificaciones" },
+    { key: "notificaciones", label: "Registros" },
   ];
+  
+  const tasaAprobacion =
+  notificaciones.mes > 0
+    ? (((notificaciones.mes - notificaciones.rechazados) / notificaciones.mes) * 100).toFixed(1)
+    : 0;
 
   return (
     <div className="estadisticas-page">
@@ -305,7 +318,7 @@ export default function EstadisticasPage() {
             <KpiCard icon={Pill}        label="Medicinas usadas"   value={fmt(medicinas.utilizadas)}      color="amber"  sub={`${fmt(medicinas.bajo_stock)} bajo stock`} />
             <KpiCard icon={Package}     label="Equipo en uso"      value={fmt(equipo.en_uso)}             color="coral"  sub={`${equipo.porcentaje_retorno}% retorno`} />
             <KpiCard icon={Heart}       label="Membresías activas" value={fmt(membresias.activas)}        color="pink"   sub={`${fmt(membresias.vencidas)} vencidas`} />
-            <KpiCard icon={Bell}        label="Preregistros mes"   value={fmt(notificaciones.mes)}        color="gray"   sub={`${notificaciones.tasa_aprobacion}% aprobación`} />
+            <KpiCard icon={Bell}        label="Registros mes"   value={fmt(notificaciones.mes)}        color="gray"   sub={`${tasaAprobacion}% aprobación`} />
           </div>
 
           <div className="charts-row-2">
@@ -524,15 +537,16 @@ export default function EstadisticasPage() {
             <KpiCard icon={Pill} label="Total medicinas"   value={fmt(medicinas.total)}                color="blue" />
             <KpiCard icon={Pill} label="Stock total"       value={fmt(medicinas.stock_total)}          color="teal" />
             <KpiCard icon={Pill} label="Bajo stock"        value={fmt(medicinas.bajo_stock)}           color="amber" sub={pct(medicinas.bajo_stock, medicinas.total)} />
-            <KpiCard icon={Pill} label="Valor inventario"  value={fmtMoney(medicinas.valor_inventario)} color="green" />
+            <KpiCard className="kpi-card-long"  icon={Pill} label="Valor inventario"  value={fmtMoney(medicinas.valor_inventario)} color="green" />
           </div>
 
           <SectionHeader title="Equipo médico" />
           <div className="kpi-grid kpi-grid-4">
             <KpiCard icon={Package} label="Total equipos"       value={fmt(equipo.total)}              color="blue" />
             <KpiCard icon={Package} label="Cantidad disponible" value={fmt(equipo.cantidad_total)}     color="teal" />
+            <KpiCard icon={Package} label="Bajo stock"          value={fmt(equipo.bajo_stock)}         color="amber" sub={`${pct(equipo.bajo_stock, equipo.total)}`} />
             <KpiCard icon={Package} label="En uso"              value={fmt(equipo.en_uso)}             color="coral" sub={`${pct(equipo.en_uso, equipo.total)}`} />
-            <KpiCard icon={Package} label="Valor total"         value={fmtMoney(equipo.valor_total)}   color="purple" />
+            <KpiCard className="kpi-card-long"  icon={Package} label="Valor total"         value={fmtMoney(equipo.valor_total)}   color="purple" />
           </div>
 
           <div className="charts-row-2">
@@ -587,31 +601,31 @@ export default function EstadisticasPage() {
         </section>
       )}
 
-      {/* ══════════════ NOTIFICACIONES ══════════════ */}
+      {/* ══════════════ REGISTROS ══════════════ */}
       {activeSection === "notificaciones" && (
         <section>
           <div className="kpi-grid kpi-grid-4">
             <KpiCard icon={Bell} label="Este mes"         value={fmt(notificaciones.mes)}               color="blue" />
             <KpiCard icon={Bell} label="Rechazados"       value={fmt(notificaciones.rechazados)}         color="red" />
-            <KpiCard icon={Bell} label="Tasa aprobación"  value={`${notificaciones.tasa_aprobacion}%`}  color="green" />
+            <KpiCard icon={Bell} label="Tasa aprobación"  value={`${tasaAprobacion}%`}  color="green" />
           </div>
 
           <div className="charts-row-2">
-            <ChartCard title="Notificaciones por mes" className="chart-wide">
+            <ChartCard title="Registros por mes" className="chart-wide">
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={notifSerie}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" />
                   <XAxis dataKey="mes" tick={{ fontSize: 11 }} tickLine={false} />
                   <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="notif" name="Notificaciones" fill={COLORS.blue} radius={[4,4,0,0]} />
+                  <Bar dataKey="notif" name="Registros" fill={COLORS.blue} radius={[4,4,0,0]} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartCard>
           </div>
 
           <DataTable
-            title="Notificaciones por mes"
+            title="Registros por mes"
             rows={notifSerie.map((r) => ({ mes: r.mes, total: r.notif }))}
             columns={[
               { key: "mes",   label: "Mes" },
