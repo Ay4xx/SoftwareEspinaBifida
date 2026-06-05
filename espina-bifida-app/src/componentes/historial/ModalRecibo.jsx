@@ -157,24 +157,16 @@ function ModalGenerarRecibo({ visitas, pacienteId, onClose }) {
 
   const handleGenerar = () => {
     if (!visitaSeleccionada) return;
-
     setGenerando(true);
 
     const total = calcularTotal(visitaSeleccionada);
+    const montoPagado = visitaSeleccionada.montoRecibido ?? 0; // ← ajusta el nombre del campo
+    const diferencia = montoPagado - total;
 
     const filas = [
-      ...visitaSeleccionada.servicios.map(s => ({
-        tipo: "Servicio",
-        ...s
-      })),
-      ...visitaSeleccionada.medicamentos.map(m => ({
-        tipo: "Medicamento",
-        ...m
-      })),
-      ...visitaSeleccionada.equipo.map(e => ({
-        tipo: "Equipo",
-        ...e
-      })),
+      ...visitaSeleccionada.servicios.map(s => ({ tipo: "Servicio", ...s })),
+      ...visitaSeleccionada.medicamentos.map(m => ({ tipo: "Medicamento", ...m })),
+      ...visitaSeleccionada.equipo.map(e => ({ tipo: "Equipo", ...e })),
     ];
 
     const html = `
@@ -186,23 +178,37 @@ function ModalGenerarRecibo({ visitas, pacienteId, onClose }) {
         <table style="width:100%; border-collapse:collapse;">
           <thead>
             <tr>
-              <th>Tipo</th>
-              <th>Concepto</th>
-              <th>Precio</th>
+              <th style="text-align:left; border-bottom:1px solid #e2e8f0; padding:8px;">Tipo</th>
+              <th style="text-align:left; border-bottom:1px solid #e2e8f0; padding:8px;">Concepto</th>
+              <th style="text-align:right; border-bottom:1px solid #e2e8f0; padding:8px;">Precio</th>
             </tr>
           </thead>
           <tbody>
             ${filas.map(f => `
               <tr>
-                <td>${f.tipo}</td>
-                <td>${f.nombre}</td>
-                <td>$${f.precio.toLocaleString("es-MX")}</td>
+                <td style="padding:8px;">${f.tipo}</td>
+                <td style="padding:8px;">${f.nombre}</td>
+                <td style="padding:8px; text-align:right;">$${f.precio.toLocaleString("es-MX")}</td>
               </tr>
             `).join("")}
           </tbody>
         </table>
 
-        <h2>Total: $${total.toLocaleString("es-MX")}</h2>
+        <div style="margin-top:16px; border-top:2px solid #e2e8f0; padding-top:12px;">
+          <p style="display:flex; justify-content:space-between;">
+            <span>Subtotal esperado:</span>
+            <strong>$${total.toLocaleString("es-MX")}</strong>
+          </p>
+          <p style="display:flex; justify-content:space-between;">
+            <span>Monto recibido:</span>
+            <strong>$${montoPagado.toLocaleString("es-MX")}</strong>
+          </p>
+          ${diferencia !== 0 ? `
+          <p style="display:flex; justify-content:space-between;">
+            <span>${diferencia < 0 ? 'Saldo pendiente' : 'Cambio'}:</span>
+            <strong>$${Math.abs(diferencia).toLocaleString("es-MX")}</strong>
+          </p>` : ''}
+        </div>
       </div>
     `;
 
