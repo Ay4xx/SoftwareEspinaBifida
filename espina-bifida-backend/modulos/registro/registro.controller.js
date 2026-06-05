@@ -1,4 +1,4 @@
-import { crearPacientePaso1, actualizarPaso2, actualizarPaso3, actualizarPaso4, actualizarPaso5 } from "./registro.service.js";
+import { crearPacientePaso1, actualizarPaso2, actualizarPaso3, actualizarPaso4, actualizarPaso5, guardarDocumentos } from "./registro.service.js";
 import { enviarCorreoPreRegistro, enviarCorreoAltaManual } from "../email/email.service.js";
 
 export async function registrarPaciente(req, res) {
@@ -54,9 +54,15 @@ export async function contactoPaciente(req, res) {
 export async function historialMedicoPaciente(req, res) {
   try {
     const { id } = req.params;
-    const { lugarNacimiento, hospitalNacimiento, tipoSangre, usaValvula, notas } = req.body;
+    const {
+      lugarNacimiento, hospitalNacimiento, tipoSangre,
+      usaValvula, notas, tipoEspinaBifida, otrosPadecimiento,
+    } = req.body;
 
-    await actualizarPaso3(Number(id), { lugarNacimiento, hospitalNacimiento, tipoSangre, usaValvula, notas });
+    await actualizarPaso3(Number(id), {
+      lugarNacimiento, hospitalNacimiento, tipoSangre,
+      usaValvula, notas, tipoEspinaBifida, otrosPadecimiento,
+    });
     res.json({ ok: true });
   } catch (error) {
     console.error("Error en historialMedicoPaciente:", error);
@@ -68,14 +74,43 @@ export async function historialTutorPaciente(req, res) {
   try {
     const { id } = req.params;
     const {
-      tutorLugarNacimiento, tutorEdad, tutorOcupacion, tutorEscolaridad,
-      tutorParentesco, madreSeguroMedico, cdEmbarazo, acidoFolico, citasControl,
+      tutorParentesco,
+      tutorNombre,
+      tutorLugarNacimiento,
+      tutorEdad,
+      tutorOcupacion,
+      tutorEscolaridad,
+      tutorSeguroMedico,
+      madreSeguroMedico,
+      cdEmbarazo,
+      acidoFolico,
+      citasControl,
+      adicciones,
+      hijoDtn,
+      familiarDtn,
+      expoToxicos,
+      descripcionExpoToxicos,
     } = req.body;
 
     await actualizarPaso4(Number(id), {
-      tutorLugarNacimiento, tutorEdad, tutorOcupacion, tutorEscolaridad,
-      tutorParentesco, madreSeguroMedico, cdEmbarazo, acidoFolico, citasControl,
+      tutorParentesco,
+      tutorNombre,
+      tutorLugarNacimiento,
+      tutorEdad,
+      tutorOcupacion,
+      tutorEscolaridad,
+      tutorSeguroMedico,
+      madreSeguroMedico,
+      cdEmbarazo,
+      acidoFolico,
+      citasControl,
+      adicciones,
+      hijoDtn,
+      familiarDtn,
+      expoToxicos,
+      descripcionExpoToxicos,
     });
+
     res.json({ ok: true });
   } catch (error) {
     console.error("Error en historialTutorPaciente:", error);
@@ -87,9 +122,24 @@ export async function fotografiaPaciente(req, res) {
   try {
     const { id } = req.params;
     const { usuarioId, nombre, apellido, correo } = req.body;
+    const files = req.files || {};
 
-    if (req.file) {
-      await actualizarPaso5(Number(id), req.file.buffer);
+    const fotoBuffer = files.foto?.[0]?.buffer || null;
+    if (fotoBuffer) {
+      await actualizarPaso5(Number(id), fotoBuffer);
+    }
+
+    const documentos = {
+      docPreregistro:          files.docPreregistro?.[0]?.buffer          || null,
+      docActaNacimiento:       files.docActaNacimiento?.[0]?.buffer       || null,
+      docCurp:                 files.docCurp?.[0]?.buffer                 || null,
+      docComprobanteDomicilio: files.docComprobanteDomicilio?.[0]?.buffer || null,
+      docIneFamilia:           files.docIneFamilia?.[0]?.buffer           || null,
+    };
+
+    const tieneDocumentos = Object.values(documentos).some((b) => b !== null);
+    if (tieneDocumentos) {
+      await guardarDocumentos(Number(id), documentos);
     }
 
     if (usuarioId && correo) {

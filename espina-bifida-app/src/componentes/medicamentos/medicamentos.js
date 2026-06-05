@@ -4,13 +4,13 @@ import { useParams } from "react-router-dom";
 import { Paperclip, X, Search } from "lucide-react";
 
 function Medicamentos() {
-  const { pacienteId } = useParams(); // 
+  const { pacienteId } = useParams();
   const [medicamentos, setMedicamentos] = useState([]);
   const [disponibles, setDisponibles] = useState([]);
   const [seleccionados, setSeleccionados] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
   const [busqueda, setBusqueda] = useState("");
-  const [popup, setPopup] = useState(null); //
+  const [popup, setPopup] = useState(null);
 
   const abrirPopup = async () => {
     const ids = medicamentos.map((m) => m.MEDICINA_ID).join(",");
@@ -60,6 +60,13 @@ function Medicamentos() {
 
   const cambiarCantidad = (id, valor) => {
     const cantidad = Math.max(1, parseInt(valor) || 1);
+    const medicamento = medicamentos.find((m) => m.MEDICINA_ID === id);
+
+    if (medicamento && cantidad > medicamento.CANTIDAD_TOTAL) {
+      setPopup("exceso");
+      return;
+    }
+
     setMedicamentos(medicamentos.map((m) =>
       m.MEDICINA_ID === id ? { ...m, cantidad } : m
     ));
@@ -78,7 +85,7 @@ function Medicamentos() {
       setPopup("vacio");
       return;
     }
-  
+
     try {
       const res = await fetch("http://localhost:3001/api/medicamentos/guardar", {
         method: "POST",
@@ -148,7 +155,7 @@ function Medicamentos() {
 
       {/* Popup éxito */}
       {popup === "exito" && (
-        <div className="med-overlay" onClick={() => setPopup(null)}>
+        <div className="med-overlay">
           <div className="med-popup-msg" onClick={(e) => e.stopPropagation()}>
             <div className="med-popup-msg-icon"></div>
             <h4>¡Registro guardado!</h4>
@@ -162,7 +169,7 @@ function Medicamentos() {
 
       {/* Popup vacío */}
       {popup === "vacio" && (
-        <div className="med-overlay" onClick={() => setPopup(null)}>
+        <div className="med-overlay">
           <div className="med-popup-msg" onClick={(e) => e.stopPropagation()}>
             <div className="med-popup-msg-icon"></div>
             <h4>¡Sin medicamentos!</h4>
@@ -174,10 +181,24 @@ function Medicamentos() {
         </div>
       )}
 
+      {/* Popup exceso */}
+      {popup === "exceso" && (
+        <div className="med-overlay">
+          <div className="med-popup-msg" onClick={(e) => e.stopPropagation()}>
+            <div className="med-popup-msg-icon"></div>
+            <h4>Cantidad no disponible</h4>
+            <p>La cantidad ingresada supera el stock disponible en inventario.</p>
+            <button className="med-popup-confirmar" onClick={() => setPopup(null)}>
+              Entendido
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Popup selección */}
       {showPopup && (
-        <div className="med-overlay" onClick={() => setShowPopup(false)}>
-          <div className="med-popup" onClick={(e) => e.stopPropagation()}>
+        <div className="med-overlay">
+          <div className="med-popup">
 
             <div className="med-popup-header">
               <h4>Seleccionar Medicamentos</h4>

@@ -97,11 +97,6 @@
   transition: border 0.2s;
 }
 
-.na-field input:focus,
-.na-field select:focus {
-  border-color: #083a99;
-  background: #ffffff;
-}
 
 
 .na-row {

@@ -30,23 +30,26 @@ function Header() {
 
   const esAdmin = usuario?.tipoUsuario?.trim().toUpperCase() === "ADMINISTRADOR";
   const modoRevision = location.pathname === "/registro" && location.state?.modoRevision;
+    const vieneDeNotificaciones = modoRevision && location.state?.notificacionId;
+    const vieneDePaciente = modoRevision && location.state?.pacienteId && !location.state?.notificacionId;
 
-  const getTitle = () => {
-    if (location.pathname.startsWith("/historial")) {
-      return "Módulo de Historial";
-    }
-    switch (location.pathname) {
-      case "/":               return "Módulo de Pacientes";
-      case "/usuarios":       return "Módulo de Pacientes";
-      case "/inventario":     return "Módulo de Inventario";
-      case "/estadisticas":   return "Módulo de Estadísticas";
-      case "/registro":       return modoRevision ? "Volver a solicitudes" : "Módulo de Registro";
-      case "/notificaciones": return "Solicitudes";
-      case "/gestion-usuarios": return "Gestión de usuarios";
-      case "/agendacitas":    return "Módulo de Agenda";
-      default: return "Sistema";
-    }
-  };
+    const getTitle = () => {
+      if (location.pathname.startsWith("/historial")) return "Módulo de Historial";
+      switch (location.pathname) {
+        case "/":               return "Módulo de Pacientes";
+        case "/usuarios":       return "Módulo de Pacientes";
+        case "/inventario":     return "Módulo de Inventario";
+        case "/estadisticas":   return "Módulo de Estadísticas";
+        case "/registro":
+          if (vieneDeNotificaciones) return "Volver a solicitudes";
+          if (vieneDePaciente)       return "Volver a pacientes";
+          return "Módulo de Registro";
+        case "/notificaciones": return "Solicitudes";
+        case "/gestion-usuarios": return "Gestión de usuarios";
+        case "/agendacitas":    return "Módulo de Agenda";
+        default: return "Sistema";
+      }
+    };
 
   const getInitials = () => {
     if (!usuario) return "US";
@@ -66,17 +69,17 @@ function Header() {
     <div className="header">
       <div className="header-left">
         {modoRevision ? (
-          <div
-            className="header-back-title"
-            onClick={() => navigate("/notificaciones")}
-            style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }}
-          >
-            <ArrowLeft size={22} />
-            <h1 style={{ margin: 0 }}>{getTitle()}</h1>
-          </div>
-        ) : (
-          <h1>{getTitle()}</h1>
-        )}
+        <div
+          className="header-back-title"
+          onClick={() => vieneDeNotificaciones ? navigate("/notificaciones") : navigate("/usuarios")}
+          style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }}
+        >
+          <ArrowLeft size={22} />
+          <h1 style={{ margin: 0 }}>{getTitle()}</h1>
+        </div>
+      ) : (
+        <h1>{getTitle()}</h1>
+      )}
       </div>
 
       <div className="header-right">

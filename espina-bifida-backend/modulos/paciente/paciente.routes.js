@@ -18,6 +18,9 @@ router.get("/detalle/:id", obtenerPacienteDetalle);
 router.get("/:id/foto", obtenerFoto);
 router.post("/upload/:id", upload.single("foto"), subirFoto);
 router.put("/:id", upload.single("foto"), actualizarPaciente);
-router.get("/:id", obtenerPacientePorId);
+router.get("/:id", (req, res, next) => {
+  console.log("GET /api/pacientes/:id llamado con id:", req.params.id);
+  next();
+}, obtenerPacientePorId);
 
 export default router;

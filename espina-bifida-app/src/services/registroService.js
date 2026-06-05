@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:3001/api/registro";
+const API_URL      = "http://localhost:3001/api/registro";
+const PACIENTES_URL = "http://localhost:3001/api/pacientes";
 
 function nullIfEmpty(val) {
   if (val === undefined || val === null || val === "") return null;
@@ -72,6 +73,8 @@ export async function actualizarPaso3(pacienteId, formData) {
     tipoSangre:         nullIfEmpty(formData.tipoSangre),
     usaValvula:         nullIfEmpty(formData.usaValvula),
     notas:              nullIfEmpty(formData.notas),
+    tipoEspinaBifida:   nullIfEmpty(formData.tipoEspinaBifida),
+    otrosPadecimiento:  nullIfEmpty(formData.otrosPadecimiento),
   };
   const response = await fetch(`${API_URL}/${pacienteId}/paso3`, {
     method: "PUT",
@@ -85,15 +88,22 @@ export async function actualizarPaso3(pacienteId, formData) {
 
 export async function actualizarPaso4(pacienteId, formData) {
   const body = {
-    tutorLugarNacimiento: nullIfEmpty(formData.tutorLugarNacimiento),
-    tutorEdad:            nullIfEmpty(formData.tutorEdad),
-    tutorOcupacion:       nullIfEmpty(formData.tutorOcupacion),
-    tutorEscolaridad:     nullIfEmpty(formData.tutorEscolaridad),
-    tutorParentesco:      nullIfEmpty(formData.tutorParentesco),
-    madreSeguroMedico:    nullIfEmpty(formData.madreSeguroMedico),
-    cdEmbarazo:           nullIfEmpty(formData.cdEmbarazo),
-    acidoFolico:          nullIfEmpty(formData.acidoFolico),
-    citasControl:         nullIfEmpty(formData.citasControl),
+    tutorParentesco:        nullIfEmpty(formData.tutorParentesco),
+    tutorNombre:            nullIfEmpty(formData.tutorNombre),         // ← CORREGIDO
+    tutorLugarNacimiento:   nullIfEmpty(formData.tutorLugarNacimiento),
+    tutorEdad:              nullIfEmpty(formData.tutorEdad),
+    tutorOcupacion:         nullIfEmpty(formData.tutorOcupacion),
+    tutorEscolaridad:       nullIfEmpty(formData.tutorEscolaridad),
+    tutorSeguroMedico:      nullIfEmpty(formData.tutorSeguroMedico),
+    madreSeguroMedico:      nullIfEmpty(formData.madreSeguroMedico),
+    cdEmbarazo:             nullIfEmpty(formData.cdEmbarazo),
+    acidoFolico:            nullIfEmpty(formData.acidoFolico),
+    citasControl:           nullIfEmpty(formData.citasControl),
+    adicciones:             nullIfEmpty(formData.adicciones),          // ← CORREGIDO
+    hijoDtn:                nullIfEmpty(formData.hijoDtn),             // ← CORREGIDO
+    familiarDtn:            nullIfEmpty(formData.familiarDtn),         // ← CORREGIDO
+    expoToxicos:            nullIfEmpty(formData.expoToxicos),         // ← CORREGIDO
+    descripcionExpoToxicos: nullIfEmpty(formData.descripcionExpoToxicos), // ← CORREGIDO
   };
   const response = await fetch(`${API_URL}/${pacienteId}/paso4`, {
     method: "PUT",
@@ -110,11 +120,18 @@ export async function actualizarPaso5(pacienteId, foto, formData) {
   const esInvitado = localStorage.getItem("guest") === "true";
 
   const body = new FormData();
-  body.append("foto",      foto);
+  if (foto instanceof File) body.append("foto", foto);
   body.append("usuarioId", esInvitado ? "" : usuario?.id || "");
   body.append("nombre",    formData?.nombres         || "");
   body.append("apellido",  formData?.apellidoPaterno || "");
   body.append("correo",    formData?.correo          || "");
+
+  const documentos = formData?.documentos || {};
+  if (documentos.preregistro          instanceof File) body.append("docPreregistro",          documentos.preregistro);
+  if (documentos.actaNacimiento       instanceof File) body.append("docActaNacimiento",       documentos.actaNacimiento);
+  if (documentos.curp                 instanceof File) body.append("docCurp",                 documentos.curp);
+  if (documentos.comprobanteDomicilio instanceof File) body.append("docComprobanteDomicilio", documentos.comprobanteDomicilio);
+  if (documentos.ineFamilia           instanceof File) body.append("docIneFamilia",           documentos.ineFamilia);
 
   const response = await fetch(`${API_URL}/${pacienteId}/paso5`, {
     method: "PUT",
@@ -122,5 +139,40 @@ export async function actualizarPaso5(pacienteId, foto, formData) {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || "Error al guardar la fotografía.");
+  return data;
+}
+
+export async function actualizarPaciente(pacienteId, formData, tutores) {
+  const body = new FormData();
+  body.append("nombre",             formData.nombres || "");
+  body.append("apellido",           formData.apellidoPaterno || "");
+  body.append("genero",             formData.genero || "");
+  body.append("fechaNacimiento",    formData.fechaNacimiento || "");
+  body.append("curp",               formData.curp || "");
+  body.append("direccion",          formData.direccion || "");
+  body.append("ciudad",             formData.ciudad || "");
+  body.append("estado",             formData.estado || "");
+  body.append("codigoPostal",       formData.codigoPostal || "");
+  body.append("telefonoCasa",       formData.telefonoCasa || "");
+  body.append("telefonoCelular",    formData.telefonoCelular || "");
+  body.append("correo",             formData.correo || "");
+  body.append("emergenciaContacto", formData.emergenciaContacto || "");
+  body.append("emergenciaTelefono", formData.emergenciaTelefono || "");
+  body.append("lugarNacimiento",    formData.lugarNacimiento || "");
+  body.append("hospitalNacimiento", formData.hospitalNacimiento || "");
+  body.append("tipoSangre",         formData.tipoSangre || "");
+  body.append("usaValvula",         formData.usaValvula || "");
+  body.append("notas",              formData.notas || "");
+  body.append("tipoEspinaBifida",   formData.tipoEspinaBifida || "");
+  body.append("otrosPadecimiento",  formData.otrosPadecimiento || "");
+  body.append("tutores",            JSON.stringify(tutores));
+  if (formData.foto instanceof File) body.append("foto", formData.foto);
+
+  const response = await fetch(`${PACIENTES_URL}/${pacienteId}`, {
+    method: "PUT",
+    body,
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || "Error al guardar cambios.");
   return data;
 }

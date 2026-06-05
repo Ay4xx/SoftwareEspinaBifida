@@ -138,11 +138,13 @@ export async function actualizarPaso2(pacienteId, {
 
 export async function actualizarPaso3(pacienteId, {
   lugarNacimiento, hospitalNacimiento, tipoSangre, usaValvula, notas,
+  tipoEspinaBifida, otrosPadecimiento,
 }) {
   let conn;
   try {
     conn = await getConnection();
     const valvula = usaValvula === "Sí" ? "SI" : usaValvula === "No" ? "NO" : null;
+
     await conn.execute(
       `UPDATE PACIENTE SET
         LUGAR_NACIMIENTO    = :lugarNacimiento,
@@ -159,9 +161,59 @@ export async function actualizarPaso3(pacienteId, {
         notas:              nullIfEmpty(notas),
         pacienteId,
       },
-      { autoCommit: true }
+      { autoCommit: false }
     );
+
+    if (tipoEspinaBifida) {
+      const resPad = await conn.execute(
+        `SELECT PADECIMIENTO_ID FROM PADECIMIENTOEB 
+         WHERE UPPER(TIPO_PADECIMIENTO) = UPPER(:tipo)`,
+        { tipo: tipoEspinaBifida },
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );
+
+      if (resPad.rows.length > 0) {
+        const padecimientoId = resPad.rows[0].PADECIMIENTO_ID;
+
+        const checkPad = await conn.execute(
+          `SELECT COUNT(*) AS total FROM PACIENTE_PADECIMIENTO WHERE PACIENTE_ID = :pacienteId`,
+          { pacienteId },
+          { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        );
+
+        if (checkPad.rows[0].TOTAL > 0) {
+          await conn.execute(
+            `UPDATE PACIENTE_PADECIMIENTO SET PADECIMIENTO_ID = :padecimientoId
+             WHERE PACIENTE_ID = :pacienteId`,
+            { padecimientoId, pacienteId },
+            { autoCommit: false }
+          );
+        } else {
+          await conn.execute(
+            `INSERT INTO PACIENTE_PADECIMIENTO 
+              (PADECIMIENTO_PACIENTE_ID, PACIENTE_ID, PADECIMIENTO_ID)
+            VALUES
+              ((SELECT NVL(MAX(PADECIMIENTO_PACIENTE_ID),0)+1 FROM PACIENTE_PADECIMIENTO),
+               :pacienteId, :padecimientoId)`,
+            { pacienteId, padecimientoId },
+            { autoCommit: false }
+          );
+        }
+
+        if (tipoEspinaBifida === "OTROS" && otrosPadecimiento) {
+          await conn.execute(
+            `UPDATE PADECIMIENTOEB SET DESCRIPCION = :descripcion
+             WHERE PADECIMIENTO_ID = :padecimientoId`,
+            { descripcion: nullIfEmpty(otrosPadecimiento), padecimientoId },
+            { autoCommit: false }
+          );
+        }
+      }
+    }
+
+    await conn.commit();
   } catch (error) {
+    if (conn) await conn.rollback();
     console.error("Error en actualizarPaso3:", error);
     throw error;
   } finally {
@@ -170,38 +222,127 @@ export async function actualizarPaso3(pacienteId, {
 }
 
 export async function actualizarPaso4(pacienteId, {
-  tutorLugarNacimiento, tutorEdad, tutorOcupacion, tutorEscolaridad,
-  tutorParentesco, madreSeguroMedico, cdEmbarazo, acidoFolico, citasControl,
+  tutorParentesco,
+  tutorNombre,
+  tutorLugarNacimiento,
+  tutorEdad,
+  tutorOcupacion,
+  tutorEscolaridad,
+  tutorSeguroMedico,
+  madreSeguroMedico,
+  cdEmbarazo,
+  acidoFolico,
+  citasControl,
+  adicciones,
+  hijoDtn,
+  familiarDtn,
+  expoToxicos,
+  descripcionExpoToxicos,
 }) {
+
   let conn;
   try {
     conn = await getConnection();
-    await conn.execute(
-      `INSERT INTO HISTORIAL_MADRE (
-        MADRE_ID, PACIENTE_ID,
-        LUGAR_NACIMIENTO, ESCOLARIDAD, OCUPACION, EDAD, PARENTESCO,
-        SEGURO_MEDICO, CD_EMBARAZO, ACIDO_FOLICO, CITAS_CONTROL
-      ) VALUES (
-        (SELECT NVL(MAX(MADRE_ID), 0) + 1 FROM HISTORIAL_MADRE),
-        :pacienteId,
-        :lugarNacimiento, :escolaridad, :ocupacion, :edad, :parentesco,
-        :seguroMedico, :cdEmbarazo, :acidoFolico, :citasControl
-      )`,
-      {
-        pacienteId,
-        lugarNacimiento: nullIfEmpty(tutorLugarNacimiento),
-        escolaridad:     nullIfEmpty(tutorEscolaridad),
-        ocupacion:       nullIfEmpty(tutorOcupacion),
-        edad:            tutorEdad ? Number(tutorEdad) : null,
-        parentesco:      tutorParentesco === "Sí" ? "S" : tutorParentesco === "No" ? "N" : null,
-        seguroMedico:    nullIfEmpty(madreSeguroMedico),
-        cdEmbarazo:      nullIfEmpty(cdEmbarazo),
-        acidoFolico:     acidoFolico === "Sí" ? "S" : acidoFolico === "No" ? "N" : null,
-        citasControl:    citasControl ? Number(citasControl) : null,
-      },
-      { autoCommit: true }
+    const esMadre = tutorParentesco === "Madre";
+    const esPadre = tutorParentesco === "Padre";
+
+    if (esMadre) {
+      await conn.execute(
+        `INSERT INTO HISTORIAL_MADRE (
+          MADRE_ID, PACIENTE_ID, NOMBRE, LUGAR_NACIMIENTO, ESCOLARIDAD,
+          OCUPACION, EDAD, SEGURO_MEDICO, CD_EMBARAZO, ACIDO_FOLICO, CITAS_CONTROL
+        ) VALUES (
+          (SELECT NVL(MAX(MADRE_ID),0)+1 FROM HISTORIAL_MADRE),
+          :pacienteId, :nombre, :lugarNacimiento, :escolaridad,
+          :ocupacion, :edad, :seguroMedico, :cdEmbarazo, :acidoFolico, :citasControl
+        )`,
+        {
+          pacienteId,
+          nombre:          nullIfEmpty(tutorNombre),
+          lugarNacimiento: nullIfEmpty(tutorLugarNacimiento),
+          escolaridad:     nullIfEmpty(tutorEscolaridad),
+          ocupacion:       nullIfEmpty(tutorOcupacion),
+          edad:            tutorEdad ? Number(tutorEdad) : null,
+          seguroMedico:    nullIfEmpty(madreSeguroMedico) || nullIfEmpty(tutorSeguroMedico),
+          cdEmbarazo:      nullIfEmpty(cdEmbarazo),
+          acidoFolico:     acidoFolico === "Sí" ? "S" : acidoFolico === "No" ? "N" : null,
+          citasControl:    citasControl ? Number(citasControl) : null,
+        },
+        { autoCommit: false }
+      );
+    } else if (esPadre) {
+      await conn.execute(
+        `INSERT INTO HISTORIAL_PADRE (
+          PADRE_ID, PACIENTE_ID, NOMBRE, LUGAR_NACIMIENTO, ESCOLARIDAD,
+          OCUPACION, EDAD, SEGURO_MEDICO
+        ) VALUES (
+          (SELECT NVL(MAX(PADRE_ID),0)+1 FROM HISTORIAL_PADRE),
+          :pacienteId, :nombre, :lugarNacimiento, :escolaridad,
+          :ocupacion, :edad, :seguroMedico
+        )`,
+        {
+          pacienteId,
+          nombre:          nullIfEmpty(tutorNombre),
+          lugarNacimiento: nullIfEmpty(tutorLugarNacimiento),
+          escolaridad:     nullIfEmpty(tutorEscolaridad),
+          ocupacion:       nullIfEmpty(tutorOcupacion),
+          edad:            tutorEdad ? Number(tutorEdad) : null,
+          seguroMedico:    nullIfEmpty(tutorSeguroMedico),
+        },
+        { autoCommit: false }
+      );
+    }
+
+    const checkAmbos = await conn.execute(
+      `SELECT COUNT(*) AS total FROM HISTORIAL_AMBOS WHERE PACIENTE_ID = :pacienteId`,
+      { pacienteId },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
+
+    if (checkAmbos.rows[0].TOTAL > 0) {
+      await conn.execute(
+        `UPDATE HISTORIAL_AMBOS SET
+          ADICCIONES               = :adicciones,
+          HIJO_DTN                 = :hijoDtn,
+          FAMILIAR_DTN             = :familiarDtn,
+          EXPO_TOXICOS             = :expoToxicos,
+          DESCRIPCION_EXPO_TOXICOS = :descripcionExpoToxicos
+        WHERE PACIENTE_ID = :pacienteId`,
+        {
+          adicciones:             nullIfEmpty(adicciones),
+          hijoDtn:                hijoDtn === "Sí" ? "SI" : hijoDtn === "No" ? "NO" : null,
+          familiarDtn:            familiarDtn === "Sí" ? "SI" : familiarDtn === "No" ? "NO" : null,
+          expoToxicos:            expoToxicos === "Sí" ? "SI" : expoToxicos === "No" ? "NO" : null,
+          descripcionExpoToxicos: nullIfEmpty(descripcionExpoToxicos),
+          pacienteId,
+        },
+        { autoCommit: false }
+      );
+    } else {
+      await conn.execute(
+        `INSERT INTO HISTORIAL_AMBOS (
+          AMBOS_ID, PACIENTE_ID, ADICCIONES, HIJO_DTN, FAMILIAR_DTN,
+          EXPO_TOXICOS, DESCRIPCION_EXPO_TOXICOS
+        ) VALUES (
+          (SELECT NVL(MAX(AMBOS_ID),0)+1 FROM HISTORIAL_AMBOS),
+          :pacienteId, :adicciones, :hijoDtn, :familiarDtn,
+          :expoToxicos, :descripcionExpoToxicos
+        )`,
+        {
+          pacienteId,
+          adicciones:             nullIfEmpty(adicciones),
+          hijoDtn:                hijoDtn === "Sí" ? "SI" : hijoDtn === "No" ? "NO" : null,
+          familiarDtn:            familiarDtn === "Sí" ? "SI" : familiarDtn === "No" ? "NO" : null,
+          expoToxicos:            expoToxicos === "Sí" ? "SI" : expoToxicos === "No" ? "NO" : null,
+          descripcionExpoToxicos: nullIfEmpty(descripcionExpoToxicos),
+        },
+        { autoCommit: false }
+      );
+    }
+
+    await conn.commit();
   } catch (error) {
+    if (conn) await conn.rollback();
     console.error("Error en actualizarPaso4:", error);
     throw error;
   } finally {
@@ -220,6 +361,41 @@ export async function actualizarPaso5(pacienteId, fotoBuffer) {
     );
   } catch (error) {
     console.error("Error en actualizarPaso5:", error);
+    throw error;
+  } finally {
+    if (conn) await conn.close();
+  }
+}
+
+export async function guardarDocumentos(pacienteId, {
+  docPreregistro,
+  docActaNacimiento,
+  docCurp,
+  docComprobanteDomicilio,
+  docIneFamilia,
+}) {
+  let conn;
+  try {
+    conn = await getConnection();
+
+    const campos = [];
+    const binds = { pacienteId };
+
+    if (docPreregistro)          { campos.push("DOC_PREREGISTRO = :docPreregistro");                     binds.docPreregistro = docPreregistro; }
+    if (docActaNacimiento)       { campos.push("DOC_ACTA_NACIMIENTO = :docActaNacimiento");               binds.docActaNacimiento = docActaNacimiento; }
+    if (docCurp)                 { campos.push("DOC_CURP = :docCurp");                                   binds.docCurp = docCurp; }
+    if (docComprobanteDomicilio) { campos.push("DOC_COMPROBANTE_DOMICILIO = :docComprobanteDomicilio");   binds.docComprobanteDomicilio = docComprobanteDomicilio; }
+    if (docIneFamilia)           { campos.push("DOC_INE_FAMILIA = :docIneFamilia");                      binds.docIneFamilia = docIneFamilia; }
+
+    if (campos.length === 0) return;
+
+    await conn.execute(
+      `UPDATE PACIENTE SET ${campos.join(", ")} WHERE PACIENTE_ID = :pacienteId`,
+      binds,
+      { autoCommit: true }
+    );
+  } catch (error) {
+    console.error("Error en guardarDocumentos:", error);
     throw error;
   } finally {
     if (conn) await conn.close();

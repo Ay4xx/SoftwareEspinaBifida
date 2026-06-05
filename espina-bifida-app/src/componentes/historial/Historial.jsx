@@ -3,8 +3,8 @@ import "./historial.css";
 import React, { useEffect, useState } from "react";
 
 import ModalPago from "./ModalPago";
-import ModalGenerarRecibo from "./ModalGenerarRecibo";
-import { calcularTotal } from "./helpers";
+import ModalGenerarRecibo from "./ModalRecibo";
+import { calcularTotal } from "./helper";
 
 function VisualizarHistorial() {
   const { pacienteId } = useParams();
@@ -108,24 +108,18 @@ function VisualizarHistorial() {
                         </strong>
                       </p>
 
-                      {!visita.montoRecibido ? (
-                        <button
-                          className="btn-modificar-pago"
-                          onClick={() => abrirModal(visita, year)}
-                        >
-                          Realizar pago
-                        </button>
-                      ) : (
-                        <p className="monto-pagado-real">
-                          Pagado:
-                          <strong>
-                            $
-                            {Number(
-                              visita.montoRecibido
-                            ).toLocaleString("es-MX")}
-                          </strong>
-                        </p>
-                      )}
+                     {visita.montoRecibido ? (
+                            <p className="monto-pagado-real">
+                              Pagado: <strong>${visita.montoRecibido.toLocaleString("es-MX")}</strong>
+                            </p>
+                          ) : (
+                            <button
+                              className="btn-modificar-pago"
+                              onClick={() => abrirModal(visita, year)}
+                            >
+                              Realizar pago
+                            </button>
+                          )}
                     </div>
                   </div>
                 </div>

@@ -66,6 +66,13 @@ function EquipoMedico() {
 
   const cambiarCantidad = (id, valor) => {
     const cantidad = Math.max(1, parseInt(valor) || 1);
+    const equipo = equipos.find((e) => e.EQUIPO_M_ID === id);
+
+    if (equipo && cantidad > equipo.CANTIDAD_TOTAL) {
+      setPopup("exceso");
+      return;
+    }
+
     setEquipos(equipos.map((e) => e.EQUIPO_M_ID === id ? { ...e, cantidad } : e));
   };
 
@@ -86,7 +93,7 @@ function EquipoMedico() {
       setPopup("vacio");
       return;
     }
-  
+
     try {
       const res = await fetch("http://localhost:3001/api/equipomedico/guardar", {
         method: "POST",
@@ -94,7 +101,7 @@ function EquipoMedico() {
         body: JSON.stringify({ pacienteId, equipos }),
       });
       const json = await res.json();
-  
+
       if (json.ok) {
         setEquipos([]);
         setPopup("exito");
@@ -105,7 +112,6 @@ function EquipoMedico() {
       console.error(err);
     }
   };
-  
 
   return (
     <div className="equipo-wrapper">
@@ -116,7 +122,7 @@ function EquipoMedico() {
           </h3>
           <button className="equipo-agregar" onClick={abrirPopup}>+ Agregar</button>
         </div>
-  
+
         {equipos.length > 0 ? (
           <>
             <div className="equipo-table-header">
@@ -126,7 +132,7 @@ function EquipoMedico() {
               <span>Fecha Estimada</span>
               <span></span>
             </div>
-  
+
             {equipos.map((e) => (
               <div key={e.EQUIPO_M_ID} className="equipo-row">
                 <span className="equipo-nombre">{e.DESCRIPCION}</span>
@@ -148,7 +154,7 @@ function EquipoMedico() {
                 <button className="equipo-delete" onClick={() => eliminar(e.EQUIPO_M_ID)}>✕</button>
               </div>
             ))}
-  
+
             <div className="equipo-total">
               <span>Total</span>
               <span>${total.toFixed(2)}</span>
@@ -157,16 +163,16 @@ function EquipoMedico() {
         ) : (
           <p className="equipo-empty">No hay equipo médico agregado.</p>
         )}
-  
+
         <div className="equipo-footer">
           <button className="equipo-cancelar" onClick={cancelarLista}>Cancelar</button>
           <button className="equipo-guardar" onClick={guardarConsultaEquipo}> Guardar Consulta</button>
         </div>
       </div>
-  
+
       {/* Popup éxito */}
       {popup === "exito" && (
-        <div className="equipo-overlay" onClick={() => setPopup(null)}>
+        <div className="equipo-overlay">
           <div className="equipo-popup-msg" onClick={(e) => e.stopPropagation()}>
             <div className="equipo-popup-msg-icon"></div>
             <h4>¡Registro guardado!</h4>
@@ -177,10 +183,10 @@ function EquipoMedico() {
           </div>
         </div>
       )}
-  
+
       {/* Popup vacío */}
       {popup === "vacio" && (
-        <div className="equipo-overlay" onClick={() => setPopup(null)}>
+        <div className="equipo-overlay">
           <div className="equipo-popup-msg" onClick={(e) => e.stopPropagation()}>
             <div className="equipo-popup-msg-icon"></div>
             <h4>¡Sin equipo médico!</h4>
@@ -191,19 +197,33 @@ function EquipoMedico() {
           </div>
         </div>
       )}
-  
+
+      {/* Popup exceso */}
+      {popup === "exceso" && (
+        <div className="equipo-overlay">
+          <div className="equipo-popup-msg" onClick={(e) => e.stopPropagation()}>
+            <div className="equipo-popup-msg-icon"></div>
+            <h4>Cantidad no disponible</h4>
+            <p>La cantidad ingresada supera el stock disponible en inventario.</p>
+            <button className="equipo-popup-confirmar" onClick={() => setPopup(null)}>
+              Entendido
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Popup selección */}
       {showPopup && (
-        <div className="equipo-overlay" onClick={() => setShowPopup(false)}>
-          <div className="equipo-popup" onClick={(e) => e.stopPropagation()}>
-  
+        <div className="equipo-overlay">
+          <div className="equipo-popup">
+
             <div className="equipo-popup-header">
               <h4>Seleccionar Equipo Médico</h4>
               <button className="equipo-popup-close" onClick={() => setShowPopup(false)}>
                 <X size={18} />
               </button>
             </div>
-  
+
             <div className="equipo-search">
               <Search size={16} className="equipo-search-icon" />
               <input
@@ -214,7 +234,7 @@ function EquipoMedico() {
                 className="equipo-search-input"
               />
             </div>
-  
+
             <div className="equipo-popup-list">
               {disponiblesFiltrados.length === 0 ? (
                 <p className="equipo-empty">No se encontró equipo médico.</p>
@@ -241,7 +261,7 @@ function EquipoMedico() {
                 })
               )}
             </div>
-  
+
             <div className="equipo-popup-footer">
               <button className="equipo-popup-cancelar" onClick={cancelarPopup}>Cancelar</button>
               <button
@@ -252,14 +272,12 @@ function EquipoMedico() {
                 Agregar ({seleccionados.length})
               </button>
             </div>
-  
+
           </div>
         </div>
       )}
     </div>
   );
-  
- 
 }
 
 export default EquipoMedico;
