@@ -1,280 +1,634 @@
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import GestionUsuarios from '../../pantallas/gestionUsuarios';
+import React from "react";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+} from "@testing-library/react";
+import GestionUsuarios from "../../pantallas/gestionUsuarios";
 
-jest.mock('react-router-dom', () => ({
-  useNavigate: () => jest.fn(),
+jest.mock("../../pantallas/gestionUsuarios.css", () => ({}));
+
+jest.mock("lucide-react", () => ({
+  Search: () => <span data-testid="icon-search">Search</span>,
+  Plus: () => <span data-testid="icon-plus">Plus</span>,
+  Pencil: () => <span data-testid="icon-pencil">Pencil</span>,
+  Trash2: () => <span data-testid="icon-trash">Trash2</span>,
+  Camera: () => <span data-testid="icon-camera">Camera</span>,
 }));
 
-globalThis.fetch = jest.fn();
+describe("GestionUsuarios", () => {
+  const usuariosMock = [
+    {
+      id: 1,
+      nombre: "Juan Pérez",
+      username: "juan@test.com",
+      tipoUsuario: "COORDINADOR",
+      foto: null,
+      fechaRegistro: "2026-06-05T00:00:00.000Z",
+    },
+    {
+      id: 2,
+      nombre: "Ana Admin",
+      username: "ana@test.com",
+      tipoUsuario: "ADMINISTRADOR",
+      foto: "http://localhost/foto.png",
+      fechaRegistro: "2026-06-01T00:00:00.000Z",
+    },
+    {
+      id: 3,
+      nombre: "Root User",
+      username: "root@test.com",
+      tipoUsuario: "SUPERADMIN",
+      foto: null,
+      fechaRegistro: null,
+    },
+  ];
 
-describe('GestionUsuarios Component', () => {
+  const mockFetchUsuarios = () => {
+    globalThis.fetch.mockResolvedValueOnce({
+      json: async () => ({
+        ok: true,
+        usuarios: usuariosMock,
+      }),
+    });
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
-    localStorage.clear();
-    localStorage.setItem('token', 'test-token');
-    fetch.mockClear();
+
+    globalThis.fetch = jest.fn();
+    globalThis.alert = jest.fn();
+    globalThis.confirm = jest.fn();
+
+    Storage.prototype.getItem = jest.fn((key) => {
+      if (key === "token") return "token-prueba";
+
+      if (key === "usuario") {
+        return JSON.stringify({
+          id: 1,
+          nombre: "Juan Pérez",
+          foto: null,
+        });
+      }
+
+      return null;
+    });
+
+    Storage.prototype.setItem = jest.fn();
+
+    window.dispatchEvent = jest.fn();
+
+    globalThis.URL.createObjectURL = jest.fn(() => "blob:foto-preview");
   });
 
-  test('debe renderizar la página de gestión de usuarios', () => {
-    fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        ok: true,
-        usuarios: [],
-      }),
-    });
+  test("muestra mensaje de carga inicialmente y luego renderiza usuarios", async () => {
+    mockFetchUsuarios();
 
     render(<GestionUsuarios />);
-    
-    expect(screen.getByText(/usuarios|gestión/i) || screen.getByRole('heading')).toBeTruthy();
+
+    expect(screen.getByText("Cargando usuarios...")).toBeInTheDocument();
+
+    expect(await screen.findByText("Juan Pérez")).toBeInTheDocument();
+    expect(screen.getByText("Ana Admin")).toBeInTheDocument();
+    expect(screen.getByText("Root User")).toBeInTheDocument();
+
+    expect(screen.getByText("Coordinador")).toBeInTheDocument();
+    expect(screen.getByText("Administrador")).toBeInTheDocument();
+    expect(screen.getByText("Super Admin")).toBeInTheDocument();
   });
 
-  test('debe cargar la lista de usuarios', async () => {
-    fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        ok: true,
-        usuarios: [
-          { id: 1, nombre: 'Juan', username: 'juan@test.com', rol: 'ADMINISTRADOR' },
-          { id: 2, nombre: 'Maria', username: 'maria@test.com', rol: 'COORDINADOR' },
-        ],
-      }),
-    });
+  test("llama al endpoint de carga con token", async () => {
+    mockFetchUsuarios();
 
     render(<GestionUsuarios />);
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining('gestion-usuarios'),
-        expect.any(Object)
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        "http://localhost:3001/api/gestion-usuarios?busqueda=&limite=50",
+        {
+          headers: {
+            Authorization: "Bearer token-prueba",
+          },
+        }
       );
     });
   });
 
-  test('debe buscar usuarios por nombre', async () => {
-    fetch.mockResolvedValueOnce({
-      ok: true,
+  test("muestra error si falla la carga de usuarios", async () => {
+    globalThis.fetch.mockResolvedValueOnce({
       json: async () => ({
-        ok: true,
-        usuarios: [
-          { id: 1, nombre: 'Juan Pérez', username: 'juan@test.com' },
-        ],
+        ok: false,
+        message: "Error",
       }),
     });
 
     render(<GestionUsuarios />);
 
-    const searchInput = screen.queryByPlaceholderText(/buscar|nombre/i);
-    if (searchInput) {
-      userEvent.type(searchInput, 'Juan');
-      expect(searchInput.value).toBe('Juan');
-    }
+    expect(
+      await screen.findByText("No se pudieron cargar los usuarios")
+    ).toBeInTheDocument();
   });
 
-  test('debe abrir modal para crear nuevo usuario', async () => {
-    fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        ok: true,
-        usuarios: [],
-      }),
-    });
+  test("filtra usuarios por búsqueda", async () => {
+    mockFetchUsuarios();
 
     render(<GestionUsuarios />);
 
-    const nuevoButton = screen.queryByRole('button', { name: /nuevo|crear|agregar/i });
-    if (nuevoButton) {
-      fireEvent.click(nuevoButton);
-      
-      await waitFor(() => {
-        expect(screen.queryByText(/completa los datos del nuevo usuario/i) || 
-                screen.queryByLabelText(/nombre completo/i)).toBeTruthy();
-      }, { timeout: 1000 });
-    }
+    expect(await screen.findByText("Juan Pérez")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText("Buscar usuario..."), {
+      target: {
+        value: "ana",
+      },
+    });
+
+    expect(screen.getByText("Ana Admin")).toBeInTheDocument();
+    expect(screen.queryByText("Juan Pérez")).not.toBeInTheDocument();
   });
 
-  test('debe validar campos requeridos en el formulario', async () => {
-    fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ ok: true, usuarios: [] }),
-    });
+  test("muestra mensaje si no encuentra usuarios filtrados", async () => {
+    mockFetchUsuarios();
 
     render(<GestionUsuarios />);
 
-    const nuevoButton = screen.queryByRole('button', { name: /nuevo|crear|agregar/i });
-    if (nuevoButton) {
-      fireEvent.click(nuevoButton);
-      
-      const guardarButton = screen.queryByRole('button', { name: /guardar/i });
-      if (guardarButton) {
-        fireEvent.click(guardarButton);
-        
-        await waitFor(() => {
-          expect(screen.queryByText(/requerido|obligatorio|completa/i)).toBeTruthy();
-        }, { timeout: 1000 });
-      }
-    }
+    await screen.findByText("Juan Pérez");
+
+    fireEvent.change(screen.getByPlaceholderText("Buscar usuario..."), {
+      target: {
+        value: "noexiste",
+      },
+    });
+
+    expect(screen.getByText("No se encontraron usuarios")).toBeInTheDocument();
   });
 
-  test('debe validar la contraseña cumple requisitos', async () => {
-    fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ ok: true, usuarios: [] }),
-    });
+  test("abre modal de nuevo usuario", async () => {
+    mockFetchUsuarios();
 
     render(<GestionUsuarios />);
 
-    const nuevoButton = screen.queryByRole('button', { name: /nuevo|crear|agregar/i });
-    if (nuevoButton) {
-      fireEvent.click(nuevoButton);
-      
-      const passwordInput = screen.queryByLabelText(/contraseña/i) ||
-                           screen.queryByPlaceholderText(/contraseña/i);
-      if (passwordInput) {
-        userEvent.type(passwordInput, 'abc');
-        
-        // Debería mostrar que no cumple requisitos
-        await waitFor(() => {
-          // password shows placeholder / value when too short; assert input received the typed value
-          expect(passwordInput.value).toBe('abc');
-        }, { timeout: 1000 });
-      }
-    }
+    await screen.findByText("Juan Pérez");
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /Nuevo usuario/i })
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Nuevo usuario" })
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("Completa los datos del nuevo usuario")
+    ).toBeInTheDocument();
+
+    expect(screen.getByPlaceholderText("Ej. Sofía Ramírez")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("correo@aebnl.mx")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Mínimo 8 caracteres")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Repite la contraseña")).toBeInTheDocument();
   });
 
-  test('debe permitir seleccionar rol del usuario', async () => {
-    fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ ok: true, usuarios: [] }),
-    });
+  test("cierra modal al presionar cancelar", async () => {
+    mockFetchUsuarios();
 
     render(<GestionUsuarios />);
 
-    const nuevoButton = screen.queryByRole('button', { name: /nuevo|crear|agregar/i });
-    if (nuevoButton) {
-      fireEvent.click(nuevoButton);
-      
-      const roleSelect = screen.queryByDisplayValue(/coordinador|administrador/i);
-      if (roleSelect) {
-        expect(roleSelect).toBeTruthy();
-      }
-    }
+    await screen.findByText("Juan Pérez");
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /Nuevo usuario/i })
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Nuevo usuario" })
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Cancelar" })
+    );
+
+    expect(
+      screen.queryByText("Completa los datos del nuevo usuario")
+    ).not.toBeInTheDocument();
   });
 
-  test('debe permitir editar un usuario existente', async () => {
-    fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        ok: true,
-        usuarios: [
-          { id: 1, nombre: 'Juan', username: 'juan@test.com', rol: 'COORDINADOR' },
-        ],
-      }),
-    });
+  test("valida nombre requerido al crear usuario", async () => {
+    mockFetchUsuarios();
 
     render(<GestionUsuarios />);
 
-    const editButtons = screen.queryAllByRole('button', { name: /editar/i });
-    if (editButtons.length > 0) {
-      fireEvent.click(editButtons[0]);
-      
-      await waitFor(() => {
-        expect(screen.queryByDisplayValue(/Juan/)).toBeTruthy();
-      }, { timeout: 1000 });
-    }
+    await screen.findByText("Juan Pérez");
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /Nuevo usuario/i })
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Crear usuario" })
+    );
+
+    expect(screen.getByText("El nombre es requerido")).toBeInTheDocument();
   });
 
-  test('debe permitir eliminar un usuario', async () => {
-    fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        ok: true,
-        usuarios: [
-          { id: 1, nombre: 'Juan', username: 'juan@test.com' },
-        ],
-      }),
-    });
+  test("valida correo requerido al crear usuario", async () => {
+    mockFetchUsuarios();
 
     render(<GestionUsuarios />);
 
-    const deleteButtons = screen.queryAllByRole('button', { name: /eliminar|borrar|trash/i });
-    if (deleteButtons.length > 0) {
-      fireEvent.click(deleteButtons[0]);
-      
-      // Debería mostrar confirmación
-      await waitFor(() => {
-        expect(screen.queryByText(/confirmar|seguro|eliminar/i)).toBeTruthy();
-      }, { timeout: 1000 });
-    }
+    await screen.findByText("Juan Pérez");
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /Nuevo usuario/i })
+    );
+
+    fireEvent.change(screen.getByPlaceholderText("Ej. Sofía Ramírez"), {
+      target: {
+        name: "nombre",
+        value: "Sofía Ramírez",
+      },
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Crear usuario" })
+    );
+
+    expect(screen.getByText("El correo es requerido")).toBeInTheDocument();
   });
 
-  test('debe crear usuario exitosamente', async () => {
-    fetch
+  test("valida contraseña requerida al crear usuario", async () => {
+    mockFetchUsuarios();
+
+    render(<GestionUsuarios />);
+
+    await screen.findByText("Juan Pérez");
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /Nuevo usuario/i })
+    );
+
+    fireEvent.change(screen.getByPlaceholderText("Ej. Sofía Ramírez"), {
+      target: {
+        name: "nombre",
+        value: "Sofía Ramírez",
+      },
+    });
+
+    fireEvent.change(screen.getByPlaceholderText("correo@aebnl.mx"), {
+      target: {
+        name: "username",
+        value: "sofia@test.com",
+      },
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Crear usuario" })
+    );
+
+    expect(screen.getByText("La contraseña es requerida")).toBeInTheDocument();
+  });
+
+  test("valida reglas de contraseña", async () => {
+    mockFetchUsuarios();
+
+    render(<GestionUsuarios />);
+
+    await screen.findByText("Juan Pérez");
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /Nuevo usuario/i })
+    );
+
+    fireEvent.change(screen.getByPlaceholderText("Ej. Sofía Ramírez"), {
+      target: {
+        name: "nombre",
+        value: "Sofía Ramírez",
+      },
+    });
+
+    fireEvent.change(screen.getByPlaceholderText("correo@aebnl.mx"), {
+      target: {
+        name: "username",
+        value: "sofia@test.com",
+      },
+    });
+
+    fireEvent.change(screen.getByPlaceholderText("Mínimo 8 caracteres"), {
+      target: {
+        name: "password",
+        value: "abc",
+      },
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Crear usuario" })
+    );
+
+    expect(
+      screen.getByText("La contraseña no cumple los requisitos")
+    ).toBeInTheDocument();
+  });
+
+  test("valida que las contraseñas coincidan", async () => {
+    mockFetchUsuarios();
+
+    render(<GestionUsuarios />);
+
+    await screen.findByText("Juan Pérez");
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /Nuevo usuario/i })
+    );
+
+    fireEvent.change(screen.getByPlaceholderText("Ej. Sofía Ramírez"), {
+      target: {
+        name: "nombre",
+        value: "Sofía Ramírez",
+      },
+    });
+
+    fireEvent.change(screen.getByPlaceholderText("correo@aebnl.mx"), {
+      target: {
+        name: "username",
+        value: "sofia@test.com",
+      },
+    });
+
+    fireEvent.change(screen.getByPlaceholderText("Mínimo 8 caracteres"), {
+      target: {
+        name: "password",
+        value: "Password1!",
+      },
+    });
+
+    fireEvent.change(screen.getByPlaceholderText("Repite la contraseña"), {
+      target: {
+        name: "confirmarPassword",
+        value: "OtraPassword1!",
+      },
+    });
+
+    expect(
+      screen.getAllByText("Las contraseñas no coinciden").length
+    ).toBeGreaterThan(0);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Crear usuario" })
+    );
+
+    expect(
+      screen.getAllByText("Las contraseñas no coinciden").length
+    ).toBeGreaterThan(0);
+  });
+
+  test("crea usuario correctamente", async () => {
+    globalThis.fetch
       .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ ok: true, usuarios: [] }),
+        json: async () => ({
+          ok: true,
+          usuarios: usuariosMock,
+        }),
       })
       .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ ok: true }),
+        json: async () => ({
+          ok: true,
+        }),
+      })
+      .mockResolvedValueOnce({
+        json: async () => ({
+          ok: true,
+          usuarios: usuariosMock,
+        }),
       });
 
     render(<GestionUsuarios />);
 
-    const nuevoButton = screen.queryByRole('button', { name: /nuevo|crear|agregar/i });
-    if (nuevoButton) {
-      fireEvent.click(nuevoButton);
-      
-      const nombreInput = screen.queryByLabelText(/nombre/i);
-      const emailInput = screen.queryByLabelText(/correo|email|username/i);
-      const passwordInput = screen.queryByLabelText(/contraseña/i);
-      const guardarButton = screen.queryByRole('button', { name: /guardar/i });
+    await screen.findByText("Juan Pérez");
 
-      if (nombreInput && emailInput && passwordInput) {
-        userEvent.type(nombreInput, 'Nuevo Usuario');
-        userEvent.type(emailInput, 'nuevo@test.com');
-        userEvent.type(passwordInput, 'Test@12345');
-        
-        if (guardarButton) {
-          fireEvent.click(guardarButton);
-          
-          await waitFor(() => {
-            expect(fetch).toHaveBeenCalledWith(
-              expect.stringContaining('gestion-usuarios'),
-              expect.objectContaining({ method: 'POST' })
-            );
-          }, { timeout: 1000 });
-        }
-      }
-    }
+    fireEvent.click(
+      screen.getByRole("button", { name: /Nuevo usuario/i })
+    );
+
+    fireEvent.change(screen.getByPlaceholderText("Ej. Sofía Ramírez"), {
+      target: {
+        name: "nombre",
+        value: "Sofía Ramírez",
+      },
+    });
+
+    fireEvent.change(screen.getByPlaceholderText("correo@aebnl.mx"), {
+      target: {
+        name: "username",
+        value: "sofia@test.com",
+      },
+    });
+
+    fireEvent.change(screen.getByPlaceholderText("Mínimo 8 caracteres"), {
+      target: {
+        name: "password",
+        value: "Password1!",
+      },
+    });
+
+    fireEvent.change(screen.getByPlaceholderText("Repite la contraseña"), {
+      target: {
+        name: "confirmarPassword",
+        value: "Password1!",
+      },
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Crear usuario" })
+    );
+
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        "http://localhost:3001/api/gestion-usuarios",
+        expect.objectContaining({
+          method: "POST",
+          headers: {
+            Authorization: "Bearer token-prueba",
+          },
+        })
+      );
+    });
+
+    const body = globalThis.fetch.mock.calls[1][1].body;
+
+    expect(body).toBeInstanceOf(FormData);
+    expect(body.get("nombre")).toBe("Sofía Ramírez");
+    expect(body.get("username")).toBe("sofia@test.com");
+    expect(body.get("password")).toBe("Password1!");
+    expect(body.get("confirmarPassword")).toBe("Password1!");
+    expect(body.get("tipoUsuario")).toBe("COORDINADOR");
   });
 
-  test('debe manejar errores de creación', async () => {
-    fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ ok: true, usuarios: [] }),
-    });
+  test("abre modal de editar usuario", async () => {
+    mockFetchUsuarios();
 
     render(<GestionUsuarios />);
 
-    const nuevoButton = screen.queryByRole('button', { name: /nuevo|crear|agregar/i });
-    if (nuevoButton) {
-      fireEvent.click(nuevoButton);
-      
-      const nombreInput = screen.queryByLabelText(/nombre/i);
-      if (nombreInput) {
-        // Intentar guardar sin llenar todos los campos
-        const guardarButton = screen.queryByRole('button', { name: /guardar/i });
-        if (guardarButton) {
-          fireEvent.click(guardarButton);
-          
-          await waitFor(() => {
-            expect(screen.queryByText(/error|requerido/i)).toBeTruthy();
-          }, { timeout: 1000 });
+    await screen.findByText("Juan Pérez");
+
+    const botonesEditar = screen.getAllByRole("button", {
+      name: /Editar/i,
+    });
+
+    fireEvent.click(botonesEditar[0]);
+
+    expect(
+      screen.getByRole("heading", { name: "Editar usuario" })
+    ).toBeInTheDocument();
+
+    expect(screen.getByDisplayValue("Juan Pérez")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("juan@test.com")).toBeInTheDocument();
+
+    expect(
+      screen.queryByPlaceholderText("Mínimo 8 caracteres")
+    ).not.toBeInTheDocument();
+  });
+
+  test("edita usuario correctamente", async () => {
+    globalThis.fetch
+      .mockResolvedValueOnce({
+        json: async () => ({
+          ok: true,
+          usuarios: usuariosMock,
+        }),
+      })
+      .mockResolvedValueOnce({
+        json: async () => ({
+          ok: true,
+          data: {
+            nombre: "Juan Editado",
+            foto: "foto-nueva.png",
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        json: async () => ({
+          ok: true,
+          usuarios: usuariosMock,
+        }),
+      });
+
+    render(<GestionUsuarios />);
+
+    await screen.findByText("Juan Pérez");
+
+    fireEvent.click(
+      screen.getAllByRole("button", { name: /Editar/i })[0]
+    );
+
+    const nombreInput = screen.getByDisplayValue("Juan Pérez");
+
+    fireEvent.change(nombreInput, {
+      target: {
+        name: "nombre",
+        value: "Juan Editado",
+      },
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Guardar cambios" })
+    );
+
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        "http://localhost:3001/api/gestion-usuarios/1",
+        expect.objectContaining({
+          method: "PUT",
+          headers: {
+            Authorization: "Bearer token-prueba",
+          },
+        })
+      );
+    });
+
+    const body = globalThis.fetch.mock.calls[1][1].body;
+
+    expect(body.get("nombre")).toBe("Juan Editado");
+    expect(body.get("username")).toBe("juan@test.com");
+    expect(body.get("tipoUsuario")).toBe("COORDINADOR");
+
+    expect(localStorage.setItem).toHaveBeenCalledWith(
+      "usuario",
+      JSON.stringify({
+        id: 1,
+        nombre: "Juan Editado",
+        foto: "foto-nueva.png",
+      })
+    );
+  });
+
+  test("elimina usuario si confirma", async () => {
+    globalThis.fetch
+      .mockResolvedValueOnce({
+        json: async () => ({
+          ok: true,
+          usuarios: usuariosMock,
+        }),
+      })
+      .mockResolvedValueOnce({
+        json: async () => ({
+          ok: true,
+        }),
+      });
+
+    globalThis.confirm.mockReturnValueOnce(true);
+
+    render(<GestionUsuarios />);
+
+    await screen.findByText("Juan Pérez");
+
+    const botonesBorrar = screen.getAllByRole("button", {
+      name: /Borrar/i,
+    });
+
+    fireEvent.click(botonesBorrar[0]);
+
+    await waitFor(() => {
+      expect(globalThis.confirm).toHaveBeenCalledTimes(1);
+    });
+
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        "http://localhost:3001/api/gestion-usuarios/1",
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: "Bearer token-prueba",
+          },
         }
-      }
-    }
+      );
+    });
+  });
+
+  test("no elimina usuario si cancela confirmación", async () => {
+    mockFetchUsuarios();
+
+    globalThis.confirm.mockReturnValueOnce(false);
+
+    render(<GestionUsuarios />);
+
+    await screen.findByText("Juan Pérez");
+
+    fireEvent.click(
+      screen.getAllByRole("button", { name: /Borrar/i })[0]
+    );
+
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  test("no muestra editar ni borrar para SUPERADMIN", async () => {
+    mockFetchUsuarios();
+
+    render(<GestionUsuarios />);
+
+    await screen.findByText("Root User");
+
+    const filaRoot = screen.getByText("Root User").closest("tr");
+
+    expect(filaRoot).not.toHaveTextContent("Editar");
+    expect(filaRoot).not.toHaveTextContent("Borrar");
   });
 });
