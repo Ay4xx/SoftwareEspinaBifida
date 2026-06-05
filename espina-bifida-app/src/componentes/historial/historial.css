@@ -609,3 +609,136 @@
     transform: scale(1);
   }
 }
+
+.hist-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 5000;
+}
+
+.hist-popup {
+  width: 380px;
+  background: white;
+  border-radius: 24px;
+  padding: 30px;
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0,0,0,.18);
+  animation: popupEnter .2s ease;
+}
+
+.hist-popup h3 {
+  margin: 12px 0 8px;
+  font-size: 20px;
+  color: #0f172a;
+}
+
+.hist-popup p {
+  margin: 0;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.hist-popup-icon {
+  width: 72px;
+  height: 72px;
+  margin: auto;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.hist-popup-icon.success {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.hist-popup-icon.error {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.hist-popup-icon.warning {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.hist-popup-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.hist-btn-primary,
+.hist-btn-danger,
+.hist-btn-secondary {
+  flex: 1;
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hist-btn-primary {
+  background: #083a99;
+  color: white;
+  margin-top: 24px;
+}
+
+.hist-btn-primary:hover {
+  background: #062d7a;
+}
+
+.hist-btn-danger {
+  background: #dc2626;
+  color: white;
+}
+
+.hist-btn-danger:hover {
+  background: #b91c1c;
+}
+
+.hist-btn-secondary {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.hist-btn-secondary:hover {
+  background: #e2e8f0;
+}
+
+@keyframes popupEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.btn-borrar-visita {
+  background: transparent;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.btn-borrar-visita:hover {
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
