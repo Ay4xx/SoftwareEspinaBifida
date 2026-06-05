@@ -1,150 +1,246 @@
+import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import Fotografia from "../../componentes/registro/Fotografia/Fotografia";
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+jest.mock("../../componentes/registro/Fotografia/Fotografia.css", () => ({}));
 
-const DOCS_VACIOS = { actaNacimiento: null, curp: null, comprobanteDomicilio: null, ineFamilia: null };
-const DATOS_BASE   = { foto: null, documentos: DOCS_VACIOS };
-const URL_FOTO     = "http://localhost:3001/uploads/foto.jpg";
-
-const mockOnChange  = jest.fn();
-const mockOnGuardar = jest.fn();
-
-const crearArchivo = (nombre, tipo = "application/pdf") =>
-  new File(["contenido"], nombre, { type: tipo });
-
-const renderFotografia = (props = {}) =>
-  render(<Fotografia datos={DATOS_BASE} onChange={mockOnChange} {...props} />);
-
-// ── Tests ─────────────────────────────────────────────────────────────────────
+jest.mock("lucide-react", () => ({
+  Camera: () => <span data-testid="icon-camera">Camera</span>,
+  Check: () => <span data-testid="icon-check">Check</span>,
+  FileText: () => <span data-testid="icon-file">FileText</span>,
+  Upload: () => <span data-testid="icon-upload">Upload</span>,
+  X: () => <span data-testid="icon-x">X</span>,
+}));
 
 describe("Fotografia", () => {
-  beforeEach(() => jest.clearAllMocks());
+  const datosMock = {
+    foto: null,
+    documentos: {},
+  };
 
-  // ── Renderizado general ──────────────────────────────────────────────────
+  const renderComponent = (props = {}) => {
+    const defaultProps = {
+      datos: datosMock,
+      onChange: jest.fn(),
+      onGuardar: jest.fn(),
+      cambiosGuardados: false,
+    };
 
-  test("renderiza el título del componente", () => {
-    renderFotografia();
+    return render(
+      <Fotografia
+        {...defaultProps}
+        {...props}
+      />
+    );
+  };
+
+  test("renderiza correctamente la sección de fotografía y documentos", () => {
+    renderComponent();
+
     expect(screen.getByText("Fotografía y Documentos")).toBeInTheDocument();
-  });
-
-  test("renderiza la zona de carga de foto", () => {
-    renderFotografia();
-    expect(screen.getByText("Arrastra tu foto aquí")).toBeInTheDocument();
-    expect(screen.getByText(/PNG, JPG hasta 5 MB/i)).toBeInTheDocument();
-  });
-
-  test("renderiza el título y los 4 documentos opcionales", () => {
-    renderFotografia();
+    expect(screen.getByText("Fotografía del paciente")).toBeInTheDocument();
     expect(screen.getByText("Documentos")).toBeInTheDocument();
+
+    expect(screen.getByText("Arrastra tu foto aquí")).toBeInTheDocument();
+    expect(screen.getByText("o haz clic para seleccionar")).toBeInTheDocument();
+    expect(screen.getByText("PNG, JPG hasta 5 MB")).toBeInTheDocument();
+
     expect(screen.getByText("Acta de nacimiento")).toBeInTheDocument();
     expect(screen.getByText("CURP")).toBeInTheDocument();
     expect(screen.getByText("Comprobante de domicilio")).toBeInTheDocument();
     expect(screen.getByText("INE de familia (menores)")).toBeInTheDocument();
   });
 
-  test("renderiza 4 botones 'Seleccionar' (uno por documento)", () => {
-    renderFotografia();
-    expect(screen.getAllByText("Seleccionar")).toHaveLength(4);
+  test("muestra botón Guardar cambios si recibe onGuardar", () => {
+    const onGuardar = jest.fn();
+
+    renderComponent({ onGuardar });
+
+    const boton = screen.getByRole("button", { name: "Guardar cambios" });
+
+    expect(boton).toBeInTheDocument();
+
+    fireEvent.click(boton);
+
+    expect(onGuardar).toHaveBeenCalledTimes(1);
   });
 
-  // ── Botón Guardar cambios ────────────────────────────────────────────────
+  test("muestra Guardado cuando cambiosGuardados es true", () => {
+    renderComponent({
+      cambiosGuardados: true,
+    });
 
-  test("muestra 'Guardar cambios' cuando se pasa onGuardar", () => {
-    renderFotografia({ onGuardar: mockOnGuardar, cambiosGuardados: false });
-    expect(screen.getByText("Guardar cambios")).toBeInTheDocument();
-  });
-
-  test("no muestra 'Guardar cambios' cuando onGuardar es null", () => {
-    renderFotografia({ onGuardar: null });
-    expect(screen.queryByText("Guardar cambios")).not.toBeInTheDocument();
-  });
-
-  test("muestra 'Guardado' cuando cambiosGuardados es true", () => {
-    renderFotografia({ onGuardar: mockOnGuardar, cambiosGuardados: true });
     expect(screen.getByText("Guardado")).toBeInTheDocument();
+    expect(screen.getByTestId("icon-check")).toBeInTheDocument();
   });
 
-  test("llama a onGuardar al hacer clic en el botón", () => {
-    renderFotografia({ onGuardar: mockOnGuardar, cambiosGuardados: false });
-    fireEvent.click(screen.getByText("Guardar cambios"));
-    expect(mockOnGuardar).toHaveBeenCalledTimes(1);
-  });
+  test("muestra preview cuando foto es string", () => {
+    renderComponent({
+      datos: {
+        foto: "http://localhost/foto.png",
+        documentos: {},
+      },
+    });
 
-  // ── Preview de foto ──────────────────────────────────────────────────────
-
-  test("muestra la imagen cuando datos.foto es una URL", () => {
-    renderFotografia({ datos: { ...DATOS_BASE, foto: URL_FOTO } });
     const img = screen.getByAltText("Foto actual del paciente");
-    expect(img).toBeInTheDocument();
-    expect(img.src).toBe(URL_FOTO);
-  });
 
-  test("muestra 'Foto actual' y 'Subir nueva foto' cuando ya hay foto", () => {
-    renderFotografia({ datos: { ...DATOS_BASE, foto: URL_FOTO } });
+    expect(img).toBeInTheDocument();
+    expect(img).toHaveAttribute("src", "http://localhost/foto.png");
     expect(screen.getByText("Foto actual")).toBeInTheDocument();
     expect(screen.getByText("Subir nueva foto")).toBeInTheDocument();
   });
 
-  // ── Carga de foto ────────────────────────────────────────────────────────
+  test("llama onChange cuando se selecciona una foto válida", () => {
+    const onChange = jest.fn();
 
-  test("llama a onChange al seleccionar una imagen válida", () => {
-    const { container } = renderFotografia();
-    const archivo = crearArchivo("foto.jpg", "image/jpeg");
-    const input = container.querySelector('input[accept="image/png,image/jpeg"]');
+    const { container } = renderComponent({ onChange });
 
-    fireEvent.change(input, { target: { files: [archivo] } });
+    const file = new File(["foto"], "paciente.png", {
+      type: "image/png",
+    });
 
-    expect(mockOnChange).toHaveBeenCalledWith({ foto: archivo });
+    Object.defineProperty(file, "size", {
+      value: 1024,
+    });
+
+    const inputFoto = container.querySelector('input[accept="image/png,image/jpeg"]');
+
+    fireEvent.change(inputFoto, {
+      target: {
+        files: [file],
+      },
+    });
+
+    expect(onChange).toHaveBeenCalledWith({
+      foto: file,
+    });
   });
 
-  test("no llama a onChange si el archivo no es imagen válida", () => {
-    const { container } = renderFotografia();
-    const input = container.querySelector('input[accept="image/png,image/jpeg"]');
+  test("no llama onChange si la foto tiene tipo inválido", () => {
+    const onChange = jest.fn();
 
-    fireEvent.change(input, { target: { files: [crearArchivo("doc.pdf")] } });
+    const { container } = renderComponent({ onChange });
 
-    expect(mockOnChange).not.toHaveBeenCalled();
+    const file = new File(["archivo"], "documento.pdf", {
+      type: "application/pdf",
+    });
+
+    Object.defineProperty(file, "size", {
+      value: 1024,
+    });
+
+    const inputFoto = container.querySelector('input[accept="image/png,image/jpeg"]');
+
+    fireEvent.change(inputFoto, {
+      target: {
+        files: [file],
+      },
+    });
+
+    expect(onChange).not.toHaveBeenCalled();
   });
 
-  // ── Carga de documentos ──────────────────────────────────────────────────
+  test("no llama onChange si la foto pesa más de 5MB", () => {
+    const onChange = jest.fn();
 
-  test("llama a onChange con el documento al seleccionarlo", () => {
-    const { container } = renderFotografia();
-    const archivo = crearArchivo("acta.pdf");
-    const inputs = container.querySelectorAll('input[accept="image/png,image/jpeg,application/pdf"]');
+    const { container } = renderComponent({ onChange });
 
-    fireEvent.change(inputs[0], { target: { files: [archivo] } });
+    const file = new File(["foto"], "grande.png", {
+      type: "image/png",
+    });
 
-    expect(mockOnChange).toHaveBeenCalledWith(
-      expect.objectContaining({
-        documentos: expect.objectContaining({ actaNacimiento: archivo }),
-      })
-    );
+    Object.defineProperty(file, "size", {
+      value: 6 * 1024 * 1024,
+    });
+
+    const inputFoto = container.querySelector('input[accept="image/png,image/jpeg"]');
+
+    fireEvent.change(inputFoto, {
+      target: {
+        files: [file],
+      },
+    });
+
+    expect(onChange).not.toHaveBeenCalled();
   });
 
-  test("muestra el nombre del archivo cuando un documento está cargado", () => {
-    const datosConDoc = {
-      ...DATOS_BASE,
-      documentos: { ...DOCS_VACIOS, actaNacimiento: crearArchivo("acta.pdf") },
-    };
-    renderFotografia({ datos: datosConDoc });
-    expect(screen.getByText("acta.pdf")).toBeInTheDocument();
+  test("llama onChange al seleccionar documento", () => {
+    const onChange = jest.fn();
+
+    const { container } = renderComponent({ onChange });
+
+    const file = new File(["acta"], "acta.pdf", {
+      type: "application/pdf",
+    });
+
+    const inputs = container.querySelectorAll('input[type="file"]');
+    const inputActa = inputs[1];
+
+    fireEvent.change(inputActa, {
+      target: {
+        files: [file],
+      },
+    });
+
+    expect(onChange).toHaveBeenCalledWith({
+      documentos: {
+        actaNacimiento: file,
+      },
+    });
   });
 
-  test("llama a onChange con null al quitar un documento", () => {
-    const datosConDoc = {
-      ...DATOS_BASE,
-      documentos: { ...DOCS_VACIOS, actaNacimiento: crearArchivo("acta.pdf") },
-    };
-    const { container } = renderFotografia({ datos: datosConDoc });
+  test("muestra nombre del documento cargado y permite quitarlo", () => {
+    const onChange = jest.fn();
 
-    fireEvent.click(container.querySelector(".doc-item-quitar"));
+    renderComponent({
+      onChange,
+      datos: {
+        foto: null,
+        documentos: {
+          curp: new File(["curp"], "curp.pdf", {
+            type: "application/pdf",
+          }),
+        },
+      },
+    });
 
-    expect(mockOnChange).toHaveBeenCalledWith(
-      expect.objectContaining({
-        documentos: expect.objectContaining({ actaNacimiento: null }),
-      })
-    );
+    expect(screen.getByText("curp.pdf")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTitle("Quitar archivo"));
+
+    expect(onChange).toHaveBeenCalledWith({
+      documentos: {
+        curp: null,
+      },
+    });
+  });
+
+  test("permite arrastrar una foto válida", () => {
+    const onChange = jest.fn();
+
+    renderComponent({ onChange });
+
+    const file = new File(["foto"], "arrastrada.jpg", {
+      type: "image/jpeg",
+    });
+
+    Object.defineProperty(file, "size", {
+      value: 1024,
+    });
+
+    const zona = screen.getByText("Arrastra tu foto aquí").closest(".foto-zona");
+
+    fireEvent.dragOver(zona);
+    expect(zona).toHaveClass("encima");
+
+    fireEvent.drop(zona, {
+      dataTransfer: {
+        files: [file],
+      },
+    });
+
+    expect(onChange).toHaveBeenCalledWith({
+      foto: file,
+    });
   });
 });

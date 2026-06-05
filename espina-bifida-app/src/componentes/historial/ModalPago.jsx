@@ -83,16 +83,11 @@ function ModalPago({ data, pacienteId, onClose }) {
   };
 
   const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
+    // Removed backdrop click handler - popups no longer close on outside clicks
   };
 
   return (
-    <div
-      className="modal-backdrop"
-      onClick={handleBackdropClick}
-    >
+    <div className="modal-backdrop">
       <div className="modal-pago">
         <div className="modal-header">
           <div>
@@ -217,10 +212,7 @@ function ModalPago({ data, pacienteId, onClose }) {
       </div>
 
       {popup && (
-        <div
-          className="med-overlay"
-          onClick={() => setPopup(null)}
-        >
+        <div className="med-overlay">
           <div
             className="med-popup-msg"
             onClick={(e) => e.stopPropagation()}
