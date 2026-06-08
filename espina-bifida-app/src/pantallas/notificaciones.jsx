@@ -6,13 +6,127 @@ import { useNavigate } from "react-router-dom";
 
 const API_URL = "http://localhost:3001/api/notificaciones";
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function parseFechaBackend(fechaTexto) {
+  if (!fechaTexto) return null;
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}))?$/.exec(fechaTexto);
+  if (!match) return null;
+  const [, dd, mm, yyyy, hh = "00", mi = "00"] = match;
+  return new Date(Date.UTC(Number(yyyy), Number(mm) - 1, Number(dd), Number(hh), Number(mi)));
+}
+
+function formatearTiempo(fechaTexto) {
+  if (!fechaTexto) return "Sin fecha";
+  const fecha = parseFechaBackend(fechaTexto);
+  if (!fecha) return fechaTexto;
+  const diffMs   = new Date() - fecha;
+  const diffMin  = Math.floor(diffMs / 60000);
+  const diffHoras = Math.floor(diffMs / 3600000);
+  const diffDias  = Math.floor(diffMs / 86400000);
+  if (diffMin  < 60) return `Hace ${diffMin} minuto${diffMin !== 1 ? "s" : ""}`;
+  if (diffHoras < 24) return `Hace ${diffHoras} hora${diffHoras > 1 ? "s" : ""}`;
+  if (diffDias  < 7)  return `Hace ${diffDias} día${diffDias > 1 ? "s" : ""}`;
+  return fecha.toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
+function mapearNotificacion(item) {
+  return {
+    id:               item.id,
+    nombre:           `${item.paciente?.nombre || ""} ${item.paciente?.apellido || ""}`.trim() || "Sin nombre",
+    curp:             item.paciente?.curp      || "",
+    ciudad:           item.paciente?.ubicacion || "",
+    telefono:         item.paciente?.telefono  || "",
+    foto:             item.paciente?.foto      || null,
+    estado:           (item.estado || "pendiente").toLowerCase(),
+    tiempo:           formatearTiempo(item.fechaCreacion),
+    fechaCreacionRaw: item.fechaCreacion,
+    leida:            (item.estado || "pendiente").toLowerCase() !== "pendiente",
+  };
+}
+
+// ── Textos por estado ─────────────────────────────────────────────────────────
+
+const ESTADO_CONFIG = {
+  pendiente: {
+    badge:       <span className="estado-badge pendiente">● Pendiente</span>,
+    titulo:      (nombre) => `Registro pendiente — ${nombre}`,
+    descripcion: "Un invitado ha completado su registro como paciente y está esperando aprobación para ser dado de alta en el sistema.",
+  },
+  aprobado: {
+    badge:       <span className="estado-badge aprobado">● Aprobado</span>,
+    titulo:      (nombre) => `Registro aprobado — ${nombre}`,
+    descripcion: "El paciente fue dado de alta exitosamente y ya aparece en el catálogo del sistema.",
+  },
+  rechazado: {
+    badge:       <span className="estado-badge rechazado">● Rechazado</span>,
+    titulo:      (nombre) => `Registro rechazado — ${nombre}`,
+    descripcion: "El registro del paciente fue rechazado y ya no está pendiente de revisión.",
+  },
+};
+
+const getEstadoConfig = (estado) => ESTADO_CONFIG[estado] || ESTADO_CONFIG.rechazado;
+
+// ── Subcomponentes ────────────────────────────────────────────────────────────
+
+function EstadoVacio({ mensaje }) {
+  return (
+    <div className="notificaciones-page">
+      <div className="sin-notificaciones"><Bell size={20} /><span>{mensaje}</span></div>
+    </div>
+  );
+}
+
+function TarjetaNotificacion({ item, onClickCard }) {
+  const config = getEstadoConfig(item.estado);
+
+  return (
+    <div className="noti-card" onClick={() => onClickCard(item)} style={{ cursor: "pointer" }}>
+      <div className={`noti-icon ${item.estado}`}>
+        {item.foto ? (
+          <img
+            src={item.foto}
+            alt={item.nombre}
+            style={{ width: "50px", height: "50px", borderRadius: "14px", objectFit: "cover" }}
+            onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }}
+          />
+        ) : null}
+        <span style={{ display: item.foto ? "none" : "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}>
+          {item.estado === "aprobado" ? <Check size={28} /> : <UserRound size={28} />}
+        </span>
+      </div>
+      <div className="noti-body">
+        <div className="noti-top">
+          <div className="noti-header-left">
+            <h3>{config.titulo(item.nombre)}</h3>
+          </div>
+          <div className="noti-header-right">
+            {config.badge}
+            <span className="noti-time">{item.tiempo}</span>
+            {!item.leida && <span className="noti-dot" />}
+          </div>
+        </div>
+        <p className="noti-description">{config.descripcion}</p>
+        <div className="noti-tags">
+          <span className="noti-tag"><IdCard size={16} />CURP: {item.curp}</span>
+          <span className="noti-tag"><MapPin size={16} />{item.ciudad}</span>
+          <span className="noti-tag"><Phone size={16} />{item.telefono}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Página principal ──────────────────────────────────────────────────────────
+
 function NotificacionesPage() {
-  const [filtro, setFiltro] = useState("pendientes");
-  const [busqueda, setBusqueda] = useState("");
+  const [filtro,         setFiltro]         = useState("pendientes");
+  const [busqueda,       setBusqueda]       = useState("");
   const [notificaciones, setNotificaciones] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const { setPendientesCount, refrescarBadge  } = useNotificaciones();
+  const [loading,        setLoading]        = useState(true);
+  const [error,          setError]          = useState("");
+
+  const { setPendientesCount, refrescarBadge } = useNotificaciones();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,29 +145,15 @@ function NotificacionesPage() {
       setLoading(true);
       setError("");
       const response = await fetch(API_URL);
-      const result = await response.json();
+      const result   = await response.json();
       if (!response.ok || !result.ok) throw new Error(result.message || "No se pudieron cargar las notificaciones");
+
       const dataMapeada = (result.data || [])
-        .map((item) => ({
-          id: item.id,
-          nombre: `${item.paciente?.nombre || ""} ${item.paciente?.apellido || ""}`.trim() || "Sin nombre",
-          curp: item.paciente?.curp || "",
-          ciudad: item.paciente?.ubicacion || "",
-          telefono: item.paciente?.telefono || "",
-          foto: item.paciente?.foto || null,
-          estado: (item.estado || "pendiente").toLowerCase(),
-          tiempo: formatearTiempo(item.fechaCreacion),
-          fechaCreacionRaw: item.fechaCreacion,
-          leida: (item.estado || "pendiente").toLowerCase() !== "pendiente",
-        }))
-        .sort((a, b) => {
-          const fa = parseFechaBackend(a.fechaCreacionRaw);
-          const fb = parseFechaBackend(b.fechaCreacionRaw);
-          return fb - fa;
-        });
+        .map(mapearNotificacion)
+        .sort((a, b) => parseFechaBackend(b.fechaCreacionRaw) - parseFechaBackend(a.fechaCreacionRaw));
+
       setNotificaciones(dataMapeada);
-      const count = dataMapeada.filter((n) => n.estado === "pendiente").length;
-      setPendientesCount(count);
+      setPendientesCount(dataMapeada.filter((n) => n.estado === "pendiente").length);
     } catch (err) {
       console.error(err);
       setError(err.message || "Error al cargar notificaciones");
@@ -62,34 +162,18 @@ function NotificacionesPage() {
     }
   }
 
-  function formatearTiempo(fechaTexto) {
-    if (!fechaTexto) return "Sin fecha";
-    const fecha = parseFechaBackend(fechaTexto);
-    if (!fecha) return fechaTexto;
-    const ahora = new Date();
-    const diffMs = ahora - fecha;
-    const diffMin = Math.floor(diffMs / 60000);
-    const diffHoras = Math.floor(diffMs / 3600000);
-    const diffDias = Math.floor(diffMs / 86400000);
-    if (diffMin < 60)  return `Hace ${diffMin} minuto${diffMin !== 1 ? "s" : ""}`;
-    if (diffHoras < 24) return `Hace ${diffHoras} hora${diffHoras > 1 ? "s" : ""}`;
-    if (diffDias < 7)   return `Hace ${diffDias} día${diffDias > 1 ? "s" : ""}`;
-    return fecha.toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" });
-  }
+  const handleClickCard = (item) => {
+    if (item.estado === "aprobado") return;
+    navigate("/registro", { state: { notificacionId: item.id, modoRevision: true } });
+  };
 
-  function parseFechaBackend(fechaTexto) {
-    if (!fechaTexto) return null;
-    const match = /^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}))?$/.exec(fechaTexto);
-    if (!match) return null;
-    const [, dd, mm, yyyy, hh = "00", mi = "00"] = match;
-    const utc = Date.UTC(Number(yyyy), Number(mm) - 1, Number(dd), Number(hh), Number(mi));
-    return new Date(utc);
-  }
+  const totalPendientes = notificaciones.filter((n) => n.estado === "pendiente").length;
+  const totalResueltas  = notificaciones.filter((n) => n.estado !== "pendiente").length;
 
   const notificacionesFiltradas = useMemo(() => {
     let resultado = notificaciones;
     if (filtro === "pendientes") resultado = resultado.filter((n) => n.estado === "pendiente");
-    if (filtro === "resueltas") resultado = resultado.filter((n) => n.estado !== "pendiente");
+    if (filtro === "resueltas")  resultado = resultado.filter((n) => n.estado !== "pendiente");
     if (busqueda.trim()) {
       const b = busqueda.toLowerCase();
       resultado = resultado.filter(
@@ -99,92 +183,18 @@ function NotificacionesPage() {
     return resultado;
   }, [filtro, busqueda, notificaciones]);
 
-  function renderEstado(estado) {
-    if (estado === "pendiente") return <span className="estado-badge pendiente">● Pendiente</span>;
-    if (estado === "aprobado") return <span className="estado-badge aprobado">● Aprobado</span>;
-    return <span className="estado-badge rechazado">● Rechazado</span>;
-  }
-
-  function renderTitulo(item) {
-    if (item.estado === "pendiente") return `Registro pendiente — ${item.nombre}`;
-    if (item.estado === "aprobado") return `Registro aprobado — ${item.nombre}`;
-    return `Registro rechazado — ${item.nombre}`;
-  }
-
-  function renderDescripcion(item) {
-    if (item.estado === "pendiente") return "Un invitado ha completado su registro como paciente y está esperando aprobación para ser dado de alta en el sistema.";
-    if (item.estado === "aprobado") return "El paciente fue dado de alta exitosamente y ya aparece en el catálogo del sistema.";
-    return "El registro del paciente fue rechazado y ya no está pendiente de revisión.";
-  }
-
-  function TarjetaNotificacion({ item }) {
-    const handleClick = () => {
-      if (item.estado === "aprobado") return;
-      navigate("/registro", { state: { notificacionId: item.id, modoRevision: true } });
-    };
-
-    return (
-      <div className="noti-card" onClick={handleClick} style={{ cursor: "pointer" }}>
-        <div className={`noti-icon ${item.estado}`}>
-          {item.foto ? (
-            <img
-              src={item.foto}
-              alt={item.nombre}
-              style={{ width: "50px", height: "50px", borderRadius: "14px", objectFit: "cover" }}
-              onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }}
-            />
-          ) : null}
-          <span style={{ display: item.foto ? "none" : "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}>
-            {item.estado === "aprobado" ? <Check size={28} /> : <UserRound size={28} />}
-          </span>
-        </div>
-        <div className="noti-body">
-          <div className="noti-top">
-            <div className="noti-header-left">
-              <h3>{renderTitulo(item)}</h3>
-            </div>
-            <div className="noti-header-right">
-              {renderEstado(item.estado)}
-              <span className="noti-time">{item.tiempo}</span>
-              {!item.leida && <span className="noti-dot" />}
-            </div>
-          </div>
-          <p className="noti-description">{renderDescripcion(item)}</p>
-          <div className="noti-tags">
-            <span className="noti-tag"><IdCard size={16} />CURP: {item.curp}</span>
-            <span className="noti-tag"><MapPin size={16} />{item.ciudad}</span>
-            <span className="noti-tag"><Phone size={16} />{item.telefono}</span>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="notificaciones-page">
-        <div className="sin-notificaciones"><Bell size={20} /><span>Cargando notificaciones...</span></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="notificaciones-page">
-        <div className="sin-notificaciones"><Bell size={20} /><span>{error}</span></div>
-      </div>
-    );
-  }
+  if (loading) return <EstadoVacio mensaje="Cargando notificaciones..." />;
+  if (error)   return <EstadoVacio mensaje={error} />;
 
   return (
     <div className="notificaciones-page">
       <div className="notificaciones-topbar">
         <div className="filtros">
           <button className={filtro === "pendientes" ? "activo" : ""} onClick={() => setFiltro("pendientes")}>
-            Pendientes <span>{notificaciones.filter((n) => n.estado === "pendiente").length}</span>
+            Pendientes <span>{totalPendientes}</span>
           </button>
           <button className={filtro === "resueltas" ? "activo" : ""} onClick={() => setFiltro("resueltas")}>
-            Rechazadas <span>{notificaciones.filter((n) => n.estado !== "pendiente").length}</span>
+            Rechazadas <span>{totalResueltas}</span>
           </button>
         </div>
 
@@ -202,7 +212,9 @@ function NotificacionesPage() {
       <div className="seccion-notis">
         <h4>{filtro === "resueltas" ? "Rechazadas" : "Pendientes"}</h4>
         {notificacionesFiltradas.length > 0 ? (
-          notificacionesFiltradas.map((item) => <TarjetaNotificacion key={item.id} item={item} />)
+          notificacionesFiltradas.map((item) => (
+            <TarjetaNotificacion key={item.id} item={item} onClickCard={handleClickCard} />
+          ))
         ) : (
           <div className="sin-notificaciones">
             <Bell size={20} />

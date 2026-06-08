@@ -7,6 +7,28 @@ import {
 } from "./notificaciones.service.js";
 import { enviarCorreoAprobacion, enviarCorreoRechazo } from "../email/email.service.js";
 
+// ── Helper ────────────────────────────────────────────────────────────────────
+
+async function enviarCorreoSilencioso(fn, label) {
+  try {
+    await fn();
+  } catch (err) {
+    console.error(`Error al enviar correo (${label}):`, err);
+  }
+}
+
+async function notificarPorCorreo(id, fnCorreo, label) {
+  const notificacion = await getNotificacionById(id);
+  if (notificacion?.EMAIL) {
+    await enviarCorreoSilencioso(
+      () => fnCorreo({ nombre: notificacion.NOMBRE || "", apellido: notificacion.APELLIDO || "", correo: notificacion.EMAIL }),
+      label
+    );
+  }
+}
+
+// ── Controllers ───────────────────────────────────────────────────────────────
+
 export async function listarNotificaciones(req, res) {
   try {
     const { estado } = req.query;
@@ -21,28 +43,11 @@ export async function listarNotificaciones(req, res) {
 export async function aprobarNotificacionController(req, res) {
   try {
     const { id } = req.params;
-    const { usuarioId } = req.body;
-
-    
-    const actualizado = await aprobarNotificacion(id, usuarioId);
-    if (!actualizado) {
+    const actualizado = await aprobarNotificacion(id);
+    if (!actualizado)
       return res.status(404).json({ ok: false, message: "Notificación no encontrada o ya fue resuelta" });
-    }
 
-    
-    try {
-      const notificacion = await getNotificacionById(id);
-      if (notificacion?.EMAIL) {
-        await enviarCorreoAprobacion({
-          nombre:   notificacion.NOMBRE   || "",
-          apellido: notificacion.APELLIDO || "",
-          correo:   notificacion.EMAIL,
-        });
-      }
-    } catch (mailErr) {
-      console.error("Error al enviar correo de aprobación:", mailErr);
-    }
-
+    await notificarPorCorreo(id, enviarCorreoAprobacion, "aprobación");
     res.json({ ok: true, message: "Notificación aprobada correctamente" });
   } catch (error) {
     console.error(error);
@@ -53,28 +58,11 @@ export async function aprobarNotificacionController(req, res) {
 export async function rechazarNotificacionController(req, res) {
   try {
     const { id } = req.params;
-    const { usuarioId } = req.body;
-
-    
-    const actualizado = await rechazarNotificacion(id, usuarioId);
-    if (!actualizado) {
+    const actualizado = await rechazarNotificacion(id);
+    if (!actualizado)
       return res.status(404).json({ ok: false, message: "Notificación no encontrada o ya fue resuelta" });
-    }
 
-    
-    try {
-      const notificacion = await getNotificacionById(id);
-      if (notificacion?.EMAIL) {
-        await enviarCorreoRechazo({
-          nombre:   notificacion.NOMBRE   || "",
-          apellido: notificacion.APELLIDO || "",
-          correo:   notificacion.EMAIL,
-        });
-      }
-    } catch (mailErr) {
-      console.error("Error al enviar correo de rechazo:", mailErr);
-    }
-
+    await notificarPorCorreo(id, enviarCorreoRechazo, "rechazo");
     res.json({ ok: true, message: "Notificación rechazada correctamente" });
   } catch (error) {
     console.error(error);
@@ -86,18 +74,13 @@ export async function getNotificacionByIdController(req, res) {
   try {
     const { id } = req.params;
     const data = await getNotificacionById(id);
-    if (!data) {
+    if (!data)
       return res.status(404).json({ ok: false, message: "Notificación no encontrada" });
-    }
+
     const safeData = JSON.parse(JSON.stringify(data, (key, value) => {
-      if (
-        value &&
-        typeof value === "object" &&
-        value.constructor &&
-        !["Object", "Array", "String", "Number", "Boolean", "Date"].includes(value.constructor.name)
-      ) {
+      if (value && typeof value === "object" && value.constructor &&
+          !["Object", "Array", "String", "Number", "Boolean", "Date"].includes(value.constructor.name))
         return String(value);
-      }
       return value;
     }));
     res.json({ ok: true, data: safeData });
