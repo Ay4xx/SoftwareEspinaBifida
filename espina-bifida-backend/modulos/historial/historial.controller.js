@@ -3,6 +3,10 @@ import { obtenerHistorialPorPaciente, eliminarEvento } from "./historial.service
 export async function getHistorial(req, res) {
   try {
     const data = await obtenerHistorialPorPaciente(req.params.id);
+
+    console.log("HISTORIAL:");
+    console.log(data);
+
     res.json(data);
   } catch (error) {
     console.error("Error en getHistorial:", error);
