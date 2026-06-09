@@ -507,7 +507,7 @@ export default function EstadisticasPage() {
             <KpiCard className="kpi-card-long" icon={Package} label="Valor total" value={fmtMoney(equipo.valor_total)} color="purple" />
           </div>
           <div className="charts-row-2">
-            <ChartCard title="Medicinas utilizadas por mes">
+            <ChartCard title="Medicinas vendidas por mes">
               <ResponsiveContainer width="100%" height={230}>
                 <BarChart data={medicinaSerie}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" />
