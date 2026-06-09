@@ -29,6 +29,9 @@ export async function getPacienteDetalle(pacienteId) {
 
     const membresia = await obtenerMembresiaPorPacienteId(pacienteId);
 
+    // LOG TEMPORAL: muestra el objeto completo de membresía en la terminal del backend
+    console.log("=== MEMBRESIA paciente", pacienteId, "===", membresia);
+
     return {
       PACIENTE_ID: row.PACIENTE_ID ?? null,
       NOMBRE: row.NOMBRE ?? null,
@@ -39,6 +42,7 @@ export async function getPacienteDetalle(pacienteId) {
       FECHA_ALTA: row.FECHA_ALTA ? new Date(row.FECHA_ALTA).toISOString() : null,
       FECHA_INICIO: membresia?.FECHA_INICIO ? new Date(membresia.FECHA_INICIO).toISOString() : null,
       FECHA_FIN: membresia?.FECHA_FIN ? new Date(membresia.FECHA_FIN).toISOString() : null,
+      ESTATUS_MEMBRESIA: membresia?.ESTATUS ?? null,
     };
   } finally {
     if (conn) await conn.close();
