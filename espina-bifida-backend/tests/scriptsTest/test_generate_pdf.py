@@ -6,6 +6,9 @@ from pathlib import Path
 
 import pytest
 
+ROOT_DIR = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT_DIR))
+
 from scripts import generate_pdf
 
 

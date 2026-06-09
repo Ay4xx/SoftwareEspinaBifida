@@ -8,6 +8,9 @@ from pathlib import Path
 import pytest
 from openpyxl import load_workbook
 
+ROOT_DIR = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT_DIR))
+
 from scripts import generate_excel
 
 
