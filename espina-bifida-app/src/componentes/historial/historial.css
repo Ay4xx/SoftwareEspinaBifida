@@ -743,3 +743,10 @@
   background: #fef2f2;
   border-color: #fca5a5;
 }
+
+.nota-visita {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: #555;
+  width: 100%;
+}

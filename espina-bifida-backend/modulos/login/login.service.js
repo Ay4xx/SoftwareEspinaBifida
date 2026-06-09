@@ -3,9 +3,18 @@ import oracledb from "oracledb";
 import bcrypt from "bcrypt";
 import { mapPacienteLogin } from "./login.mapper.js";
 
+// ── Helper ────────────────────────────────────────────────────────────────────
+
+function fotoToBase64(row) {
+  if (row.FOTO) {
+    row.FOTO = `data:image/jpeg;base64,${row.FOTO.toString("base64")}`;
+  }
+}
+
+// ── Servicio ──────────────────────────────────────────────────────────────────
+
 export async function iniciarSesionPaciente(username, password) {
   let conn;
-
   try {
     conn = await getConnection();
 
@@ -24,22 +33,13 @@ export async function iniciarSesionPaciente(username, password) {
 
     const usuario = result.rows[0];
 
-    if (!usuario.PASSWORD || typeof usuario.PASSWORD !== "string") {
-      console.error("PASSWORD inválido para usuario:", usuario.USUARIO_ID);
-      return null;
-    }
+    if (!usuario.PASSWORD || typeof usuario.PASSWORD !== "string") return null;
 
     const passwordCorrecta = await bcrypt.compare(String(password), usuario.PASSWORD);
     if (!passwordCorrecta) return null;
 
-    if (usuario.FOTO) {
-      usuario.FOTO = `data:image/jpeg;base64,${usuario.FOTO.toString("base64")}`;
-    }
-
+    fotoToBase64(usuario);
     return mapPacienteLogin(usuario);
-  } catch (error) {
-    console.error("Error en iniciarSesionPaciente:", error);
-    throw error;
   } finally {
     if (conn) await conn.close();
   }

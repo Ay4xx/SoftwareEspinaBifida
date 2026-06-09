@@ -1,25 +1,22 @@
-import { getMedicamentos, getMedicamentosDisponibles , guardarEventoMedicinas} from "./medicamentosservice.js";
+import { getMedicamentos, getMedicamentosDisponibles, guardarEventoMedicinas } from "./medicamentosservice.js";
 
 export async function listarMedicamentos(req, res) {
-    try {
-      const data = await getMedicamentos();
-      res.json({ ok: true, data });
-    } catch (error) {
-      console.error("ERROR MEDICAMENTOS:", error.message);
-      res.status(500).json({ ok: false, message: error.message });
-    }
+  try {
+    const data = await getMedicamentos();
+    res.json({ ok: true, data });
+  } catch (error) {
+    console.error("Error en listarMedicamentos:", error);
+    res.status(500).json({ ok: false, message: error.message });
   }
+}
 
 export async function listarMedicamentosDisponibles(req, res) {
   try {
-    // recibe los ids seleccionados como query param: ?ids=1,2,3
-    const ids = req.query.ids
-      ? req.query.ids.split(",").map(Number)
-      : [];
+    const ids  = req.query.ids ? req.query.ids.split(",").map(Number) : [];
     const data = await getMedicamentosDisponibles(ids);
     res.json({ ok: true, data });
   } catch (error) {
-    console.error(error);
+    console.error("Error en listarMedicamentosDisponibles:", error);
     res.status(500).json({ ok: false, message: "Error al obtener medicamentos disponibles" });
   }
 }
@@ -30,7 +27,7 @@ export async function guardarConsulta(req, res) {
     const result = await guardarEventoMedicinas(pacienteId, medicamentos);
     res.json({ ok: true, eventoId: result.eventoId });
   } catch (error) {
-    console.error(error);
+    console.error("Error en guardarConsulta:", error);
     res.status(500).json({ ok: false, message: error.message });
   }
 }
