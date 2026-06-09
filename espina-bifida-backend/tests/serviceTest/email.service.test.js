@@ -1,5 +1,8 @@
 import { jest } from "@jest/globals";
 
+process.env.MAIL_USER = "asociacion@test.com";
+process.env.MAIL_PASS = "password-test";
+
 const sendMail = jest.fn();
 const createTransport = jest.fn(() => ({ sendMail }));
 
@@ -17,8 +20,7 @@ const {
 
 describe("email.service", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    process.env.MAIL_USER = "asociacion@test.com";
+    sendMail.mockClear();
   });
 
   test("configura transporter de nodemailer", () => {
@@ -26,7 +28,8 @@ describe("email.service", () => {
       expect.objectContaining({
         service: "gmail",
         auth: expect.objectContaining({
-          user: expect.anything(),
+          user: "asociacion@test.com",
+          pass: "password-test",
         }),
       })
     );
@@ -34,11 +37,16 @@ describe("email.service", () => {
 
   test("enviarCorreoPreRegistro no envía si no hay correo", async () => {
     await enviarCorreoPreRegistro({ nombre: "Ana", apellido: "López" });
+
     expect(sendMail).not.toHaveBeenCalled();
   });
 
   test("envía correo de preregistro", async () => {
-    await enviarCorreoPreRegistro({ nombre: "Ana", apellido: "López", correo: "ana@test.com" });
+    await enviarCorreoPreRegistro({
+      nombre: "Ana",
+      apellido: "López",
+      correo: "ana@test.com",
+    });
 
     expect(sendMail).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -50,7 +58,11 @@ describe("email.service", () => {
   });
 
   test("envía correo de aprobación", async () => {
-    await enviarCorreoAprobacion({ nombre: "Ana", apellido: "López", correo: "ana@test.com" });
+    await enviarCorreoAprobacion({
+      nombre: "Ana",
+      apellido: "López",
+      correo: "ana@test.com",
+    });
 
     expect(sendMail).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -62,7 +74,11 @@ describe("email.service", () => {
   });
 
   test("envía correo de rechazo", async () => {
-    await enviarCorreoRechazo({ nombre: "Ana", apellido: "López", correo: "ana@test.com" });
+    await enviarCorreoRechazo({
+      nombre: "Ana",
+      apellido: "López",
+      correo: "ana@test.com",
+    });
 
     expect(sendMail).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -74,7 +90,11 @@ describe("email.service", () => {
   });
 
   test("envía correo de alta manual", async () => {
-    await enviarCorreoAltaManual({ nombre: "Ana", apellido: "López", correo: "ana@test.com" });
+    await enviarCorreoAltaManual({
+      nombre: "Ana",
+      apellido: "López",
+      correo: "ana@test.com",
+    });
 
     expect(sendMail).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -86,7 +106,11 @@ describe("email.service", () => {
   });
 
   test("envía correo de recuperación con link", async () => {
-    await enviarCorreoRecuperacion({ nombre: "Ana", correo: "ana@test.com", link: "http://app/reset?token=abc" });
+    await enviarCorreoRecuperacion({
+      nombre: "Ana",
+      correo: "ana@test.com",
+      link: "http://app/reset?token=abc",
+    });
 
     expect(sendMail).toHaveBeenCalledWith(
       expect.objectContaining({

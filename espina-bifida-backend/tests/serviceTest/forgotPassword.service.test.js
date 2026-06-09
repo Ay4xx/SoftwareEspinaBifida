@@ -1,141 +1,385 @@
-import { jest } from "@jest/globals";
+import { jest, describe, beforeEach, test, expect } from "@jest/globals";
 
-const executeMock = jest.fn();
-const commitMock = jest.fn();
-const rollbackMock = jest.fn();
-const closeMock = jest.fn();
-const getConnection = jest.fn();
-const hashMock = jest.fn();
-const enviarCorreoRecuperacion = jest.fn();
+const mockExecute = jest.fn();
+const mockCommit = jest.fn();
+const mockRollback = jest.fn();
+const mockClose = jest.fn();
+const mockGetConnection = jest.fn();
+
+const mockHash = jest.fn();
+const mockRandomBytes = jest.fn();
+const mockEnviarCorreoRecuperacion = jest.fn();
 
 jest.unstable_mockModule("../../config/db.js", () => ({
-  getConnection,
-  oracledb: { OUT_FORMAT_OBJECT: 4002 },
+  getConnection: mockGetConnection,
+}));
+
+jest.unstable_mockModule("oracledb", () => ({
+  default: {
+    OUT_FORMAT_OBJECT: "OUT_FORMAT_OBJECT",
+  },
+  OUT_FORMAT_OBJECT: "OUT_FORMAT_OBJECT",
 }));
 
 jest.unstable_mockModule("bcrypt", () => ({
-  default: { hash: hashMock },
+  default: {
+    hash: mockHash,
+  },
+  hash: mockHash,
+}));
+
+jest.unstable_mockModule("crypto", () => ({
+  default: {
+    randomBytes: mockRandomBytes,
+  },
+  randomBytes: mockRandomBytes,
 }));
 
 jest.unstable_mockModule("../../modulos/email/email.service.js", () => ({
-  enviarCorreoRecuperacion,
+  enviarCorreoRecuperacion: mockEnviarCorreoRecuperacion,
 }));
 
-const { solicitarRecuperacion, validarToken, cambiarPasswordConToken } = await import(
-  "../../modulos/password/forgotPassword.service.js"
-);
+const {
+  solicitarRecuperacion,
+  validarToken,
+  cambiarPasswordConToken,
+} = await import("../../modulos/password/forgotPassword.service.js");
 
-const makeConnection = () => ({
-  execute: executeMock,
-  commit: commitMock,
-  rollback: rollbackMock,
-  close: closeMock,
-});
+function crearMockConnection() {
+  return {
+    execute: mockExecute,
+    commit: mockCommit,
+    rollback: mockRollback,
+    close: mockClose,
+  };
+}
 
-describe("forgotPassword.service", () => {
+describe("forgotPassword.service.js", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
     process.env.FRONTEND_URL = "http://localhost:3000";
-    getConnection.mockResolvedValue(makeConnection());
-  });
 
-  describe("solicitarRecuperacion", () => {
-    test("crea token, guarda registro y envía correo de recuperación", async () => {
-      executeMock
-        .mockResolvedValueOnce({ rows: [{ USUARIO_ID: 10, USERNAME: "paciente@email.com", NOMBRE: "Ana" }] })
-        .mockResolvedValueOnce({ rowsAffected: 1 })
-        .mockResolvedValueOnce({ rowsAffected: 1 });
+    mockGetConnection.mockResolvedValue(crearMockConnection());
 
-      const result = await solicitarRecuperacion("paciente@email.com");
-
-      expect(result).toBe(true);
-      expect(executeMock).toHaveBeenCalledTimes(3);
-      expect(commitMock).toHaveBeenCalledTimes(1);
-      expect(enviarCorreoRecuperacion).toHaveBeenCalledWith(
-        expect.objectContaining({
-          nombre: "Ana",
-          correo: "paciente@email.com",
-          link: expect.stringContaining("http://localhost:3000/reset-password?token="),
-        })
-      );
-      expect(closeMock).toHaveBeenCalledTimes(1);
-    });
-
-    test("cierra conexión si ocurre error", async () => {
-      executeMock.mockRejectedValueOnce(new Error("DB error"));
-
-      await expect(solicitarRecuperacion("paciente@email.com")).rejects.toThrow("DB error");
-      expect(closeMock).toHaveBeenCalledTimes(1);
+    mockRandomBytes.mockReturnValue({
+      toString: jest.fn().mockReturnValue("token-falso-123"),
     });
   });
 
-  describe("validarToken", () => {
-    test("devuelve null si no encuentra token", async () => {
-      executeMock.mockResolvedValueOnce({ rows: [] });
+  test("solicitarRecuperacion crea token, hace commit y envía correo", async () => {
+    mockExecute
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            USUARIO_ID: 10,
+            NOMBRE: "Ana",
+            USERNAME: "ana@test.com",
+          },
+        ],
+      })
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({});
 
-      const result = await validarToken("token-invalido");
+    mockCommit.mockResolvedValue({});
+    mockEnviarCorreoRecuperacion.mockResolvedValue({});
 
-      expect(result).toBeNull();
-      expect(closeMock).toHaveBeenCalledTimes(1);
+    const result = await solicitarRecuperacion(" ana@test.com ");
+
+    expect(mockGetConnection).toHaveBeenCalledTimes(1);
+
+    expect(mockExecute).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining("FROM USUARIO"),
+      { username: "ana@test.com" },
+      { outFormat: "OUT_FORMAT_OBJECT" }
+    );
+
+    expect(mockRandomBytes).toHaveBeenCalledWith(32);
+
+    expect(mockExecute).toHaveBeenNthCalledWith(
+      2,
+      "DELETE FROM PASSWORD_RESET_TOKEN WHERE USUARIO_ID = :id",
+      { id: 10 }
+    );
+
+    expect(mockExecute).toHaveBeenNthCalledWith(
+      3,
+      expect.stringContaining("INSERT INTO PASSWORD_RESET_TOKEN"),
+      expect.objectContaining({
+        id: 10,
+        token: "token-falso-123",
+        expira: expect.any(Date),
+      })
+    );
+
+    expect(mockCommit).toHaveBeenCalledTimes(1);
+
+    expect(mockEnviarCorreoRecuperacion).toHaveBeenCalledWith({
+      nombre: "Ana",
+      correo: "ana@test.com",
+      link: "http://localhost:3000/reset-password?token=token-falso-123",
     });
 
-    test("devuelve el registro si el token existe", async () => {
-      const tokenRow = { RESET_ID: 1, USUARIO_ID: 10 };
-      executeMock.mockResolvedValueOnce({ rows: [tokenRow] });
-
-      const result = await validarToken("token-valido");
-
-      expect(result).toEqual(tokenRow);
-      expect(closeMock).toHaveBeenCalledTimes(1);
-    });
+    expect(result).toBe(true);
+    expect(mockRollback).not.toHaveBeenCalled();
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 
-  describe("cambiarPasswordConToken", () => {
-    test("devuelve false si no existe token", async () => {
-      executeMock.mockResolvedValueOnce({ rows: [] });
+  test("solicitarRecuperacion usa USERNAME como nombre si NOMBRE viene vacío", async () => {
+    mockExecute
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            USUARIO_ID: 20,
+            NOMBRE: null,
+            USERNAME: "usuario@test.com",
+          },
+        ],
+      })
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({});
 
-      const result = await cambiarPasswordConToken("token-invalido", "Password123");
+    mockCommit.mockResolvedValue({});
+    mockEnviarCorreoRecuperacion.mockResolvedValue({});
 
-      expect(result).toBe(false);
-      expect(hashMock).not.toHaveBeenCalled();
-      expect(closeMock).toHaveBeenCalledTimes(1);
+    const result = await solicitarRecuperacion("usuario@test.com");
+
+    expect(mockEnviarCorreoRecuperacion).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nombre: "usuario@test.com",
+        correo: "usuario@test.com",
+        link: "http://localhost:3000/reset-password?token=token-falso-123",
+      })
+    );
+
+    expect(result).toBe(true);
+    expect(mockClose).toHaveBeenCalledTimes(1);
+  });
+
+  test("solicitarRecuperacion hace rollback, cierra conexión y lanza error si falla", async () => {
+    mockExecute.mockRejectedValueOnce(new Error("Error Oracle"));
+    mockRollback.mockResolvedValue({});
+
+    await expect(solicitarRecuperacion("ana@test.com")).rejects.toThrow(
+      "Error Oracle"
+    );
+
+    expect(mockRollback).toHaveBeenCalledTimes(1);
+    expect(mockCommit).not.toHaveBeenCalled();
+    expect(mockEnviarCorreoRecuperacion).not.toHaveBeenCalled();
+    expect(mockClose).toHaveBeenCalledTimes(1);
+  });
+
+  test("solicitarRecuperacion lanza error si no encuentra usuario", async () => {
+    mockExecute.mockResolvedValueOnce({
+      rows: [],
     });
 
-    test("actualiza contraseña, marca token usado y hace commit", async () => {
-      executeMock
-        .mockResolvedValueOnce({ rows: [{ RESET_ID: 1, USUARIO_ID: 10 }] })
-        .mockResolvedValueOnce({ rowsAffected: 1 })
-        .mockResolvedValueOnce({ rowsAffected: 1 });
-      hashMock.mockResolvedValueOnce("hashed-password");
+    mockRollback.mockResolvedValue({});
 
-      const result = await cambiarPasswordConToken("token-valido", "Password123");
+    await expect(solicitarRecuperacion("noexiste@test.com")).rejects.toThrow();
 
-      expect(result).toBe(true);
-      expect(hashMock).toHaveBeenCalledWith("Password123", 10);
-      expect(executeMock).toHaveBeenNthCalledWith(
-        2,
-        expect.stringContaining("UPDATE USUARIO"),
-        { password: "hashed-password", usuarioId: 10 }
-      );
-      expect(executeMock).toHaveBeenNthCalledWith(
-        3,
-        expect.stringContaining("UPDATE PASSWORD_RESET_TOKEN"),
-        { resetId: 1 }
-      );
-      expect(commitMock).toHaveBeenCalledTimes(1);
-      expect(closeMock).toHaveBeenCalledTimes(1);
+    expect(mockRollback).toHaveBeenCalledTimes(1);
+    expect(mockCommit).not.toHaveBeenCalled();
+    expect(mockEnviarCorreoRecuperacion).not.toHaveBeenCalled();
+    expect(mockClose).toHaveBeenCalledTimes(1);
+  });
+
+  test("validarToken retorna token si existe y no está expirado", async () => {
+    const tokenRow = {
+      TOKEN_ID: 1,
+      USUARIO_ID: 10,
+    };
+
+    mockExecute.mockResolvedValue({
+      rows: [tokenRow],
     });
 
-    test("hace rollback cuando ocurre error al actualizar", async () => {
-      executeMock
-        .mockResolvedValueOnce({ rows: [{ RESET_ID: 1, USUARIO_ID: 10 }] })
-        .mockRejectedValueOnce(new Error("Update error"));
-      hashMock.mockResolvedValueOnce("hashed-password");
+    const result = await validarToken("token-valido");
 
-      await expect(cambiarPasswordConToken("token-valido", "Password123")).rejects.toThrow("Update error");
+    expect(mockExecute).toHaveBeenCalledWith(
+      expect.stringContaining("FROM PASSWORD_RESET_TOKEN"),
+      { token: "token-valido" },
+      { outFormat: "OUT_FORMAT_OBJECT" }
+    );
 
-      expect(rollbackMock).toHaveBeenCalledTimes(1);
-      expect(closeMock).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(tokenRow);
+    expect(mockClose).toHaveBeenCalledTimes(1);
+  });
+
+  test("validarToken retorna null si no existe token válido", async () => {
+    mockExecute.mockResolvedValue({
+      rows: [],
     });
+
+    const result = await validarToken("token-invalido");
+
+    expect(result).toBeNull();
+    expect(mockClose).toHaveBeenCalledTimes(1);
+  });
+
+  test("validarToken retorna null si result.rows no existe", async () => {
+    mockExecute.mockResolvedValue({});
+
+    const result = await validarToken("token-invalido");
+
+    expect(result).toBeNull();
+    expect(mockClose).toHaveBeenCalledTimes(1);
+  });
+
+  test("validarToken cierra conexión y lanza error si falla la consulta", async () => {
+    mockExecute.mockRejectedValue(new Error("Error validar token"));
+
+    await expect(validarToken("token")).rejects.toThrow("Error validar token");
+
+    expect(mockClose).toHaveBeenCalledTimes(1);
+  });
+
+  test("cambiarPasswordConToken cambia contraseña, marca token usado y hace commit", async () => {
+    mockExecute
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            TOKEN_ID: 99,
+            USUARIO_ID: 10,
+          },
+        ],
+      })
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({});
+
+    mockHash.mockResolvedValue("password-hasheada");
+    mockCommit.mockResolvedValue({});
+
+    const result = await cambiarPasswordConToken("token-valido", "NuevaPassword123");
+
+    expect(mockExecute).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining("FROM PASSWORD_RESET_TOKEN"),
+      { token: "token-valido" },
+      { outFormat: "OUT_FORMAT_OBJECT" }
+    );
+
+    expect(mockHash).toHaveBeenCalledWith("NuevaPassword123", 10);
+
+    expect(mockExecute).toHaveBeenNthCalledWith(
+      2,
+      "UPDATE USUARIO SET PASSWORD = :hash WHERE USUARIO_ID = :id",
+      {
+        hash: "password-hasheada",
+        id: 10,
+      }
+    );
+
+    expect(mockExecute).toHaveBeenNthCalledWith(
+      3,
+      "UPDATE PASSWORD_RESET_TOKEN SET USADO = 1 WHERE TOKEN_ID = :tokenId",
+      {
+        tokenId: 99,
+      }
+    );
+
+    expect(mockCommit).toHaveBeenCalledTimes(1);
+    expect(mockRollback).not.toHaveBeenCalled();
+    expect(result).toBe(true);
+    expect(mockClose).toHaveBeenCalledTimes(1);
+  });
+
+  test("cambiarPasswordConToken retorna false si token no existe", async () => {
+    mockExecute.mockResolvedValueOnce({
+      rows: [],
+    });
+
+    const result = await cambiarPasswordConToken("token-invalido", "NuevaPassword123");
+
+    expect(result).toBe(false);
+    expect(mockHash).not.toHaveBeenCalled();
+    expect(mockCommit).not.toHaveBeenCalled();
+    expect(mockRollback).not.toHaveBeenCalled();
+    expect(mockClose).toHaveBeenCalledTimes(1);
+  });
+
+  test("cambiarPasswordConToken retorna false si result.rows no existe", async () => {
+    mockExecute.mockResolvedValueOnce({});
+
+    const result = await cambiarPasswordConToken("token-invalido", "NuevaPassword123");
+
+    expect(result).toBe(false);
+    expect(mockHash).not.toHaveBeenCalled();
+    expect(mockCommit).not.toHaveBeenCalled();
+    expect(mockRollback).not.toHaveBeenCalled();
+    expect(mockClose).toHaveBeenCalledTimes(1);
+  });
+
+  test("cambiarPasswordConToken hace rollback, cierra conexión y lanza error si falla bcrypt.hash", async () => {
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          TOKEN_ID: 99,
+          USUARIO_ID: 10,
+        },
+      ],
+    });
+
+    mockHash.mockRejectedValue(new Error("Error bcrypt"));
+    mockRollback.mockResolvedValue({});
+
+    await expect(
+      cambiarPasswordConToken("token-valido", "NuevaPassword123")
+    ).rejects.toThrow("Error bcrypt");
+
+    expect(mockRollback).toHaveBeenCalledTimes(1);
+    expect(mockCommit).not.toHaveBeenCalled();
+    expect(mockClose).toHaveBeenCalledTimes(1);
+  });
+
+  test("cambiarPasswordConToken hace rollback, cierra conexión y lanza error si falla update", async () => {
+    mockExecute
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            TOKEN_ID: 99,
+            USUARIO_ID: 10,
+          },
+        ],
+      })
+      .mockRejectedValueOnce(new Error("Error update"));
+
+    mockHash.mockResolvedValue("password-hasheada");
+    mockRollback.mockResolvedValue({});
+
+    await expect(
+      cambiarPasswordConToken("token-valido", "NuevaPassword123")
+    ).rejects.toThrow("Error update");
+
+    expect(mockRollback).toHaveBeenCalledTimes(1);
+    expect(mockCommit).not.toHaveBeenCalled();
+    expect(mockClose).toHaveBeenCalledTimes(1);
+  });
+
+  test("cambiarPasswordConToken hace rollback si falla commit", async () => {
+    mockExecute
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            TOKEN_ID: 99,
+            USUARIO_ID: 10,
+          },
+        ],
+      })
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({});
+
+    mockHash.mockResolvedValue("password-hasheada");
+    mockCommit.mockRejectedValue(new Error("Error commit"));
+    mockRollback.mockResolvedValue({});
+
+    await expect(
+      cambiarPasswordConToken("token-valido", "NuevaPassword123")
+    ).rejects.toThrow("Error commit");
+
+    expect(mockRollback).toHaveBeenCalledTimes(1);
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 });

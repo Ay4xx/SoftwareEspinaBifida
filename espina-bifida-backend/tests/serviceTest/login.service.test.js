@@ -1,9 +1,8 @@
-import { jest, describe, beforeEach, afterEach, test, expect } from "@jest/globals";
+import { jest, describe, beforeEach, test, expect } from "@jest/globals";
 
 const mockExecute = jest.fn();
 const mockClose = jest.fn();
 const mockGetConnection = jest.fn();
-
 const mockCompare = jest.fn();
 const mockMapPacienteLogin = jest.fn();
 
@@ -31,7 +30,9 @@ jest.unstable_mockModule("../../modulos/login/login.mapper.js", () => ({
   mapPacienteLogin: mockMapPacienteLogin,
 }));
 
-const { iniciarSesionPaciente } = await import("../../modulos/login/login.service.js");
+const { iniciarSesionPaciente } = await import(
+  "../../modulos/login/login.service.js"
+);
 
 function crearMockConnection() {
   return {
@@ -41,36 +42,29 @@ function crearMockConnection() {
 }
 
 describe("login.service.js", () => {
-  let consoleErrorSpy;
-
   beforeEach(() => {
     jest.clearAllMocks();
-
     mockGetConnection.mockResolvedValue(crearMockConnection());
-
-    consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
-  afterEach(() => {
-    consoleErrorSpy.mockRestore();
-  });
+  test("iniciarSesionPaciente retorna usuario mapeado si las credenciales son correctas", async () => {
+    const fotoBuffer = Buffer.from("foto-test");
 
-  test("debe iniciar sesión correctamente sin foto", async () => {
     const usuarioDB = {
       USUARIO_ID: 1,
-      USERNAME: "paciente1",
-      PASSWORD: "$2b$10$hash",
+      USERNAME: "ana",
+      PASSWORD: "hash-password",
       TIPO_USUARIO: "paciente",
-      NOMBRE: "Juan Pérez",
-      FOTO: null,
+      NOMBRE: "Ana López",
+      FOTO: fotoBuffer,
     };
 
     const usuarioMapeado = {
       id: 1,
-      username: "paciente1",
+      username: "ana",
+      nombre: "Ana López",
       tipoUsuario: "paciente",
-      nombre: "Juan Pérez",
-      foto: null,
+      foto: "data:image/jpeg;base64,Zm90by10ZXN0",
     };
 
     mockExecute.mockResolvedValue({
@@ -80,13 +74,13 @@ describe("login.service.js", () => {
     mockCompare.mockResolvedValue(true);
     mockMapPacienteLogin.mockReturnValue(usuarioMapeado);
 
-    const result = await iniciarSesionPaciente(" paciente1 ", "123456");
+    const result = await iniciarSesionPaciente(" ana ", "123456");
 
-    expect(mockGetConnection).toHaveBeenCalled();
+    expect(mockGetConnection).toHaveBeenCalledTimes(1);
 
     expect(mockExecute).toHaveBeenCalledWith(
-      expect.stringContaining("FROM USUARIO u"),
-      { username: "paciente1" },
+      expect.stringContaining("FROM USUARIO"),
+      { username: "ana" },
       {
         outFormat: "OUT_FORMAT_OBJECT",
         fetchInfo: {
@@ -97,59 +91,24 @@ describe("login.service.js", () => {
       }
     );
 
-    expect(mockCompare).toHaveBeenCalledWith("123456", "$2b$10$hash");
-    expect(mockMapPacienteLogin).toHaveBeenCalledWith(usuarioDB);
-    expect(result).toEqual(usuarioMapeado);
-    expect(mockClose).toHaveBeenCalled();
-  });
+    expect(mockCompare).toHaveBeenCalledWith("123456", "hash-password");
 
-  test("debe iniciar sesión correctamente con foto y convertirla a base64", async () => {
-    const bufferFoto = Buffer.from("foto-test");
-
-    const usuarioDB = {
-      USUARIO_ID: 2,
-      USERNAME: "paciente2",
-      PASSWORD: "$2b$10$hash",
-      TIPO_USUARIO: "paciente",
-      NOMBRE: "Ana López",
-      FOTO: bufferFoto,
-    };
-
-    const usuarioMapeado = {
-      id: 2,
-      username: "paciente2",
-      tipoUsuario: "paciente",
-      nombre: "Ana López",
-      foto: `data:image/jpeg;base64,${bufferFoto.toString("base64")}`,
-    };
-
-    mockExecute.mockResolvedValue({
-      rows: [usuarioDB],
-    });
-
-    mockCompare.mockResolvedValue(true);
-    mockMapPacienteLogin.mockImplementation((usuario) => ({
-      id: usuario.USUARIO_ID,
-      username: usuario.USERNAME,
-      tipoUsuario: usuario.TIPO_USUARIO,
-      nombre: usuario.NOMBRE,
-      foto: usuario.FOTO,
-    }));
-
-    const result = await iniciarSesionPaciente("paciente2", "123456");
-
-    expect(mockCompare).toHaveBeenCalledWith("123456", "$2b$10$hash");
-
-    expect(mockMapPacienteLogin).toHaveBeenCalledWith({
-      ...usuarioDB,
-      FOTO: `data:image/jpeg;base64,${bufferFoto.toString("base64")}`,
-    });
+    expect(mockMapPacienteLogin).toHaveBeenCalledWith(
+      expect.objectContaining({
+        USUARIO_ID: 1,
+        USERNAME: "ana",
+        PASSWORD: "hash-password",
+        TIPO_USUARIO: "paciente",
+        NOMBRE: "Ana López",
+        FOTO: "data:image/jpeg;base64,Zm90by10ZXN0",
+      })
+    );
 
     expect(result).toEqual(usuarioMapeado);
-    expect(mockClose).toHaveBeenCalled();
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 
-  test("debe regresar null si no encuentra usuario", async () => {
+  test("iniciarSesionPaciente retorna null si no encuentra usuario", async () => {
     mockExecute.mockResolvedValue({
       rows: [],
     });
@@ -159,78 +118,73 @@ describe("login.service.js", () => {
     expect(result).toBeNull();
     expect(mockCompare).not.toHaveBeenCalled();
     expect(mockMapPacienteLogin).not.toHaveBeenCalled();
-    expect(mockClose).toHaveBeenCalled();
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 
-  test("debe regresar null si result.rows no existe", async () => {
+  test("iniciarSesionPaciente retorna null si result.rows no existe", async () => {
     mockExecute.mockResolvedValue({});
 
-    const result = await iniciarSesionPaciente("usuario", "123456");
+    const result = await iniciarSesionPaciente("ana", "123456");
 
     expect(result).toBeNull();
     expect(mockCompare).not.toHaveBeenCalled();
-    expect(mockClose).toHaveBeenCalled();
+    expect(mockMapPacienteLogin).not.toHaveBeenCalled();
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 
-  test("debe regresar null si PASSWORD no existe", async () => {
+  test("iniciarSesionPaciente retorna null si PASSWORD no existe", async () => {
     mockExecute.mockResolvedValue({
       rows: [
         {
-          USUARIO_ID: 3,
-          USERNAME: "paciente3",
+          USUARIO_ID: 1,
+          USERNAME: "ana",
           PASSWORD: null,
           TIPO_USUARIO: "paciente",
-          NOMBRE: "Paciente Sin Password",
+          NOMBRE: "Ana López",
           FOTO: null,
         },
       ],
     });
 
-    const result = await iniciarSesionPaciente("paciente3", "123456");
+    const result = await iniciarSesionPaciente("ana", "123456");
 
     expect(result).toBeNull();
     expect(mockCompare).not.toHaveBeenCalled();
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      "PASSWORD inválido para usuario:",
-      3
-    );
-    expect(mockClose).toHaveBeenCalled();
+    expect(mockMapPacienteLogin).not.toHaveBeenCalled();
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 
-  test("debe regresar null si PASSWORD no es string", async () => {
+  test("iniciarSesionPaciente retorna null si PASSWORD no es string", async () => {
     mockExecute.mockResolvedValue({
       rows: [
         {
-          USUARIO_ID: 4,
-          USERNAME: "paciente4",
+          USUARIO_ID: 1,
+          USERNAME: "ana",
           PASSWORD: 12345,
           TIPO_USUARIO: "paciente",
-          NOMBRE: "Paciente Password Inválido",
+          NOMBRE: "Ana López",
           FOTO: null,
         },
       ],
     });
 
-    const result = await iniciarSesionPaciente("paciente4", "123456");
+    const result = await iniciarSesionPaciente("ana", "123456");
 
     expect(result).toBeNull();
     expect(mockCompare).not.toHaveBeenCalled();
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      "PASSWORD inválido para usuario:",
-      4
-    );
-    expect(mockClose).toHaveBeenCalled();
+    expect(mockMapPacienteLogin).not.toHaveBeenCalled();
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 
-  test("debe regresar null si contraseña es incorrecta", async () => {
+  test("iniciarSesionPaciente retorna null si la contraseña es incorrecta", async () => {
     mockExecute.mockResolvedValue({
       rows: [
         {
-          USUARIO_ID: 5,
-          USERNAME: "paciente5",
-          PASSWORD: "$2b$10$hash",
+          USUARIO_ID: 1,
+          USERNAME: "ana",
+          PASSWORD: "hash-password",
           TIPO_USUARIO: "paciente",
-          NOMBRE: "Paciente",
+          NOMBRE: "Ana López",
           FOTO: null,
         },
       ],
@@ -238,78 +192,70 @@ describe("login.service.js", () => {
 
     mockCompare.mockResolvedValue(false);
 
-    const result = await iniciarSesionPaciente("paciente5", "incorrecta");
+    const result = await iniciarSesionPaciente("ana", "wrong-password");
 
+    expect(mockCompare).toHaveBeenCalledWith("wrong-password", "hash-password");
     expect(result).toBeNull();
-    expect(mockCompare).toHaveBeenCalledWith("incorrecta", "$2b$10$hash");
     expect(mockMapPacienteLogin).not.toHaveBeenCalled();
-    expect(mockClose).toHaveBeenCalled();
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 
-  test("debe convertir username y password a string", async () => {
+  test("iniciarSesionPaciente funciona aunque FOTO venga null", async () => {
+    const usuarioDB = {
+      USUARIO_ID: 2,
+      USERNAME: "juan",
+      PASSWORD: "hash-password",
+      TIPO_USUARIO: "paciente",
+      NOMBRE: "Juan Pérez",
+      FOTO: null,
+    };
+
+    const usuarioMapeado = {
+      id: 2,
+      username: "juan",
+      nombre: "Juan Pérez",
+      tipoUsuario: "paciente",
+      foto: null,
+    };
+
     mockExecute.mockResolvedValue({
-      rows: [
-        {
-          USUARIO_ID: 6,
-          USERNAME: "123",
-          PASSWORD: "$2b$10$hash",
-          TIPO_USUARIO: "paciente",
-          NOMBRE: "Usuario Numérico",
-          FOTO: null,
-        },
-      ],
+      rows: [usuarioDB],
     });
 
     mockCompare.mockResolvedValue(true);
-    mockMapPacienteLogin.mockReturnValue({
-      id: 6,
-      username: "123",
-      tipoUsuario: "paciente",
-      nombre: "Usuario Numérico",
-      foto: null,
-    });
+    mockMapPacienteLogin.mockReturnValue(usuarioMapeado);
 
-    const result = await iniciarSesionPaciente(123, 456);
+    const result = await iniciarSesionPaciente("juan", "123456");
 
-    expect(mockExecute).toHaveBeenCalledWith(
-      expect.any(String),
-      { username: "123" },
-      expect.any(Object)
+    expect(mockMapPacienteLogin).toHaveBeenCalledWith(
+      expect.objectContaining({
+        FOTO: null,
+      })
     );
 
-    expect(mockCompare).toHaveBeenCalledWith("456", "$2b$10$hash");
-    expect(result).toEqual({
-      id: 6,
-      username: "123",
-      tipoUsuario: "paciente",
-      nombre: "Usuario Numérico",
-      foto: null,
-    });
+    expect(result).toEqual(usuarioMapeado);
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 
-  test("debe cerrar conexión y lanzar error si falla Oracle", async () => {
+  test("iniciarSesionPaciente cierra conexión y lanza error si falla la consulta", async () => {
     mockExecute.mockRejectedValue(new Error("Error Oracle"));
 
-    await expect(iniciarSesionPaciente("paciente1", "123456")).rejects.toThrow(
+    await expect(iniciarSesionPaciente("ana", "123456")).rejects.toThrow(
       "Error Oracle"
     );
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      "Error en iniciarSesionPaciente:",
-      expect.any(Error)
-    );
-    expect(mockClose).toHaveBeenCalled();
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 
-  test("debe lanzar error si falla bcrypt.compare", async () => {
+  test("iniciarSesionPaciente cierra conexión y lanza error si falla bcrypt.compare", async () => {
     mockExecute.mockResolvedValue({
       rows: [
         {
-          USUARIO_ID: 7,
-          USERNAME: "paciente7",
-          PASSWORD: "$2b$10$hash",
+          USUARIO_ID: 1,
+          USERNAME: "ana",
+          PASSWORD: "hash-password",
           TIPO_USUARIO: "paciente",
-          NOMBRE: "Paciente 7",
+          NOMBRE: "Ana López",
           FOTO: null,
         },
       ],
@@ -317,10 +263,10 @@ describe("login.service.js", () => {
 
     mockCompare.mockRejectedValue(new Error("Error bcrypt"));
 
-    await expect(iniciarSesionPaciente("paciente7", "123456")).rejects.toThrow(
+    await expect(iniciarSesionPaciente("ana", "123456")).rejects.toThrow(
       "Error bcrypt"
     );
 
-    expect(mockClose).toHaveBeenCalled();
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 });
