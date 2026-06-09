@@ -103,7 +103,7 @@ function EliminarArticulo({ onCerrar, onGuardado }) {
           <select value={categoria} onChange={(e) => { setCategoria(e.target.value); setError(""); }}>
             <option value="">Seleccionar</option>
             <option value="medicina">Medicina</option>
-            <option value="equipo">Equipo Médico</option>
+            <option value="equipo">Comodato</option>
           </select>
         </div>
 

@@ -77,7 +77,7 @@ function NuevoArticulo({ onCerrar, onGuardado }) {
           <select name="categoria" value={form.categoria} onChange={handleChange}>
             <option value="">Seleccionar</option>
             <option value="medicina">Medicina</option>
-            <option value="equipo">Equipo Médico</option>
+            <option value="equipo">Comodato</option>
           </select>
         </div>
 

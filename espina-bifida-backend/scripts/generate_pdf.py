@@ -458,10 +458,10 @@ def generate(stats_json: str) -> bytes:
             story.append(section_heading("4. Inventario", st))
             story.append(sp(8))
 
-        story.append(Paragraph("<b>Equipo médico</b>", ParagraphStyle("h3", fontName="Helvetica-Bold",
+        story.append(Paragraph("<b>Comodatos</b>", ParagraphStyle("h3", fontName="Helvetica-Bold",
                     fontSize=10, textColor=C_MID, spaceAfter=6)))
         story.append(kpi_table([
-            ("Total equipos",      fmt(equipo.get("total",0))),
+            ("Total comodatos",      fmt(equipo.get("total",0))),
             ("Cantidad disponible",fmt(equipo.get("cantidad_total",0))),
             ("En uso",             fmt(equipo.get("en_uso",0))),
             ("Regresados",         fmt(equipo.get("regresados",0))),
@@ -472,7 +472,7 @@ def generate(stats_json: str) -> bytes:
 
         eq_vals = [equipo.get("en_uso",0), equipo.get("regresados",0)]
         if sum(eq_vals) > 0:
-            fig = pie_chart(["En uso","Regresados"], eq_vals, "Estado del equipo médico", figsize=(5,5))
+            fig = pie_chart(["En uso","Regresados"], eq_vals, "Estado de los comodatos", figsize=(5,5))
             story.append(chart_to_image(fig, height=5))
 
     # ── 5. NOTIFICACIONES ─────────────────────────────────────────────────────
