@@ -186,6 +186,12 @@ function VisualizarHistorial() {
                               Realizar pago
                             </button>
                           )}
+                          
+                          {visita.notas && (
+                            <div className="nota-visita">
+                              <strong>Notas:</strong> {visita.notas}
+                            </div>
+                          )}
 
                           {!visita.montoRecibido && (
                             <button
@@ -195,6 +201,7 @@ function VisualizarHistorial() {
                               Cancelar
                             </button>
                           )}
+                          
                     </div>
                   </div>
                 </div>
@@ -301,6 +308,7 @@ function transformarDatos(rows) {
         eventoId: item.EVENTO_ID,
         fecha: fecha.toLocaleDateString("es-MX"),
         montoRecibido: item.MONTO_RECIBIDO,
+        notas: item.NOTAS,
         servicios: [],
         medicamentos: [],
         equipo: [],

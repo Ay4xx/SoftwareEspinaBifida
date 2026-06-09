@@ -1,6 +1,23 @@
 import { crearPacientePaso1, actualizarPaso2, actualizarPaso3, actualizarPaso4, actualizarPaso5, guardarDocumentos } from "./registro.service.js";
 import { enviarCorreoPreRegistro, enviarCorreoAltaManual } from "../email/email.service.js";
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+async function enviarCorreoSilencioso(fn, label) {
+  try {
+    await fn();
+  } catch (err) {
+    console.error(`Error al enviar correo (${label}):`, err);
+  }
+}
+
+function extraerDocumentos(files) {
+  const campos = ["docPreregistro", "docActaNacimiento", "docCurp", "docComprobanteDomicilio", "docIneFamilia"];
+  return Object.fromEntries(campos.map((campo) => [campo, files[campo]?.[0]?.buffer ?? null]));
+}
+
+// ── Controllers ───────────────────────────────────────────────────────────────
+
 export async function registrarPaciente(req, res) {
   try {
     const { nombre, apellido, genero, fechaNacimiento, curp, usuarioId } = req.body;
@@ -23,12 +40,8 @@ export async function registrarPaciente(req, res) {
 export async function contactoPaciente(req, res) {
   try {
     const { id } = req.params;
-    const {
-      direccion, ciudad, estado, codigoPostal,
-      emergenciaContacto, emergenciaTelefono,
-      telefonoCasa, telefonoCelular, correo,
-      usuarioId, nombre, apellido,
-    } = req.body;
+    const { direccion, ciudad, estado, codigoPostal, emergenciaContacto, emergenciaTelefono,
+            telefonoCasa, telefonoCelular, correo, usuarioId, nombre, apellido } = req.body;
 
     await actualizarPaso2(Number(id), {
       direccion, ciudad, estado, codigoPostal,
@@ -37,11 +50,10 @@ export async function contactoPaciente(req, res) {
     });
 
     if (!usuarioId && correo) {
-      try {
-        await enviarCorreoPreRegistro({ nombre: nombre || "", apellido: apellido || "", correo });
-      } catch (mailErr) {
-        console.error("Error al enviar correo de pre-registro:", mailErr);
-      }
+      await enviarCorreoSilencioso(
+        () => enviarCorreoPreRegistro({ nombre: nombre || "", apellido: apellido || "", correo }),
+        "pre-registro"
+      );
     }
 
     res.json({ ok: true });
@@ -54,10 +66,8 @@ export async function contactoPaciente(req, res) {
 export async function historialMedicoPaciente(req, res) {
   try {
     const { id } = req.params;
-    const {
-      lugarNacimiento, hospitalNacimiento, tipoSangre,
-      usaValvula, notas, tipoEspinaBifida, otrosPadecimiento,
-    } = req.body;
+    const { lugarNacimiento, hospitalNacimiento, tipoSangre, usaValvula, notas,
+            tipoEspinaBifida, otrosPadecimiento } = req.body;
 
     await actualizarPaso3(Number(id), {
       lugarNacimiento, hospitalNacimiento, tipoSangre,
@@ -73,44 +83,9 @@ export async function historialMedicoPaciente(req, res) {
 export async function historialTutorPaciente(req, res) {
   try {
     const { id } = req.params;
-    const {
-      tutorParentesco,
-      tutorNombre,
-      tutorLugarNacimiento,
-      tutorEdad,
-      tutorOcupacion,
-      tutorEscolaridad,
-      tutorSeguroMedico,
-      madreSeguroMedico,
-      cdEmbarazo,
-      acidoFolico,
-      citasControl,
-      adicciones,
-      hijoDtn,
-      familiarDtn,
-      expoToxicos,
-      descripcionExpoToxicos,
-    } = req.body;
+    const datos = req.body;
 
-    await actualizarPaso4(Number(id), {
-      tutorParentesco,
-      tutorNombre,
-      tutorLugarNacimiento,
-      tutorEdad,
-      tutorOcupacion,
-      tutorEscolaridad,
-      tutorSeguroMedico,
-      madreSeguroMedico,
-      cdEmbarazo,
-      acidoFolico,
-      citasControl,
-      adicciones,
-      hijoDtn,
-      familiarDtn,
-      expoToxicos,
-      descripcionExpoToxicos,
-    });
-
+    await actualizarPaso4(Number(id), datos);
     res.json({ ok: true });
   } catch (error) {
     console.error("Error en historialTutorPaciente:", error);
@@ -124,30 +99,22 @@ export async function fotografiaPaciente(req, res) {
     const { usuarioId, nombre, apellido, correo } = req.body;
     const files = req.files || {};
 
-    const fotoBuffer = files.foto?.[0]?.buffer || null;
+    const fotoBuffer = files.foto?.[0]?.buffer ?? null;
     if (fotoBuffer) {
       await actualizarPaso5(Number(id), fotoBuffer);
     }
 
-    const documentos = {
-      docPreregistro:          files.docPreregistro?.[0]?.buffer          || null,
-      docActaNacimiento:       files.docActaNacimiento?.[0]?.buffer       || null,
-      docCurp:                 files.docCurp?.[0]?.buffer                 || null,
-      docComprobanteDomicilio: files.docComprobanteDomicilio?.[0]?.buffer || null,
-      docIneFamilia:           files.docIneFamilia?.[0]?.buffer           || null,
-    };
-
+    const documentos = extraerDocumentos(files);
     const tieneDocumentos = Object.values(documentos).some((b) => b !== null);
     if (tieneDocumentos) {
       await guardarDocumentos(Number(id), documentos);
     }
 
     if (usuarioId && correo) {
-      try {
-        await enviarCorreoAltaManual({ nombre: nombre || "", apellido: apellido || "", correo });
-      } catch (mailErr) {
-        console.error("Error al enviar correo de alta manual:", mailErr);
-      }
+      await enviarCorreoSilencioso(
+        () => enviarCorreoAltaManual({ nombre: nombre || "", apellido: apellido || "", correo }),
+        "alta-manual"
+      );
     }
 
     res.json({ ok: true });

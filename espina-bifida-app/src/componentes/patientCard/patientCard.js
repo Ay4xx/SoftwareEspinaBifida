@@ -179,7 +179,7 @@ function PatientCard({ patient }) {
         
         <button className="btn-primary" onClick={() => navigate(`/inventario/${patient.id}`)}>
           <Plus size={14} />
-          Agregar
+          Detalle
         </button>
       </div>
     </div>

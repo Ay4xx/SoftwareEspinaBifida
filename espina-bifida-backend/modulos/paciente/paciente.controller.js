@@ -8,6 +8,7 @@ import {
   obtenerFoto as obtenerFotoService,
   updatePaciente,
   updateHistorialMadre,
+  borrarPacienteService,
 } from "../paciente/paciente.service.js";
 
 export async function listarPacienteCards(req, res) {
@@ -86,8 +87,7 @@ export async function actualizarPaciente(req, res) {
   try {
     const { id } = req.params;
     const datos = req.body;
-    console.log("tipoEspinaBifida:", datos.tipoEspinaBifida);
-    console.log("otrosPadecimiento:", datos.otrosPadecimiento);
+  
 
     if (datos.tutores && typeof datos.tutores === "string") {
       datos.tutores = JSON.parse(datos.tutores);
@@ -99,5 +99,21 @@ export async function actualizarPaciente(req, res) {
   } catch (error) {
     console.error("Error en actualizarPaciente:", error);
     res.status(500).json({ ok: false, message: error.message || "Error al actualizar paciente" });
+  }
+}
+
+export async function borrarPaciente(req, res) {
+  try {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ ok: false, message: "Falta el id del paciente" });
+
+    const borrado = await borrarPacienteService(id);
+    if (!borrado)
+      return res.status(404).json({ ok: false, message: "No se encontró el paciente" });
+
+    return res.json({ ok: true, message: "Paciente eliminado correctamente" });
+  } catch (error) {
+    console.error("Error en borrarPaciente:", error);
+    return res.status(500).json({ ok: false, message: "Error interno del servidor" });
   }
 }

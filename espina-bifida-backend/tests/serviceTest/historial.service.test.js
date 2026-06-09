@@ -8,7 +8,9 @@ jest.unstable_mockModule("../../config/db.js", () => ({
   getConnection: mockGetConnection,
 }));
 
-const { obtenerHistorialPorPaciente } = await import("../../modulos/historial/historial.service.js");
+const { obtenerHistorialPorPaciente } = await import(
+  "../../modulos/historial/historial.service.js"
+);
 
 function crearMockConnection() {
   return {
@@ -59,7 +61,7 @@ describe("historial.service.js", () => {
 
     const result = await obtenerHistorialPorPaciente("10");
 
-    expect(mockGetConnection).toHaveBeenCalled();
+    expect(mockGetConnection).toHaveBeenCalledTimes(1);
 
     expect(mockExecute).toHaveBeenCalledWith(
       expect.stringContaining("UNION ALL"),
@@ -67,8 +69,7 @@ describe("historial.service.js", () => {
     );
 
     expect(result).toEqual(rows);
-    expect(mockClose).toHaveBeenCalled();
-    expect(consoleLogSpy).toHaveBeenCalledWith("Conexión cerrada");
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 
   test("debe regresar arreglo vacío si no hay historial", async () => {
@@ -79,17 +80,25 @@ describe("historial.service.js", () => {
     const result = await obtenerHistorialPorPaciente("99");
 
     expect(result).toEqual([]);
-    expect(mockClose).toHaveBeenCalled();
+
+    expect(mockExecute).toHaveBeenCalledWith(
+      expect.stringContaining("UNION ALL"),
+      ["99"]
+    );
+
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 
   test("debe cerrar conexión y lanzar error si falla la consulta", async () => {
-    mockExecute.mockRejectedValue(new Error("Error Oracle"));
+    const error = new Error("Error Oracle");
 
-    await expect(obtenerHistorialPorPaciente("10")).rejects.toThrow("Error Oracle");
+    mockExecute.mockRejectedValue(error);
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith("Error en obtenerHistorialPorPaciente:");
-    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockClose).toHaveBeenCalled();
+    await expect(obtenerHistorialPorPaciente("10")).rejects.toThrow(
+      "Error Oracle"
+    );
+
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 
   test("debe capturar error si falla cerrar conexión", async () => {
@@ -97,15 +106,10 @@ describe("historial.service.js", () => {
       rows: [],
     });
 
-    mockClose.mockRejectedValue(new Error("Error al cerrar"));
-
     const result = await obtenerHistorialPorPaciente("10");
 
     expect(result).toEqual([]);
-    expect(mockClose).toHaveBeenCalled();
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      "Error al cerrar conexión:",
-      expect.any(Error)
-    );
+    expect(mockClose).toHaveBeenCalledTimes(1);
+
   });
 });

@@ -1,17 +1,19 @@
-import { jest, describe, beforeEach, afterEach, test, expect } from "@jest/globals";
+import { jest, describe, it, expect, beforeEach, afterEach } from "@jest/globals";
 
 const mockGetPacienteCards = jest.fn();
-const mockGetPacienteCompleto = jest.fn();
+const mockGetPacienteDetail = jest.fn();
 const mockGetPacienteCredencial = jest.fn();
 const mockGetPacienteDetalle = jest.fn();
+const mockGetPacienteCompleto = jest.fn();
 const mockGuardarFoto = jest.fn();
 const mockObtenerFotoService = jest.fn();
 const mockUpdatePaciente = jest.fn();
 const mockUpdateHistorialMadre = jest.fn();
+const mockBorrarPacienteService = jest.fn();
 
 jest.unstable_mockModule("../../modulos/paciente/paciente.service.js", () => ({
   getPacienteCards: mockGetPacienteCards,
-  getPacienteDetail: jest.fn(),
+  getPacienteDetail: mockGetPacienteDetail,
   getPacienteCredencial: mockGetPacienteCredencial,
   getPacienteDetalle: mockGetPacienteDetalle,
   getPacienteCompleto: mockGetPacienteCompleto,
@@ -19,297 +21,260 @@ jest.unstable_mockModule("../../modulos/paciente/paciente.service.js", () => ({
   obtenerFoto: mockObtenerFotoService,
   updatePaciente: mockUpdatePaciente,
   updateHistorialMadre: mockUpdateHistorialMadre,
+  borrarPacienteService: mockBorrarPacienteService,
 }));
 
-const {
-  listarPacienteCards,
-  obtenerPacientePorId,
-  obtenerPacienteCredencial,
-  obtenerPacienteDetalle,
-  subirFoto,
-  obtenerFoto,
-  actualizarPaciente,
-} = await import("../../modulos/paciente/paciente.controller.js");
+const controller = await import("../../modulos/paciente/paciente.controller.js");
 
-function createMockRes() {
-  const res = {};
-  res.status = jest.fn().mockReturnValue(res);
-  res.json = jest.fn().mockReturnValue(res);
-  res.set = jest.fn().mockReturnValue(res);
-  res.send = jest.fn().mockReturnValue(res);
-  return res;
+function mockRes() {
+  return {
+    status: jest.fn().mockReturnThis(),
+    json: jest.fn().mockReturnThis(),
+    set: jest.fn().mockReturnThis(),
+    send: jest.fn().mockReturnThis(),
+  };
 }
 
 describe("paciente.controller.js", () => {
-  let consoleSpy;
+  let consoleErrorSpy;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
-  afterEach(() => {
-    consoleSpy.mockRestore();
+  afterEach(() => consoleErrorSpy.mockRestore());
+
+  it("listarPacienteCards responde con pacientes", async () => {
+    const data = [{ paciente_id: 1, nombre: "Ana" }];
+    mockGetPacienteCards.mockResolvedValue(data);
+    const res = mockRes();
+
+    await controller.listarPacienteCards({ query: { search: "Ana" } }, res);
+
+    expect(mockGetPacienteCards).toHaveBeenCalledWith("Ana");
+    expect(res.json).toHaveBeenCalledWith({ ok: true, data });
   });
 
-  describe("listarPacienteCards", () => {
-    test("debe listar pacientes correctamente", async () => {
-      const req = { query: { search: "juan" } };
-      const res = createMockRes();
+  it("listarPacienteCards responde 500 si falla", async () => {
+    mockGetPacienteCards.mockRejectedValue(new Error("DB error"));
+    const res = mockRes();
 
-      const data = [{ id: 1, name: "Juan Pérez" }];
-      mockGetPacienteCards.mockResolvedValue(data);
+    await controller.listarPacienteCards({ query: {} }, res);
 
-      await listarPacienteCards(req, res);
-
-      expect(mockGetPacienteCards).toHaveBeenCalledWith("juan");
-      expect(res.json).toHaveBeenCalledWith({ ok: true, data });
-    });
-
-    test("debe responder 500 si ocurre error", async () => {
-      const req = { query: { search: "" } };
-      const res = createMockRes();
-
-      mockGetPacienteCards.mockRejectedValue(new Error("DB error"));
-
-      await listarPacienteCards(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        ok: false,
-        message: "Error al obtener pacientes",
-      });
-    });
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ ok: false, message: "Error al obtener pacientes" });
   });
 
-  describe("obtenerPacientePorId", () => {
-    test("debe obtener paciente por id", async () => {
-      const req = { params: { id: "5" } };
-      const res = createMockRes();
+  it("obtenerPacientePorId responde con paciente completo", async () => {
+    const paciente = { paciente_id: 10, nombre: "Luis" };
+    mockGetPacienteCompleto.mockResolvedValue(paciente);
+    const res = mockRes();
 
-      const paciente = { PACIENTE_ID: 5, NOMBRE: "Ana" };
-      mockGetPacienteCompleto.mockResolvedValue(paciente);
+    await controller.obtenerPacientePorId({ params: { id: "10" } }, res);
 
-      await obtenerPacientePorId(req, res);
-
-      expect(mockGetPacienteCompleto).toHaveBeenCalledWith("5");
-      expect(res.json).toHaveBeenCalledWith({ ok: true, data: paciente });
-    });
-
-    test("debe responder 404 si no encuentra paciente", async () => {
-      const req = { params: { id: "99" } };
-      const res = createMockRes();
-
-      mockGetPacienteCompleto.mockResolvedValue(null);
-
-      await obtenerPacientePorId(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({
-        ok: false,
-        message: "Paciente no encontrado",
-      });
-    });
-
-    test("debe responder 500 si ocurre error", async () => {
-      const req = { params: { id: "5" } };
-      const res = createMockRes();
-
-      mockGetPacienteCompleto.mockRejectedValue(new Error("Error"));
-
-      await obtenerPacientePorId(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        ok: false,
-        message: "Error al obtener el paciente",
-      });
-    });
+    expect(mockGetPacienteCompleto).toHaveBeenCalledWith("10");
+    expect(res.json).toHaveBeenCalledWith({ ok: true, data: paciente });
   });
 
-  describe("obtenerPacienteCredencial", () => {
-    test("debe obtener credencial del paciente", async () => {
-      const req = { params: { pacienteId: "10" } };
-      const res = createMockRes();
+  it("obtenerPacientePorId responde 404 si no existe", async () => {
+    mockGetPacienteCompleto.mockResolvedValue(null);
+    const res = mockRes();
 
-      const credencial = { folio: "010", nombre: "Luis" };
-      mockGetPacienteCredencial.mockResolvedValue(credencial);
+    await controller.obtenerPacientePorId({ params: { id: "99" } }, res);
 
-      await obtenerPacienteCredencial(req, res);
-
-      expect(mockGetPacienteCredencial).toHaveBeenCalledWith(10);
-      expect(res.json).toHaveBeenCalledWith({ ok: true, data: credencial });
-    });
-
-    test("debe responder 404 si no existe credencial", async () => {
-      const req = { params: { pacienteId: "10" } };
-      const res = createMockRes();
-
-      mockGetPacienteCredencial.mockResolvedValue(null);
-
-      await obtenerPacienteCredencial(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({
-        ok: false,
-        message: "Paciente no encontrado",
-      });
-    });
-
-    test("debe responder 500 si ocurre error", async () => {
-      const req = { params: { pacienteId: "10" } };
-      const res = createMockRes();
-
-      mockGetPacienteCredencial.mockRejectedValue(new Error("Fallo"));
-
-      await obtenerPacienteCredencial(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        ok: false,
-        message: "Error interno del servidor",
-        error: "Fallo",
-      });
-    });
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ ok: false, message: "Paciente no encontrado" });
   });
 
-  describe("obtenerPacienteDetalle", () => {
-    test("debe obtener detalle del paciente", async () => {
-      const req = { params: { id: "3" } };
-      const res = createMockRes();
+  it("obtenerPacientePorId responde 500 si falla", async () => {
+    mockGetPacienteCompleto.mockRejectedValue(new Error("fallo"));
+    const res = mockRes();
 
-      const paciente = { PACIENTE_ID: 3, NOMBRE: "María" };
-      mockGetPacienteDetalle.mockResolvedValue(paciente);
+    await controller.obtenerPacientePorId({ params: { id: "10" } }, res);
 
-      await obtenerPacienteDetalle(req, res);
-
-      expect(mockGetPacienteDetalle).toHaveBeenCalledWith("3");
-      expect(res.json).toHaveBeenCalledWith({ ok: true, data: paciente });
-    });
-
-    test("debe responder 404 si no existe detalle", async () => {
-      const req = { params: { id: "3" } };
-      const res = createMockRes();
-
-      mockGetPacienteDetalle.mockResolvedValue(null);
-
-      await obtenerPacienteDetalle(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({
-        ok: false,
-        message: "Paciente no encontrado",
-      });
-    });
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ ok: false, message: "Error al obtener el paciente" });
   });
 
-  describe("subirFoto", () => {
-    test("debe subir foto correctamente", async () => {
-      const buffer = Buffer.from("imagen");
-      const req = {
-        params: { id: "8" },
-        file: { buffer },
-      };
-      const res = createMockRes();
+  it("obtenerPacienteCredencial convierte pacienteId a Number", async () => {
+    const credencial = { paciente_id: 7, folio: "ABC" };
+    mockGetPacienteCredencial.mockResolvedValue(credencial);
+    const res = mockRes();
 
-      mockGuardarFoto.mockResolvedValue();
+    await controller.obtenerPacienteCredencial({ params: { pacienteId: "7" } }, res);
 
-      await subirFoto(req, res);
-
-      expect(mockGuardarFoto).toHaveBeenCalledWith("8", buffer);
-      expect(res.json).toHaveBeenCalledWith({
-        ok: true,
-        message: "Foto guardada correctamente",
-      });
-    });
-
-    test("debe responder 400 si no se manda imagen", async () => {
-      const req = {
-        params: { id: "8" },
-        file: null,
-      };
-      const res = createMockRes();
-
-      await subirFoto(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        ok: false,
-        message: "No se recibió ninguna imagen",
-      });
-    });
+    expect(mockGetPacienteCredencial).toHaveBeenCalledWith(7);
+    expect(res.json).toHaveBeenCalledWith({ ok: true, data: credencial });
   });
 
-  describe("obtenerFoto", () => {
-    test("debe obtener foto y enviarla como jpeg", async () => {
-      const foto = Buffer.from("imagen");
-      const req = { params: { id: "4" } };
-      const res = createMockRes();
+  it("obtenerPacienteCredencial responde 404 si no hay credencial", async () => {
+    mockGetPacienteCredencial.mockResolvedValue(null);
+    const res = mockRes();
 
-      mockObtenerFotoService.mockResolvedValue(foto);
+    await controller.obtenerPacienteCredencial({ params: { pacienteId: "7" } }, res);
 
-      await obtenerFoto(req, res);
-
-      expect(mockObtenerFotoService).toHaveBeenCalledWith("4");
-      expect(res.set).toHaveBeenCalledWith("Content-Type", "image/jpeg");
-      expect(res.send).toHaveBeenCalledWith(foto);
-    });
-
-    test("debe responder 404 si no hay foto", async () => {
-      const req = { params: { id: "4" } };
-      const res = createMockRes();
-
-      mockObtenerFotoService.mockResolvedValue(null);
-
-      await obtenerFoto(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({
-        ok: false,
-        message: "Foto no encontrada",
-      });
-    });
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ ok: false, message: "Paciente no encontrado" });
   });
 
-  describe("actualizarPaciente", () => {
-    test("debe actualizar paciente e historial de madre", async () => {
-      const req = {
-        params: { id: "15" },
-        body: { nombre: "Carlos" },
-        file: { buffer: Buffer.from("foto") },
-      };
-      const res = createMockRes();
+  it("obtenerPacienteCredencial responde 500 si falla", async () => {
+    mockGetPacienteCredencial.mockRejectedValue(new Error("credencial error"));
+    const res = mockRes();
 
-      mockUpdatePaciente.mockResolvedValue();
-      mockUpdateHistorialMadre.mockResolvedValue();
+    await controller.obtenerPacienteCredencial({ params: { pacienteId: "7" } }, res);
 
-      await actualizarPaciente(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ ok: false, message: "Error interno del servidor", error: "credencial error" });
+  });
 
-      expect(mockUpdatePaciente).toHaveBeenCalledWith(15, req.body, req.file);
-      expect(mockUpdateHistorialMadre).toHaveBeenCalledWith(15, req.body);
-      expect(res.json).toHaveBeenCalledWith({
-        ok: true,
-        message: "Paciente actualizado correctamente",
-      });
-    });
+  it("obtenerPacienteDetalle responde con detalle", async () => {
+    const paciente = { paciente_id: 4, ciudad: "Monterrey" };
+    mockGetPacienteDetalle.mockResolvedValue(paciente);
+    const res = mockRes();
 
-    test("debe responder 500 si falla actualización", async () => {
-      const req = {
-        params: { id: "15" },
-        body: {},
-        file: null,
-      };
-      const res = createMockRes();
+    await controller.obtenerPacienteDetalle({ params: { id: "4" } }, res);
 
-      mockUpdatePaciente.mockRejectedValue(new Error("No se pudo actualizar"));
+    expect(mockGetPacienteDetalle).toHaveBeenCalledWith("4");
+    expect(res.json).toHaveBeenCalledWith({ ok: true, data: paciente });
+  });
 
-      await actualizarPaciente(req, res);
+  it("obtenerPacienteDetalle responde 404 si no existe", async () => {
+    mockGetPacienteDetalle.mockResolvedValue(undefined);
+    const res = mockRes();
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        ok: false,
-        message: "No se pudo actualizar",
-      });
-    });
+    await controller.obtenerPacienteDetalle({ params: { id: "4" } }, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ ok: false, message: "Paciente no encontrado" });
+  });
+
+  it("subirFoto guarda req.file.buffer", async () => {
+    const buffer = Buffer.from("imagen");
+    const res = mockRes();
+
+    await controller.subirFoto({ params: { id: "3" }, file: { buffer } }, res);
+
+    expect(mockGuardarFoto).toHaveBeenCalledWith("3", buffer);
+    expect(res.json).toHaveBeenCalledWith({ ok: true, message: "Foto guardada correctamente" });
+  });
+
+  it("subirFoto responde 400 si no recibe imagen", async () => {
+    const res = mockRes();
+
+    await controller.subirFoto({ params: { id: "3" } }, res);
+
+    expect(mockGuardarFoto).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ ok: false, message: "No se recibió ninguna imagen" });
+  });
+
+  it("subirFoto responde 500 si guardarFoto falla", async () => {
+    mockGuardarFoto.mockRejectedValue(new Error("foto error"));
+    const res = mockRes();
+
+    await controller.subirFoto({ params: { id: "3" }, file: { buffer: Buffer.from("x") } }, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ ok: false, message: "Error al guardar la foto", error: "foto error" });
+  });
+
+  it("obtenerFoto envía imagen jpeg", async () => {
+    const foto = Buffer.from("foto");
+    mockObtenerFotoService.mockResolvedValue(foto);
+    const res = mockRes();
+
+    await controller.obtenerFoto({ params: { id: "8" } }, res);
+
+    expect(mockObtenerFotoService).toHaveBeenCalledWith("8");
+    expect(res.set).toHaveBeenCalledWith("Content-Type", "image/jpeg");
+    expect(res.send).toHaveBeenCalledWith(foto);
+  });
+
+  it("obtenerFoto responde 404 si no encuentra foto", async () => {
+    mockObtenerFotoService.mockResolvedValue(null);
+    const res = mockRes();
+
+    await controller.obtenerFoto({ params: { id: "8" } }, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ ok: false, message: "Foto no encontrada" });
+  });
+
+  it("obtenerFoto responde 500 si falla", async () => {
+    mockObtenerFotoService.mockRejectedValue(new Error("lob error"));
+    const res = mockRes();
+
+    await controller.obtenerFoto({ params: { id: "8" } }, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ ok: false, message: "Error al obtener la foto", error: "lob error" });
+  });
+
+  it("actualizarPaciente parsea tutores string y actualiza", async () => {
+    const file = { buffer: Buffer.from("foto") };
+    const req = {
+      params: { id: "12" },
+      body: { nombre: "Marta", tutores: JSON.stringify([{ nombre: "Tutor" }]) },
+      file,
+    };
+    const res = mockRes();
+
+    await controller.actualizarPaciente(req, res);
+
+    expect(req.body.tutores).toEqual([{ nombre: "Tutor" }]);
+    expect(mockUpdatePaciente).toHaveBeenCalledWith(12, req.body, file);
+    expect(mockUpdateHistorialMadre).toHaveBeenCalledWith(12, req.body);
+    expect(res.json).toHaveBeenCalledWith({ ok: true, message: "Paciente actualizado correctamente" });
+  });
+
+  it("actualizarPaciente responde 500 si falla", async () => {
+    mockUpdatePaciente.mockRejectedValue(new Error("update error"));
+    const res = mockRes();
+
+    await controller.actualizarPaciente({ params: { id: "12" }, body: { nombre: "Marta" } }, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ ok: false, message: "update error" });
+  });
+
+  it("borrarPaciente elimina correctamente", async () => {
+    mockBorrarPacienteService.mockResolvedValue(true);
+    const res = mockRes();
+
+    await controller.borrarPaciente({ params: { id: "5" } }, res);
+
+    expect(mockBorrarPacienteService).toHaveBeenCalledWith("5");
+    expect(res.json).toHaveBeenCalledWith({ ok: true, message: "Paciente eliminado correctamente" });
+  });
+
+  it("borrarPaciente responde 400 si falta id", async () => {
+    const res = mockRes();
+
+    await controller.borrarPaciente({ params: {} }, res);
+
+    expect(mockBorrarPacienteService).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ ok: false, message: "Falta el id del paciente" });
+  });
+
+  it("borrarPaciente responde 404 si no existe", async () => {
+    mockBorrarPacienteService.mockResolvedValue(false);
+    const res = mockRes();
+
+    await controller.borrarPaciente({ params: { id: "5" } }, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ ok: false, message: "No se encontró el paciente" });
+  });
+
+  it("borrarPaciente responde 500 si falla", async () => {
+    mockBorrarPacienteService.mockRejectedValue(new Error("delete error"));
+    const res = mockRes();
+
+    await controller.borrarPaciente({ params: { id: "5" } }, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ ok: false, message: "Error interno del servidor" });
   });
 });

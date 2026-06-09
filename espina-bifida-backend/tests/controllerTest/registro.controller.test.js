@@ -32,11 +32,11 @@ const {
   fotografiaPaciente,
 } = await import("../../modulos/registro/registro.controller.js");
 
-function crearMockRes() {
-  const res = {};
-  res.status = jest.fn().mockReturnValue(res);
-  res.json = jest.fn().mockReturnValue(res);
-  return res;
+function mockRes() {
+  return {
+    status: jest.fn().mockReturnThis(),
+    json: jest.fn(),
+  };
 }
 
 describe("registro.controller.js", () => {
@@ -52,49 +52,48 @@ describe("registro.controller.js", () => {
   });
 
   describe("registrarPaciente", () => {
-    test("debe registrar paciente correctamente", async () => {
+    test("registra paciente correctamente", async () => {
       const req = {
         body: {
-          nombre: "Juan",
-          apellido: "Pérez",
-          genero: "M",
+          nombre: "Ana",
+          apellido: "López",
+          genero: "F",
           fechaNacimiento: "2010-01-01",
-          curp: "JUAP100101HNLXXX01",
-          usuarioId: 1,
+          curp: "LOAA010101MNLXXX01",
+          usuarioId: 5,
         },
       };
-      const res = crearMockRes();
+      const res = mockRes();
 
-      mockCrearPacientePaso1.mockResolvedValue({ pacienteId: 10 });
+      const resultado = { pacienteId: 10 };
+      mockCrearPacientePaso1.mockResolvedValue(resultado);
 
       await registrarPaciente(req, res);
 
       expect(mockCrearPacientePaso1).toHaveBeenCalledWith({
-        nombre: "Juan",
-        apellido: "Pérez",
-        genero: "M",
+        nombre: "Ana",
+        apellido: "López",
+        genero: "F",
         fechaNacimiento: "2010-01-01",
-        curp: "JUAP100101HNLXXX01",
-        usuarioId: 1,
+        curp: "LOAA010101MNLXXX01",
+        usuarioId: 5,
       });
 
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
         ok: true,
-        data: { pacienteId: 10 },
+        data: resultado,
       });
     });
 
-    test("debe responder 400 si no se envía CURP", async () => {
+    test("responde 400 si no viene CURP", async () => {
       const req = {
         body: {
-          nombre: "Juan",
-          apellido: "Pérez",
-          genero: "M",
-          fechaNacimiento: "2010-01-01",
+          nombre: "Ana",
+          apellido: "López",
         },
       };
-      const res = crearMockRes();
+      const res = mockRes();
 
       await registrarPaciente(req, res);
 
@@ -106,20 +105,19 @@ describe("registro.controller.js", () => {
       });
     });
 
-    test("debe responder 409 si CURP está duplicado por code", async () => {
+    test("responde 409 si la CURP está duplicada por code CURP_DUPLICADO", async () => {
       const req = {
         body: {
-          nombre: "Juan",
-          apellido: "Pérez",
-          genero: "M",
-          fechaNacimiento: "2010-01-01",
-          curp: "CURP123",
+          nombre: "Ana",
+          apellido: "López",
+          curp: "LOAA010101MNLXXX01",
         },
       };
-      const res = crearMockRes();
+      const res = mockRes();
 
-      const error = new Error("CURP duplicado");
+      const error = new Error("CURP duplicada");
       error.code = "CURP_DUPLICADO";
+
       mockCrearPacientePaso1.mockRejectedValue(error);
 
       await registrarPaciente(req, res);
@@ -131,20 +129,19 @@ describe("registro.controller.js", () => {
       });
     });
 
-    test("debe responder 409 si Oracle devuelve errorNum 1", async () => {
+    test("responde 409 si la CURP está duplicada por errorNum 1", async () => {
       const req = {
         body: {
-          nombre: "Juan",
-          apellido: "Pérez",
-          genero: "M",
-          fechaNacimiento: "2010-01-01",
-          curp: "CURP123",
+          nombre: "Ana",
+          apellido: "López",
+          curp: "LOAA010101MNLXXX01",
         },
       };
-      const res = crearMockRes();
+      const res = mockRes();
 
       const error = new Error("Unique constraint");
       error.errorNum = 1;
+
       mockCrearPacientePaso1.mockRejectedValue(error);
 
       await registrarPaciente(req, res);
@@ -156,19 +153,17 @@ describe("registro.controller.js", () => {
       });
     });
 
-    test("debe responder 500 si falla el registro", async () => {
+    test("responde 500 si falla registrarPaciente", async () => {
       const req = {
         body: {
-          nombre: "Juan",
-          apellido: "Pérez",
-          genero: "M",
-          fechaNacimiento: "2010-01-01",
-          curp: "CURP123",
+          nombre: "Ana",
+          apellido: "López",
+          curp: "LOAA010101MNLXXX01",
         },
       };
-      const res = crearMockRes();
+      const res = mockRes();
 
-      mockCrearPacientePaso1.mockRejectedValue(new Error("DB error"));
+      mockCrearPacientePaso1.mockRejectedValue(new Error("Error DB"));
 
       await registrarPaciente(req, res);
 
@@ -181,143 +176,122 @@ describe("registro.controller.js", () => {
   });
 
   describe("contactoPaciente", () => {
-    test("debe guardar contacto correctamente", async () => {
+    test("guarda contacto correctamente", async () => {
       const req = {
         params: { id: "10" },
         body: {
-          direccion: "Calle 1",
+          direccion: "Calle 123",
           ciudad: "Monterrey",
           estado: "Nuevo León",
           codigoPostal: "64000",
           emergenciaContacto: "Mamá",
-          emergenciaTelefono: "8181818181",
-          telefonoCasa: "8111111111",
-          telefonoCelular: "8122222222",
-          correo: "paciente@test.com",
-          usuarioId: 1,
-          nombre: "Juan",
-          apellido: "Pérez",
+          emergenciaTelefono: "8111111111",
+          telefonoCasa: "8122222222",
+          telefonoCelular: "8133333333",
+          correo: "ana@test.com",
+          usuarioId: 5,
+          nombre: "Ana",
+          apellido: "López",
         },
       };
-      const res = crearMockRes();
+      const res = mockRes();
 
       mockActualizarPaso2.mockResolvedValue();
 
       await contactoPaciente(req, res);
 
       expect(mockActualizarPaso2).toHaveBeenCalledWith(10, {
-        direccion: "Calle 1",
+        direccion: "Calle 123",
         ciudad: "Monterrey",
         estado: "Nuevo León",
         codigoPostal: "64000",
         emergenciaContacto: "Mamá",
-        emergenciaTelefono: "8181818181",
-        telefonoCasa: "8111111111",
-        telefonoCelular: "8122222222",
-        correo: "paciente@test.com",
+        emergenciaTelefono: "8111111111",
+        telefonoCasa: "8122222222",
+        telefonoCelular: "8133333333",
+        correo: "ana@test.com",
       });
 
       expect(mockEnviarCorreoPreRegistro).not.toHaveBeenCalled();
-      expect(res.json).toHaveBeenCalledWith({ ok: true });
+
+      expect(res.json).toHaveBeenCalledWith({
+        ok: true,
+      });
     });
 
-    test("debe enviar correo de pre-registro si no hay usuarioId y sí hay correo", async () => {
+    test("envía correo de pre-registro si no hay usuarioId y sí hay correo", async () => {
       const req = {
         params: { id: "10" },
         body: {
-          direccion: "Calle 1",
+          direccion: "Calle 123",
           ciudad: "Monterrey",
           estado: "Nuevo León",
           codigoPostal: "64000",
           emergenciaContacto: "Mamá",
-          emergenciaTelefono: "8181818181",
-          telefonoCasa: "",
-          telefonoCelular: "8122222222",
-          correo: "paciente@test.com",
+          emergenciaTelefono: "8111111111",
+          telefonoCasa: "8122222222",
+          telefonoCelular: "8133333333",
+          correo: "ana@test.com",
           usuarioId: null,
-          nombre: "Juan",
-          apellido: "Pérez",
+          nombre: "Ana",
+          apellido: "López",
         },
       };
-      const res = crearMockRes();
+      const res = mockRes();
 
       mockActualizarPaso2.mockResolvedValue();
       mockEnviarCorreoPreRegistro.mockResolvedValue();
 
       await contactoPaciente(req, res);
 
-      expect(mockActualizarPaso2).toHaveBeenCalledWith(10, {
-        direccion: "Calle 1",
-        ciudad: "Monterrey",
-        estado: "Nuevo León",
-        codigoPostal: "64000",
-        emergenciaContacto: "Mamá",
-        emergenciaTelefono: "8181818181",
-        telefonoCasa: "",
-        telefonoCelular: "8122222222",
-        correo: "paciente@test.com",
-      });
-
       expect(mockEnviarCorreoPreRegistro).toHaveBeenCalledWith({
-        nombre: "Juan",
-        apellido: "Pérez",
-        correo: "paciente@test.com",
+        nombre: "Ana",
+        apellido: "López",
+        correo: "ana@test.com",
       });
 
-      expect(res.json).toHaveBeenCalledWith({ ok: true });
+      expect(res.json).toHaveBeenCalledWith({
+        ok: true,
+      });
     });
 
-    test("debe guardar contacto aunque falle el correo de pre-registro", async () => {
+    test("no falla si el correo de pre-registro falla", async () => {
       const req = {
         params: { id: "10" },
         body: {
-          direccion: "Calle 1",
-          ciudad: "Monterrey",
-          estado: "Nuevo León",
-          codigoPostal: "64000",
-          emergenciaContacto: "Mamá",
-          emergenciaTelefono: "8181818181",
-          telefonoCasa: "",
-          telefonoCelular: "8122222222",
-          correo: "paciente@test.com",
+          correo: "ana@test.com",
           usuarioId: null,
-          nombre: "Juan",
-          apellido: "Pérez",
+          nombre: "Ana",
+          apellido: "López",
         },
       };
-      const res = crearMockRes();
+      const res = mockRes();
 
       mockActualizarPaso2.mockResolvedValue();
       mockEnviarCorreoPreRegistro.mockRejectedValue(new Error("Error correo"));
 
       await contactoPaciente(req, res);
 
-      expect(mockEnviarCorreoPreRegistro).toHaveBeenCalled();
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        "Error al enviar correo de pre-registro:",
+        "Error al enviar correo (pre-registro):",
         expect.any(Error)
       );
-      expect(res.json).toHaveBeenCalledWith({ ok: true });
+
+      expect(res.json).toHaveBeenCalledWith({
+        ok: true,
+      });
     });
 
-    test("debe responder 500 si falla guardar contacto", async () => {
+    test("responde 500 si falla contactoPaciente", async () => {
       const req = {
         params: { id: "10" },
         body: {
-          direccion: "Calle 1",
-          ciudad: "Monterrey",
-          estado: "Nuevo León",
-          codigoPostal: "64000",
-          emergenciaContacto: "Mamá",
-          emergenciaTelefono: "8181818181",
-          telefonoCasa: "8111111111",
-          telefonoCelular: "8122222222",
-          correo: "paciente@test.com",
+          correo: "ana@test.com",
         },
       };
-      const res = crearMockRes();
+      const res = mockRes();
 
-      mockActualizarPaso2.mockRejectedValue(new Error("DB error"));
+      mockActualizarPaso2.mockRejectedValue(new Error("Error DB"));
 
       await contactoPaciente(req, res);
 
@@ -330,20 +304,20 @@ describe("registro.controller.js", () => {
   });
 
   describe("historialMedicoPaciente", () => {
-    test("debe guardar historial médico correctamente", async () => {
+    test("guarda historial médico correctamente", async () => {
       const req = {
         params: { id: "10" },
         body: {
           lugarNacimiento: "Monterrey",
           hospitalNacimiento: "Hospital A",
           tipoSangre: "O+",
-          usaValvula: "Sí",
+          usaValvula: "No",
           notas: "Sin notas",
           tipoEspinaBifida: "Mielomeningocele",
-          otrosPadecimiento: "",
+          otrosPadecimiento: "Ninguno",
         },
       };
-      const res = crearMockRes();
+      const res = mockRes();
 
       mockActualizarPaso3.mockResolvedValue();
 
@@ -353,28 +327,25 @@ describe("registro.controller.js", () => {
         lugarNacimiento: "Monterrey",
         hospitalNacimiento: "Hospital A",
         tipoSangre: "O+",
-        usaValvula: "Sí",
+        usaValvula: "No",
         notas: "Sin notas",
         tipoEspinaBifida: "Mielomeningocele",
-        otrosPadecimiento: "",
+        otrosPadecimiento: "Ninguno",
       });
 
-      expect(res.json).toHaveBeenCalledWith({ ok: true });
+      expect(res.json).toHaveBeenCalledWith({
+        ok: true,
+      });
     });
 
-    test("debe responder 500 si falla historial médico", async () => {
+    test("responde 500 si falla historialMedicoPaciente", async () => {
       const req = {
         params: { id: "10" },
-        body: {
-          lugarNacimiento: "Monterrey",
-          hospitalNacimiento: "Hospital A",
-          tipoSangre: "O+",
-          usaValvula: "Sí",
-        },
+        body: {},
       };
-      const res = crearMockRes();
+      const res = mockRes();
 
-      mockActualizarPaso3.mockRejectedValue(new Error("DB error"));
+      mockActualizarPaso3.mockRejectedValue(new Error("Error DB"));
 
       await historialMedicoPaciente(req, res);
 
@@ -387,66 +358,37 @@ describe("registro.controller.js", () => {
   });
 
   describe("historialTutorPaciente", () => {
-    test("debe guardar historial del tutor correctamente", async () => {
+    test("guarda historial del tutor correctamente", async () => {
+      const datos = {
+        madreNombre: "María",
+        padreNombre: "Juan",
+        adicciones: "Ninguna",
+      };
+
       const req = {
         params: { id: "10" },
-        body: {
-          tutorParentesco: "Madre",
-          tutorNombre: "María",
-          tutorLugarNacimiento: "Monterrey",
-          tutorEdad: "35",
-          tutorOcupacion: "Maestra",
-          tutorEscolaridad: "Licenciatura",
-          tutorSeguroMedico: "",
-          madreSeguroMedico: "IMSS",
-          cdEmbarazo: "No",
-          acidoFolico: "Sí",
-          citasControl: "5",
-          adicciones: "No",
-          hijoDtn: "No",
-          familiarDtn: "No",
-          expoToxicos: "No",
-          descripcionExpoToxicos: "",
-        },
+        body: datos,
       };
-      const res = crearMockRes();
+      const res = mockRes();
 
       mockActualizarPaso4.mockResolvedValue();
 
       await historialTutorPaciente(req, res);
 
-      expect(mockActualizarPaso4).toHaveBeenCalledWith(10, {
-        tutorParentesco: "Madre",
-        tutorNombre: "María",
-        tutorLugarNacimiento: "Monterrey",
-        tutorEdad: "35",
-        tutorOcupacion: "Maestra",
-        tutorEscolaridad: "Licenciatura",
-        tutorSeguroMedico: "",
-        madreSeguroMedico: "IMSS",
-        cdEmbarazo: "No",
-        acidoFolico: "Sí",
-        citasControl: "5",
-        adicciones: "No",
-        hijoDtn: "No",
-        familiarDtn: "No",
-        expoToxicos: "No",
-        descripcionExpoToxicos: "",
+      expect(mockActualizarPaso4).toHaveBeenCalledWith(10, datos);
+      expect(res.json).toHaveBeenCalledWith({
+        ok: true,
       });
-
-      expect(res.json).toHaveBeenCalledWith({ ok: true });
     });
 
-    test("debe responder 500 si falla historial tutor", async () => {
+    test("responde 500 si falla historialTutorPaciente", async () => {
       const req = {
         params: { id: "10" },
-        body: {
-          tutorParentesco: "Madre",
-        },
+        body: {},
       };
-      const res = crearMockRes();
+      const res = mockRes();
 
-      mockActualizarPaso4.mockRejectedValue(new Error("DB error"));
+      mockActualizarPaso4.mockRejectedValue(new Error("Error DB"));
 
       await historialTutorPaciente(req, res);
 
@@ -459,107 +401,110 @@ describe("registro.controller.js", () => {
   });
 
   describe("fotografiaPaciente", () => {
-    test("debe guardar fotografía correctamente", async () => {
-      const buffer = Buffer.from("foto");
+    test("guarda fotografía si viene archivo foto", async () => {
+      const fotoBuffer = Buffer.from("foto-test");
 
       const req = {
         params: { id: "10" },
         body: {},
         files: {
-          foto: [{ buffer }],
+          foto: [{ buffer: fotoBuffer }],
         },
       };
-      const res = crearMockRes();
+      const res = mockRes();
 
       mockActualizarPaso5.mockResolvedValue();
 
       await fotografiaPaciente(req, res);
 
-      expect(mockActualizarPaso5).toHaveBeenCalledWith(10, buffer);
+      expect(mockActualizarPaso5).toHaveBeenCalledWith(10, fotoBuffer);
       expect(mockGuardarDocumentos).not.toHaveBeenCalled();
       expect(mockEnviarCorreoAltaManual).not.toHaveBeenCalled();
-      expect(res.json).toHaveBeenCalledWith({ ok: true });
+
+      expect(res.json).toHaveBeenCalledWith({
+        ok: true,
+      });
     });
 
-    test("debe guardar documentos correctamente", async () => {
-      const docPreregistro = Buffer.from("preregistro");
-      const docActaNacimiento = Buffer.from("acta");
-      const docCurp = Buffer.from("curp");
-      const docComprobanteDomicilio = Buffer.from("comprobante");
-      const docIneFamilia = Buffer.from("ine");
+    test("guarda documentos si vienen archivos de documentos", async () => {
+      const docPreregistro = Buffer.from("doc-preregistro");
+      const docCurp = Buffer.from("doc-curp");
 
       const req = {
         params: { id: "10" },
         body: {},
         files: {
           docPreregistro: [{ buffer: docPreregistro }],
-          docActaNacimiento: [{ buffer: docActaNacimiento }],
           docCurp: [{ buffer: docCurp }],
-          docComprobanteDomicilio: [{ buffer: docComprobanteDomicilio }],
-          docIneFamilia: [{ buffer: docIneFamilia }],
         },
       };
-      const res = crearMockRes();
+      const res = mockRes();
 
       mockGuardarDocumentos.mockResolvedValue();
 
       await fotografiaPaciente(req, res);
 
       expect(mockActualizarPaso5).not.toHaveBeenCalled();
+
       expect(mockGuardarDocumentos).toHaveBeenCalledWith(10, {
         docPreregistro,
-        docActaNacimiento,
-        docCurp,
-        docComprobanteDomicilio,
-        docIneFamilia,
-      });
-
-      expect(res.json).toHaveBeenCalledWith({ ok: true });
-    });
-
-    test("debe guardar foto y documentos si se reciben ambos", async () => {
-      const foto = Buffer.from("foto");
-      const docCurp = Buffer.from("curp");
-
-      const req = {
-        params: { id: "10" },
-        body: {},
-        files: {
-          foto: [{ buffer: foto }],
-          docCurp: [{ buffer: docCurp }],
-        },
-      };
-      const res = crearMockRes();
-
-      mockActualizarPaso5.mockResolvedValue();
-      mockGuardarDocumentos.mockResolvedValue();
-
-      await fotografiaPaciente(req, res);
-
-      expect(mockActualizarPaso5).toHaveBeenCalledWith(10, foto);
-      expect(mockGuardarDocumentos).toHaveBeenCalledWith(10, {
-        docPreregistro: null,
         docActaNacimiento: null,
         docCurp,
         docComprobanteDomicilio: null,
         docIneFamilia: null,
       });
 
-      expect(res.json).toHaveBeenCalledWith({ ok: true });
+      expect(res.json).toHaveBeenCalledWith({
+        ok: true,
+      });
     });
 
-    test("debe enviar correo de alta manual si hay usuarioId y correo", async () => {
+    test("guarda foto y documentos si ambos vienen en files", async () => {
+      const fotoBuffer = Buffer.from("foto-test");
+      const docActaNacimiento = Buffer.from("acta");
+
+      const req = {
+        params: { id: "10" },
+        body: {},
+        files: {
+          foto: [{ buffer: fotoBuffer }],
+          docActaNacimiento: [{ buffer: docActaNacimiento }],
+        },
+      };
+      const res = mockRes();
+
+      mockActualizarPaso5.mockResolvedValue();
+      mockGuardarDocumentos.mockResolvedValue();
+
+      await fotografiaPaciente(req, res);
+
+      expect(mockActualizarPaso5).toHaveBeenCalledWith(10, fotoBuffer);
+
+      expect(mockGuardarDocumentos).toHaveBeenCalledWith(10, {
+        docPreregistro: null,
+        docActaNacimiento,
+        docCurp: null,
+        docComprobanteDomicilio: null,
+        docIneFamilia: null,
+      });
+
+      expect(res.json).toHaveBeenCalledWith({
+        ok: true,
+      });
+    });
+
+    test("envía correo de alta manual si hay usuarioId y correo", async () => {
       const req = {
         params: { id: "10" },
         body: {
-          usuarioId: 1,
+          usuarioId: 5,
           nombre: "Ana",
           apellido: "López",
           correo: "ana@test.com",
         },
         files: {},
       };
-      const res = crearMockRes();
+      const res = mockRes();
 
       mockEnviarCorreoAltaManual.mockResolvedValue();
 
@@ -571,59 +516,66 @@ describe("registro.controller.js", () => {
         correo: "ana@test.com",
       });
 
-      expect(res.json).toHaveBeenCalledWith({ ok: true });
+      expect(res.json).toHaveBeenCalledWith({
+        ok: true,
+      });
     });
 
-    test("debe continuar aunque falle el correo de alta manual", async () => {
+    test("no falla si el correo de alta manual falla", async () => {
       const req = {
         params: { id: "10" },
         body: {
-          usuarioId: 1,
+          usuarioId: 5,
           nombre: "Ana",
           apellido: "López",
           correo: "ana@test.com",
         },
         files: {},
       };
-      const res = crearMockRes();
+      const res = mockRes();
 
       mockEnviarCorreoAltaManual.mockRejectedValue(new Error("Error correo"));
 
       await fotografiaPaciente(req, res);
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        "Error al enviar correo de alta manual:",
+        "Error al enviar correo (alta-manual):",
         expect.any(Error)
       );
-      expect(res.json).toHaveBeenCalledWith({ ok: true });
+
+      expect(res.json).toHaveBeenCalledWith({
+        ok: true,
+      });
     });
 
-    test("debe responder ok aunque no se reciba foto ni documentos", async () => {
+    test("responde ok aunque no vengan files", async () => {
       const req = {
         params: { id: "10" },
         body: {},
-        files: {},
       };
-      const res = crearMockRes();
+      const res = mockRes();
 
       await fotografiaPaciente(req, res);
 
       expect(mockActualizarPaso5).not.toHaveBeenCalled();
       expect(mockGuardarDocumentos).not.toHaveBeenCalled();
-      expect(res.json).toHaveBeenCalledWith({ ok: true });
+
+      expect(res.json).toHaveBeenCalledWith({
+        ok: true,
+      });
     });
 
-    test("debe responder 500 si falla guardar fotografía", async () => {
+    test("responde 500 si falla actualizarPaso5", async () => {
       const req = {
         params: { id: "10" },
         body: {},
         files: {
-          foto: [{ buffer: Buffer.from("foto") }],
+          foto: [{ buffer: Buffer.from("foto-test") }],
         },
       };
-      const res = crearMockRes();
+      const res = mockRes();
 
-      mockActualizarPaso5.mockRejectedValue(new Error("DB error"));
+      mockActualizarPaso5.mockRejectedValue(new Error("Error foto"));
 
       await fotografiaPaciente(req, res);
 
@@ -634,7 +586,7 @@ describe("registro.controller.js", () => {
       });
     });
 
-    test("debe responder 500 si falla guardar documentos", async () => {
+    test("responde 500 si falla guardarDocumentos", async () => {
       const req = {
         params: { id: "10" },
         body: {},
@@ -642,9 +594,9 @@ describe("registro.controller.js", () => {
           docCurp: [{ buffer: Buffer.from("curp") }],
         },
       };
-      const res = crearMockRes();
+      const res = mockRes();
 
-      mockGuardarDocumentos.mockRejectedValue(new Error("DB error"));
+      mockGuardarDocumentos.mockRejectedValue(new Error("Error documentos"));
 
       await fotografiaPaciente(req, res);
 

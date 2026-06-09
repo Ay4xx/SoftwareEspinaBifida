@@ -30,370 +30,326 @@ const {
   limpiarNotificacionesAntiguasController,
 } = await import("../../modulos/notificaciones/notificaciones.controller.js");
 
-function crearMockRes() {
-  const res = {};
-  res.status = jest.fn().mockReturnValue(res);
-  res.json = jest.fn().mockReturnValue(res);
-  return res;
+function mockRes() {
+  return {
+    status: jest.fn().mockReturnThis(),
+    json: jest.fn(),
+  };
 }
 
 describe("notificaciones.controller.js", () => {
-  let consoleSpy;
+  let consoleErrorSpy;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
   afterEach(() => {
-    consoleSpy.mockRestore();
+    consoleErrorSpy.mockRestore();
   });
 
-  describe("listarNotificaciones", () => {
-    test("debe listar notificaciones correctamente", async () => {
-      const req = { query: { estado: "pendiente" } };
-      const res = crearMockRes();
+  test("listarNotificaciones responde con data", async () => {
+    const req = { query: { estado: "pendiente" } };
+    const res = mockRes();
 
-      const data = [{ id: 1, estado: "pendiente" }];
-      mockGetNotificaciones.mockResolvedValue(data);
+    const data = [{ id: 1, titulo: "Solicitud" }];
+    mockGetNotificaciones.mockResolvedValue(data);
 
-      await listarNotificaciones(req, res);
+    await listarNotificaciones(req, res);
 
-      expect(mockGetNotificaciones).toHaveBeenCalledWith("pendiente");
-      expect(res.json).toHaveBeenCalledWith({
-        ok: true,
-        data,
-      });
-    });
+    expect(mockGetNotificaciones).toHaveBeenCalledWith("pendiente");
+    expect(res.json).toHaveBeenCalledWith({ ok: true, data });
+  });
 
-    test("debe responder 500 si falla", async () => {
-      const req = { query: {} };
-      const res = crearMockRes();
+  test("listarNotificaciones responde 500 si falla", async () => {
+    const req = { query: {} };
+    const res = mockRes();
 
-      mockGetNotificaciones.mockRejectedValue(new Error("DB error"));
+    mockGetNotificaciones.mockRejectedValue(new Error("Error DB"));
 
-      await listarNotificaciones(req, res);
+    await listarNotificaciones(req, res);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        ok: false,
-        message: "Error al obtener notificaciones",
-      });
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({
+      ok: false,
+      message: "Error al obtener notificaciones",
     });
   });
 
-  describe("aprobarNotificacionController", () => {
-    test("debe aprobar notificación y enviar correo si tiene email", async () => {
-      const req = {
-        params: { id: "1" },
-        body: { usuarioId: "7" },
-      };
-      const res = crearMockRes();
+  test("aprobarNotificacionController aprueba y envía correo si hay email", async () => {
+    const req = { params: { id: "5" } };
+    const res = mockRes();
 
-      mockAprobarNotificacion.mockResolvedValue(true);
-      mockGetNotificacionById.mockResolvedValue({
-        NOMBRE: "Juan",
-        APELLIDO: "Pérez",
-        EMAIL: "juan@test.com",
-      });
-      mockEnviarCorreoAprobacion.mockResolvedValue();
+    mockAprobarNotificacion.mockResolvedValue(true);
+    mockGetNotificacionById.mockResolvedValue({
+      NOMBRE: "Ana",
+      APELLIDO: "López",
+      EMAIL: "ana@test.com",
+    });
+    mockEnviarCorreoAprobacion.mockResolvedValue();
 
-      await aprobarNotificacionController(req, res);
+    await aprobarNotificacionController(req, res);
 
-      expect(mockAprobarNotificacion).toHaveBeenCalledWith("1", "7");
-      expect(mockGetNotificacionById).toHaveBeenCalledWith("1");
-      expect(mockEnviarCorreoAprobacion).toHaveBeenCalledWith({
-        nombre: "Juan",
-        apellido: "Pérez",
-        correo: "juan@test.com",
-      });
-      expect(res.json).toHaveBeenCalledWith({
-        ok: true,
-        message: "Notificación aprobada correctamente",
-      });
+    expect(mockAprobarNotificacion).toHaveBeenCalledWith("5");
+    expect(mockGetNotificacionById).toHaveBeenCalledWith("5");
+
+    expect(mockEnviarCorreoAprobacion).toHaveBeenCalledWith({
+      nombre: "Ana",
+      apellido: "López",
+      correo: "ana@test.com",
     });
 
-    test("debe aprobar aunque falle el correo", async () => {
-      const req = {
-        params: { id: "1" },
-        body: { usuarioId: "7" },
-      };
-      const res = crearMockRes();
-
-      mockAprobarNotificacion.mockResolvedValue(true);
-      mockGetNotificacionById.mockResolvedValue({
-        NOMBRE: "Juan",
-        APELLIDO: "Pérez",
-        EMAIL: "juan@test.com",
-      });
-      mockEnviarCorreoAprobacion.mockRejectedValue(new Error("Error correo"));
-
-      await aprobarNotificacionController(req, res);
-
-      expect(res.json).toHaveBeenCalledWith({
-        ok: true,
-        message: "Notificación aprobada correctamente",
-      });
-    });
-
-    test("debe aprobar sin enviar correo si no tiene email", async () => {
-      const req = {
-        params: { id: "1" },
-        body: { usuarioId: "7" },
-      };
-      const res = crearMockRes();
-
-      mockAprobarNotificacion.mockResolvedValue(true);
-      mockGetNotificacionById.mockResolvedValue({
-        NOMBRE: "Juan",
-        APELLIDO: "Pérez",
-        EMAIL: null,
-      });
-
-      await aprobarNotificacionController(req, res);
-
-      expect(mockEnviarCorreoAprobacion).not.toHaveBeenCalled();
-      expect(res.json).toHaveBeenCalledWith({
-        ok: true,
-        message: "Notificación aprobada correctamente",
-      });
-    });
-
-    test("debe responder 404 si no se actualizó", async () => {
-      const req = {
-        params: { id: "99" },
-        body: { usuarioId: "7" },
-      };
-      const res = crearMockRes();
-
-      mockAprobarNotificacion.mockResolvedValue(false);
-
-      await aprobarNotificacionController(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({
-        ok: false,
-        message: "Notificación no encontrada o ya fue resuelta",
-      });
-    });
-
-    test("debe responder 500 si falla aprobarNotificacion", async () => {
-      const req = {
-        params: { id: "1" },
-        body: { usuarioId: "7" },
-      };
-      const res = crearMockRes();
-
-      mockAprobarNotificacion.mockRejectedValue(new Error("DB error"));
-
-      await aprobarNotificacionController(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        ok: false,
-        message: "Error al aprobar la notificación",
-      });
+    expect(res.json).toHaveBeenCalledWith({
+      ok: true,
+      message: "Notificación aprobada correctamente",
     });
   });
 
-  describe("rechazarNotificacionController", () => {
-    test("debe rechazar notificación y enviar correo si tiene email", async () => {
-      const req = {
-        params: { id: "2" },
-        body: { usuarioId: "9" },
-      };
-      const res = crearMockRes();
+  test("aprobarNotificacionController no envía correo si no hay email", async () => {
+    const req = { params: { id: "5" } };
+    const res = mockRes();
 
-      mockRechazarNotificacion.mockResolvedValue(true);
-      mockGetNotificacionById.mockResolvedValue({
-        NOMBRE: "Ana",
-        APELLIDO: "López",
-        EMAIL: "ana@test.com",
-      });
-      mockEnviarCorreoRechazo.mockResolvedValue();
-
-      await rechazarNotificacionController(req, res);
-
-      expect(mockRechazarNotificacion).toHaveBeenCalledWith("2", "9");
-      expect(mockEnviarCorreoRechazo).toHaveBeenCalledWith({
-        nombre: "Ana",
-        apellido: "López",
-        correo: "ana@test.com",
-      });
-      expect(res.json).toHaveBeenCalledWith({
-        ok: true,
-        message: "Notificación rechazada correctamente",
-      });
+    mockAprobarNotificacion.mockResolvedValue(true);
+    mockGetNotificacionById.mockResolvedValue({
+      NOMBRE: "Ana",
+      APELLIDO: "López",
+      EMAIL: null,
     });
 
-    test("debe rechazar aunque falle el correo", async () => {
-      const req = {
-        params: { id: "2" },
-        body: { usuarioId: "9" },
-      };
-      const res = crearMockRes();
+    await aprobarNotificacionController(req, res);
 
-      mockRechazarNotificacion.mockResolvedValue(true);
-      mockGetNotificacionById.mockResolvedValue({
-        NOMBRE: "Ana",
-        APELLIDO: "López",
-        EMAIL: "ana@test.com",
-      });
-      mockEnviarCorreoRechazo.mockRejectedValue(new Error("Error correo"));
-
-      await rechazarNotificacionController(req, res);
-
-      expect(res.json).toHaveBeenCalledWith({
-        ok: true,
-        message: "Notificación rechazada correctamente",
-      });
-    });
-
-    test("debe responder 404 si no se actualizó", async () => {
-      const req = {
-        params: { id: "99" },
-        body: { usuarioId: "9" },
-      };
-      const res = crearMockRes();
-
-      mockRechazarNotificacion.mockResolvedValue(false);
-
-      await rechazarNotificacionController(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({
-        ok: false,
-        message: "Notificación no encontrada o ya fue resuelta",
-      });
-    });
-
-    test("debe responder 500 si falla rechazarNotificacion", async () => {
-      const req = {
-        params: { id: "2" },
-        body: { usuarioId: "9" },
-      };
-      const res = crearMockRes();
-
-      mockRechazarNotificacion.mockRejectedValue(new Error("DB error"));
-
-      await rechazarNotificacionController(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        ok: false,
-        message: "Error al rechazar la notificación",
-      });
+    expect(mockEnviarCorreoAprobacion).not.toHaveBeenCalled();
+    expect(res.json).toHaveBeenCalledWith({
+      ok: true,
+      message: "Notificación aprobada correctamente",
     });
   });
 
-  describe("getNotificacionByIdController", () => {
-    test("debe obtener notificación por id", async () => {
-      const req = { params: { id: "1" } };
-      const res = crearMockRes();
+  test("aprobarNotificacionController no falla si correo de aprobación falla", async () => {
+    const req = { params: { id: "5" } };
+    const res = mockRes();
 
-      const data = {
-        NOTIFICACION_ID: 1,
-        NOMBRE: "Juan",
-        EMAIL: "juan@test.com",
-      };
+    mockAprobarNotificacion.mockResolvedValue(true);
+    mockGetNotificacionById.mockResolvedValue({
+      NOMBRE: "Ana",
+      APELLIDO: "López",
+      EMAIL: "ana@test.com",
+    });
+    mockEnviarCorreoAprobacion.mockRejectedValue(new Error("Error correo"));
 
-      mockGetNotificacionById.mockResolvedValue(data);
+    await aprobarNotificacionController(req, res);
 
-      await getNotificacionByIdController(req, res);
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      "Error al enviar correo (aprobación):",
+      expect.any(Error)
+    );
 
-      expect(mockGetNotificacionById).toHaveBeenCalledWith("1");
-      expect(res.json).toHaveBeenCalledWith({
-        ok: true,
-        data,
-      });
+    expect(res.json).toHaveBeenCalledWith({
+      ok: true,
+      message: "Notificación aprobada correctamente",
+    });
+  });
+
+  test("aprobarNotificacionController responde 404 si no actualizó", async () => {
+    const req = { params: { id: "5" } };
+    const res = mockRes();
+
+    mockAprobarNotificacion.mockResolvedValue(false);
+
+    await aprobarNotificacionController(req, res);
+
+    expect(mockGetNotificacionById).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({
+      ok: false,
+      message: "Notificación no encontrada o ya fue resuelta",
+    });
+  });
+
+  test("aprobarNotificacionController responde 500 si falla", async () => {
+    const req = { params: { id: "5" } };
+    const res = mockRes();
+
+    mockAprobarNotificacion.mockRejectedValue(new Error("Error aprobar"));
+
+    await aprobarNotificacionController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({
+      ok: false,
+      message: "Error al aprobar la notificación",
+    });
+  });
+
+  test("rechazarNotificacionController rechaza y envía correo", async () => {
+    const req = { params: { id: "6" } };
+    const res = mockRes();
+
+    mockRechazarNotificacion.mockResolvedValue(true);
+    mockGetNotificacionById.mockResolvedValue({
+      NOMBRE: "Juan",
+      APELLIDO: "Pérez",
+      EMAIL: "juan@test.com",
+    });
+    mockEnviarCorreoRechazo.mockResolvedValue();
+
+    await rechazarNotificacionController(req, res);
+
+    expect(mockRechazarNotificacion).toHaveBeenCalledWith("6");
+    expect(mockEnviarCorreoRechazo).toHaveBeenCalledWith({
+      nombre: "Juan",
+      apellido: "Pérez",
+      correo: "juan@test.com",
     });
 
-    test("debe responder 404 si no encuentra notificación", async () => {
-      const req = { params: { id: "99" } };
-      const res = crearMockRes();
-
-      mockGetNotificacionById.mockResolvedValue(null);
-
-      await getNotificacionByIdController(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({
-        ok: false,
-        message: "Notificación no encontrada",
-      });
+    expect(res.json).toHaveBeenCalledWith({
+      ok: true,
+      message: "Notificación rechazada correctamente",
     });
+  });
 
-    test("debe convertir objetos raros a string para evitar circular/json error", async () => {
-      const req = { params: { id: "1" } };
-      const res = crearMockRes();
+  test("rechazarNotificacionController responde 404 si no actualizó", async () => {
+    const req = { params: { id: "6" } };
+    const res = mockRes();
 
-      class WeirdObject {
-        toString() {
-          return "weird-value";
-        }
+    mockRechazarNotificacion.mockResolvedValue(false);
+
+    await rechazarNotificacionController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({
+      ok: false,
+      message: "Notificación no encontrada o ya fue resuelta",
+    });
+  });
+
+  test("rechazarNotificacionController no falla si correo de rechazo falla", async () => {
+    const req = { params: { id: "6" } };
+    const res = mockRes();
+
+    mockRechazarNotificacion.mockResolvedValue(true);
+    mockGetNotificacionById.mockResolvedValue({
+      NOMBRE: "Juan",
+      APELLIDO: "Pérez",
+      EMAIL: "juan@test.com",
+    });
+    mockEnviarCorreoRechazo.mockRejectedValue(new Error("Error correo"));
+
+    await rechazarNotificacionController(req, res);
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      "Error al enviar correo (rechazo):",
+      expect.any(Error)
+    );
+
+    expect(res.json).toHaveBeenCalledWith({
+      ok: true,
+      message: "Notificación rechazada correctamente",
+    });
+  });
+
+  test("rechazarNotificacionController responde 500 si falla", async () => {
+    const req = { params: { id: "6" } };
+    const res = mockRes();
+
+    mockRechazarNotificacion.mockRejectedValue(new Error("Error rechazo"));
+
+    await rechazarNotificacionController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({
+      ok: false,
+      message: "Error al rechazar la notificación",
+    });
+  });
+
+  test("getNotificacionByIdController responde con data sanitizada", async () => {
+    const req = { params: { id: "1" } };
+    const res = mockRes();
+
+    class CustomValue {
+      toString() {
+        return "custom-value";
       }
+    }
 
-      mockGetNotificacionById.mockResolvedValue({
-        NOTIFICACION_ID: 1,
-        CAMPO_RARO: new WeirdObject(),
-      });
-
-      await getNotificacionByIdController(req, res);
-
-      expect(res.json).toHaveBeenCalledWith({
-        ok: true,
-        data: {
-          NOTIFICACION_ID: 1,
-          CAMPO_RARO: "weird-value",
-        },
-      });
+    mockGetNotificacionById.mockResolvedValue({
+      NOTIFICACION_ID: 1,
+      NOMBRE: "Ana",
+      EXTRA: new CustomValue(),
     });
 
-    test("debe responder 500 si falla", async () => {
-      const req = { params: { id: "1" } };
-      const res = crearMockRes();
+    await getNotificacionByIdController(req, res);
 
-      mockGetNotificacionById.mockRejectedValue(new Error("DB error"));
-
-      await getNotificacionByIdController(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        ok: false,
-        message: "Error al obtener la notificación",
-      });
+    expect(mockGetNotificacionById).toHaveBeenCalledWith("1");
+    expect(res.json).toHaveBeenCalledWith({
+      ok: true,
+      data: {
+        NOTIFICACION_ID: 1,
+        NOMBRE: "Ana",
+        EXTRA: "custom-value",
+      },
     });
   });
 
-  describe("limpiarNotificacionesAntiguasController", () => {
-    test("debe limpiar notificaciones antiguas", async () => {
-      const req = {};
-      const res = crearMockRes();
+  test("getNotificacionByIdController responde 404 si no existe", async () => {
+    const req = { params: { id: "1" } };
+    const res = mockRes();
 
-      mockEliminarNotificacionesAntiguas.mockResolvedValue(3);
+    mockGetNotificacionById.mockResolvedValue(null);
 
-      await limpiarNotificacionesAntiguasController(req, res);
+    await getNotificacionByIdController(req, res);
 
-      expect(mockEliminarNotificacionesAntiguas).toHaveBeenCalled();
-      expect(res.json).toHaveBeenCalledWith({
-        ok: true,
-        eliminadas: 3,
-      });
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({
+      ok: false,
+      message: "Notificación no encontrada",
     });
+  });
 
-    test("debe responder 500 si falla limpieza", async () => {
-      const req = {};
-      const res = crearMockRes();
+  test("getNotificacionByIdController responde 500 si falla", async () => {
+    const req = { params: { id: "1" } };
+    const res = mockRes();
 
-      mockEliminarNotificacionesAntiguas.mockRejectedValue(new Error("DB error"));
+    mockGetNotificacionById.mockRejectedValue(new Error("Error detalle"));
 
-      await limpiarNotificacionesAntiguasController(req, res);
+    await getNotificacionByIdController(req, res);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        ok: false,
-        message: "Error al limpiar notificaciones antiguas",
-      });
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({
+      ok: false,
+      message: "Error al obtener la notificación",
+    });
+  });
+
+  test("limpiarNotificacionesAntiguasController responde cantidad eliminada", async () => {
+    const req = {};
+    const res = mockRes();
+
+    mockEliminarNotificacionesAntiguas.mockResolvedValue(3);
+
+    await limpiarNotificacionesAntiguasController(req, res);
+
+    expect(mockEliminarNotificacionesAntiguas).toHaveBeenCalledTimes(1);
+    expect(res.json).toHaveBeenCalledWith({
+      ok: true,
+      eliminadas: 3,
+    });
+  });
+
+  test("limpiarNotificacionesAntiguasController responde 500 si falla", async () => {
+    const req = {};
+    const res = mockRes();
+
+    mockEliminarNotificacionesAntiguas.mockRejectedValue(new Error("Error limpiar"));
+
+    await limpiarNotificacionesAntiguasController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({
+      ok: false,
+      message: "Error al limpiar notificaciones antiguas",
     });
   });
 });

@@ -22,7 +22,12 @@ const app = express();
 
 export const sseClients = new Set();
 
-app.use(cors({ origin: "http://localhost:3000" }));
+const allowedOrigin = process.env.FRONTEND_URL || "http://localhost:3000";
+
+app.use(cors({
+  origin: allowedOrigin,
+}));
+
 app.use(express.json());
 
 app.get("/api/notificaciones-sse", (req, res) => {
