@@ -19,6 +19,8 @@ function VisualizarInfo() {
   if (!paciente) return <p>Cargando...</p>;
 
   const status = (() => {
+    // El estatus guardado manda: si está inactivo, mostrar Inactivo
+    if (paciente.ESTATUS_MEMBRESIA?.toLowerCase() === "inactivo") return "Inactivo";
     if (!paciente.FECHA_FIN) return "Inactivo";
     const fechaFin = new Date(paciente.FECHA_FIN);
     const hoy = new Date();

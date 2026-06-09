@@ -291,6 +291,7 @@ export async function getPacienteDetalle(pacienteId) {
       VIVE:              row.VIVE              ?? null,
       FECHA_INICIO:      membresia?.FECHA_INICIO ? new Date(membresia.FECHA_INICIO).toISOString() : null,
       FECHA_FIN:         membresia?.FECHA_FIN   ? new Date(membresia.FECHA_FIN).toISOString()   : null,
+      ESTATUS_MEMBRESIA: membresia?.ESTATUS ?? null,
       foto:              `/api/pacientes/${row.PACIENTE_ID}/foto`,
     };
   } finally {

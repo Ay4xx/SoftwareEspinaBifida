@@ -334,12 +334,12 @@ export default function EstadisticasPage() {
       {activeSection === "resumen" && (
         <section>
           <div className="kpi-grid">
-            <KpiCard icon={Users}        label="Total pacientes"    value={fmt(pacientes.total)}               color="blue"   sub={`${fmt(pacientes.vivos)} vivos`} />
-            <KpiCard icon={CalendarDays} label="Citas este mes"     value={fmt(citas.mes)}                     color="purple" sub={`${fmt(citas.atendidas)} atendidas`} />
+            <KpiCard icon={Users}        label="Total pacientes"    value={fmt(pacientes.total)}               color="blue" />
+            <KpiCard icon={CalendarDays} label="Servicios otorgados"     value={fmt(citas.mes)}                     color="purple" sub={`${fmt(citas.atendidas)} atendidas`} />
             <KpiCard icon={Activity}     label="Visitas este mes"   value={fmt(visitas.mes)}                   color="teal"   sub={`${fmt(visitas.total)} totales`} />
             <KpiCard icon={DollarSign}   label="Ingresos totales"   value={fmtMoney(visitas.ingresos_totales)} color="green"  sub={`Promedio ${fmtMoney(visitas.ingreso_promedio)}`} />
-            <KpiCard icon={Pill}         label="Medicinas usadas"   value={fmt(medicinas.utilizadas)}          color="amber"  sub={`${fmt(medicinas.bajo_stock)} bajo stock`} />
-            <KpiCard icon={Package}      label="Equipo en uso"      value={fmt(equipo.en_uso)}                 color="coral"  sub={`${equipo.porcentaje_retorno}% retorno`} />
+            <KpiCard icon={Pill}         label="Medicinas vendidas"   value={fmt(medicinas.utilizadas)}          color="amber"  sub={`${fmt(medicinas.bajo_stock)} bajo stock`} />
+            <KpiCard icon={Package}      label="Comodato"      value={fmt(equipo.en_uso)}                 color="coral"  sub={`${equipo.porcentaje_retorno}% retorno`} />
             <KpiCard icon={Heart}        label="Membresías activas" value={fmt(membresias.activas)}            color="pink"   sub={`${fmt(membresias.vencidas)} vencidas`} />
             <KpiCard icon={Bell}         label="Registros mes"      value={fmt(notificaciones.mes)}            color="gray"   sub={`${tasaAprobacion}% aprobación`} />
           </div>
@@ -385,7 +385,7 @@ export default function EstadisticasPage() {
             <KpiCard icon={Users}       label="Total"                value={fmt(pacientes.total)}             color="blue" />
             <KpiCard icon={Users}       label="Nuevos mes"           value={fmt(pacientes.nuevos_mes)}        color="purple" />
             <KpiCard icon={Activity}    label="Con válvula"          value={fmt(pacientes.con_valvula)}       color="teal" />
-            <KpiCard icon={Stethoscope} label="Con padecimientos"    value={fmt(pacientes.con_padecimientos)} color="amber" />
+            <KpiCard icon={Stethoscope} label="Padecimiento anotado"    value={fmt(pacientes.con_padecimientos)} color="amber" />
             <KpiCard icon={Heart}       label="Membresías activas"   value={fmt(membresias.activas)}          color="pink"  sub={`${fmt(membresias.vencidas)} vencidas`} />
             <KpiCard icon={Users}       label="Membresías inactivas" value={fmt(membresias.inactivas)}        color="gray" />
           </div>
@@ -445,7 +445,7 @@ export default function EstadisticasPage() {
       {activeSection === "visitas" && (
         <section>
           <div className="kpi-grid kpi-grid-4">
-            <KpiCard icon={Activity}    label="Total visitas"        value={fmt(visitas.total)}                   color="blue" />
+            <KpiCard icon={Activity}    label="Total recibos"        value={fmt(visitas.total)}                   color="blue" />
             <KpiCard icon={DollarSign}  label="Ingresos totales"     value={fmtMoney(visitas.ingresos_totales)}   color="green" />
             <KpiCard icon={DollarSign}  label="Descuentos"           value={fmtMoney(visitas.descuentos_totales)} color="amber" />
             <KpiCard icon={DollarSign}  label="Pago promedio"        value={fmtMoney(visitas.ingreso_promedio)}   color="teal" />
