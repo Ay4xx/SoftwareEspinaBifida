@@ -16,12 +16,18 @@ import gestionUsuarioRoutes from "./modulos/gestionUsuarios/gestionUsuarios.rout
 import estadisticasRoutes from "./modulos/estadisticas/estadisticas.routes.js";
 import membresiaRoutes from "./modulos/membresia/membresia.routes.js";
 import pagoreciboRoutes from "./modulos/pagorecibo/pagorebico.route.js";
+import forgotPasswordRoutes from "./modulos/password/forgotPassword.router.js";
 
 const app = express();
 
 export const sseClients = new Set();
 
-app.use(cors({ origin: "http://localhost:3000" }));
+const allowedOrigin = process.env.FRONTEND_URL || "http://localhost:3000";
+
+app.use(cors({
+  origin: allowedOrigin,
+}));
+
 app.use(express.json());
 
 app.get("/api/notificaciones-sse", (req, res) => {
@@ -38,6 +44,7 @@ app.get("/api/notificaciones-sse", (req, res) => {
 });
 
 app.use("/api/login", loginRoutes);
+app.use("/api/forgot-password", forgotPasswordRoutes);
 app.use("/api/registro", registroRoutes);
 app.use("/api/pacientes", pacienteRoutes);
 app.use("/api/medicos", medicoRouter);

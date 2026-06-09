@@ -18,7 +18,8 @@ export function mapPacienteToCard(row) {
     name: nombreCompleto,
     nombre,
     apellido,
-    subtitle: "Paciente registrado",
+    curp: row.CURP || "Sin CURP",
+    subtitle: row.CURP || "Sin CURP",
     status:
       row.ESTATUS_MEMBRESIA && row.ESTATUS_MEMBRESIA.toLowerCase() === "activo"
         ? "Activo"
@@ -28,5 +29,7 @@ export function mapPacienteToCard(row) {
       .join(", "),
     totalConsultas: row.TOTAL_CONSULTAS || 0,
     ultimaVisita: row.FECHA_ULTIMA_VISITA || null,
+    fechaNacimiento: row.FECHA_NACIMIENTO || null,
+    etapaVida: row.ETAPA_VIDA || "Sin especificar",
   };
 }

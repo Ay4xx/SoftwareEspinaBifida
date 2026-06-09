@@ -11,12 +11,23 @@ export async function getEstadisticasModel() {
     const queryKPIs = `
       SELECT
         /* PACIENTES */
-        (SELECT COUNT(*) FROM paciente) AS total_pacientes,
-        (SELECT COUNT(*) FROM paciente WHERE vive = 'SI') AS pacientes_vivos,
-        (SELECT COUNT(*) FROM paciente WHERE vive = 'NO') AS pacientes_fallecidos,
-        (SELECT COUNT(*) FROM paciente WHERE TRUNC(fecha_alta,'MM') = TRUNC(SYSDATE,'MM')) AS pacientes_nuevos_mes,
-        (SELECT COUNT(*) FROM paciente WHERE valvula = 'SI') AS pacientes_con_valvula,
-        (SELECT COUNT(DISTINCT paciente_id) FROM paciente_padecimiento) AS pacientes_con_padecimientos,
+        (SELECT COUNT(*) FROM paciente p
+        LEFT JOIN notificacion n ON n.paciente_id = p.paciente_id
+        WHERE n.estado_proceso = 'aprobado' OR n.notificacion_id IS NULL) AS total_pacientes,
+
+        (SELECT COUNT(*) FROM paciente p
+        LEFT JOIN notificacion n ON n.paciente_id = p.paciente_id
+        WHERE (n.estado_proceso = 'aprobado' OR n.notificacion_id IS NULL)
+        AND TRUNC(p.fecha_alta,'MM') = TRUNC(SYSDATE,'MM')) AS pacientes_nuevos_mes,
+
+        (SELECT COUNT(*) FROM paciente p
+        LEFT JOIN notificacion n ON n.paciente_id = p.paciente_id
+        WHERE (n.estado_proceso = 'aprobado' OR n.notificacion_id IS NULL)
+        AND p.valvula = 'SI') AS pacientes_con_valvula,
+
+        (SELECT COUNT(DISTINCT pp.paciente_id) FROM paciente_padecimiento pp
+        LEFT JOIN notificacion n ON n.paciente_id = pp.paciente_id
+        WHERE n.estado_proceso = 'aprobado' OR n.notificacion_id IS NULL) AS pacientes_con_padecimientos,
 
         /* CITAS */
         (SELECT COUNT(*) FROM agenda_citas) AS total_citas,
@@ -57,6 +68,7 @@ export async function getEstadisticasModel() {
 
         /* EQUIPO MÉDICO */
         (SELECT COUNT(*) FROM inventario_equipo_medico) AS total_equipos,
+        (SELECT COUNT(*) FROM inventario_equipo_medico WHERE cantidad_total <= 5) AS equipos_bajo_stock,
         (SELECT NVL(SUM(cantidad_total),0) FROM inventario_equipo_medico) AS cantidad_total_equipos,
         (SELECT COUNT(*) FROM eventos_equipo_medico WHERE equipo_regresado = 'NO') AS equipos_en_uso,
         (SELECT COUNT(*) FROM eventos_equipo_medico WHERE equipo_regresado = 'SI') AS equipos_regresados,
@@ -88,9 +100,12 @@ export async function getEstadisticasModel() {
       GROUP BY TO_CHAR(fecha_evento,'YYYY-MM') ORDER BY mes
     `;
     const queryPacientesMes = `
-      SELECT TO_CHAR(fecha_alta,'YYYY-MM') AS mes, COUNT(*) AS total
-      FROM paciente WHERE fecha_alta IS NOT NULL
-      GROUP BY TO_CHAR(fecha_alta,'YYYY-MM') ORDER BY mes
+    SELECT TO_CHAR(p.fecha_alta,'YYYY-MM') AS mes, COUNT(*) AS total
+    FROM paciente p
+    LEFT JOIN notificacion n ON n.paciente_id = p.paciente_id
+    WHERE p.fecha_alta IS NOT NULL
+    AND (n.estado_proceso = 'aprobado' OR n.notificacion_id IS NULL)
+    GROUP BY TO_CHAR(p.fecha_alta,'YYYY-MM') ORDER BY mes
     `;
     const queryCitasMes = `
       SELECT TO_CHAR(fecha_cita,'YYYY-MM') AS mes, COUNT(*) AS total

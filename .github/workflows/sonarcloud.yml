@@ -47,6 +47,23 @@ jobs:
         run: npm test -- --coverage --passWithNoTests
         continue-on-error: true
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies
+        working-directory: espina-bifida-backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov openpyxl reportlab matplotlib numpy
+
+      - name: Run Python unit tests with coverage
+        working-directory: espina-bifida-backend
+        run: |
+          pytest --cov=. --cov-report=xml:coverage-python.xml
+        continue-on-error: true
+
       - name: Analyze with SonarCloud
         uses: SonarSource/sonarqube-scan-action@v6
         env:
@@ -57,6 +74,7 @@ jobs:
             -Dsonar.organization=ay4xx
             -Dsonar.sources=espina-bifida-app/src,espina-bifida-backend
             -Dsonar.tests=espina-bifida-app/tests,espina-bifida-backend/tests
-            -Dsonar.test.inclusions=**/*.test.js,**/*.test.jsx,**/*.spec.js,**/*.spec.jsx
+            -Dsonar.test.inclusions=**/*.test.js,**/*.test.jsx,**/*.spec.js,**/*.spec.jsx,**/test_*.py
             -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/build/**,**/coverage/**,**/.next/**,**/public/**,**/assets/**,**/*.png,**/*.jpg,**/*.jpeg,**/*.gif,**/*.svg,**/*.ico,**/*.pdf,**/*.zip,**/*.log
             -Dsonar.javascript.lcov.reportPaths=espina-bifida-app/coverage/lcov.info,espina-bifida-backend/coverage/lcov.info
+            -Dsonar.python.coverage.reportPaths=espina-bifida-backend/coverage-python.xml

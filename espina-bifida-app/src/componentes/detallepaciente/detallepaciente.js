@@ -18,7 +18,14 @@ function VisualizarInfo() {
 
   if (!paciente) return <p>Cargando...</p>;
 
-  const status = paciente.VIVE?.toUpperCase() === "SI" ? "Activo" : "Inactivo";
+  const status = (() => {
+    // El estatus guardado manda: si está inactivo, mostrar Inactivo
+    if (paciente.ESTATUS_MEMBRESIA?.toLowerCase() === "inactivo") return "Inactivo";
+    if (!paciente.FECHA_FIN) return "Inactivo";
+    const fechaFin = new Date(paciente.FECHA_FIN);
+    const hoy = new Date();
+    return fechaFin > hoy ? "Activo" : "Inactivo";
+  })();
 
   const iniciales = paciente.NOMBRE
     ?.split(" ")

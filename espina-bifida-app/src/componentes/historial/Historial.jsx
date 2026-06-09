@@ -13,11 +13,77 @@ function VisualizarHistorial() {
   const [modalData, setModalData] = useState(null);
   const [reciboModal, setReciboModal] = useState(false);
 
+  const [popup, setPopup] = useState(null);
+
+  const [popupData, setPopupData] = useState({
+    titulo: "",
+    mensaje: "",
+    eventoId: null,
+  });
+
+  const cargarHistorial = async () => {
+    try {
+      const response = await fetch(`http://localhost:3001/api/historial/${pacienteId}`);
+      const rows = await response.json();
+      setData(transformarDatos(rows));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const borrarVisita = async (eventoId) => {
+    setPopup("confirmar");
+
+    setPopupData({
+      titulo: "Cancelar visita",
+      mensaje:
+        "Se cancelarán los servicios asociados y se restaurará el inventario utilizado.",
+      eventoId,
+    });
+  };
+
+  const confirmarBorrado = async () => {
+
+    try {
+
+      const response = await fetch(
+        `http://localhost:3001/api/historial/${pacienteId}/${popupData.eventoId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error();
+      }
+
+      await cargarHistorial();
+
+      setPopup("exito");
+
+      setPopupData({
+        titulo: "Visita cancelada",
+        mensaje: "La visita fue cancelada correctamente."
+      });
+
+    } catch (error) {
+
+      console.error(error);
+
+      setPopup("error");
+
+      setPopupData({
+        titulo: "Error",
+        mensaje:
+          "No se pudo cancelar la visita."
+      });
+    }
+  };
+
   useEffect(() => {
-    fetch(`http://localhost:3001/api/historial/${pacienteId}`)
-      .then((res) => res.json())
-      .then((rows) => setData(transformarDatos(rows)))
-      .catch((err) => console.error(err));
+    if (pacienteId) {
+      cargarHistorial();
+    }
   }, [pacienteId]);
 
   const years = Object.keys(data).sort((a, b) => b - a);
@@ -101,7 +167,7 @@ function VisualizarHistorial() {
 
                     <div className="footer-visita">
                       <p className="total">
-                        Total
+                        Total:{" "}
                         <strong>
                           $
                           {calcularTotal(visita).toLocaleString("es-MX")}
@@ -120,6 +186,22 @@ function VisualizarHistorial() {
                               Realizar pago
                             </button>
                           )}
+                          
+                          {visita.notas && (
+                            <div className="nota-visita">
+                              <strong>Notas:</strong> {visita.notas}
+                            </div>
+                          )}
+
+                          {!visita.montoRecibido && (
+                            <button
+                              className="btn-borrar-visita"
+                              onClick={() => borrarVisita(visita.eventoId)}
+                            >
+                              Cancelar
+                            </button>
+                          )}
+                          
                     </div>
                   </div>
                 </div>
@@ -144,6 +226,66 @@ function VisualizarHistorial() {
           onClose={() => setReciboModal(false)}
         />
       )}
+
+      {popup && (
+        <div
+          className="hist-popup-overlay"
+        >
+          <div
+            className="hist-popup"
+            onClick={(e) => e.stopPropagation()}
+          >
+
+            <div
+              className={`hist-popup-icon ${
+                popup === "error"
+                  ? "error"
+                  : popup === "confirmar"
+                  ? "warning"
+                  : "success"
+              }`}
+            >
+              {popup === "confirmar"
+                ? "!"
+                : popup === "error"
+                ? "✕"
+                : "✓"}
+            </div>
+
+            <h3>{popupData.titulo}</h3>
+
+            <p>{popupData.mensaje}</p>
+
+            {popup === "confirmar" ? (
+              <div className="hist-popup-actions">
+
+                <button
+                  className="hist-btn-secondary"
+                  onClick={() => setPopup(null)}
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  className="hist-btn-danger"
+                  onClick={confirmarBorrado}
+                >
+                  Eliminar
+                </button>
+
+              </div>
+            ) : (
+              <button
+                className="hist-btn-primary"
+                onClick={() => setPopup(null)}
+              >
+                Aceptar
+              </button>
+            )}
+
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -166,6 +308,7 @@ function transformarDatos(rows) {
         eventoId: item.EVENTO_ID,
         fecha: fecha.toLocaleDateString("es-MX"),
         montoRecibido: item.MONTO_RECIBIDO,
+        notas: item.NOTAS,
         servicios: [],
         medicamentos: [],
         equipo: [],
@@ -224,4 +367,3 @@ function ItemRow({
 }
 
 export default VisualizarHistorial;
-

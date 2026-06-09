@@ -168,6 +168,43 @@
   color: #667085;
 }
 
+@media (max-width: 900px) {
+  .appointments-panel {
+    height: auto;
+    padding-bottom: 20px;
+  }
+
+  .appointment-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .patient-info {
+    gap: 12px;
+  }
+
+  .avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+  }
+
+  .patient-meta {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .appointment-actions {
+    justify-content: space-between;
+    margin-top: 8px;
+  }
+
+  .appointments-list {
+    max-height: none;
+  }
+}
+
 /* ACTIONS */
 
 .appointment-actions {

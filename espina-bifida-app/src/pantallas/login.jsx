@@ -2,11 +2,24 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./login.css";
 
+const API_LOGIN = "http://localhost:3001/api/login";
+
+// ── Helper ────────────────────────────────────────────────────────────────────
+
+function guardarSesion(data, token) {
+  localStorage.setItem("token", token);
+  localStorage.setItem("usuario", JSON.stringify(data));
+  localStorage.removeItem("guest");
+  window.dispatchEvent(new Event("usuario-login"));
+}
+
+// ── Componente ────────────────────────────────────────────────────────────────
+
 const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email,        setEmail]        = useState("");
+  const [password,     setPassword]     = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading,      setLoading]      = useState(false);
 
   const navigate = useNavigate();
 
@@ -22,11 +35,9 @@ const Login = () => {
     try {
       setLoading(true);
 
-      const response = await fetch("http://localhost:3001/api/login", {
+      const response = await fetch(API_LOGIN, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           username: String(email).trim(),
           password: String(password),
@@ -35,26 +46,9 @@ const Login = () => {
 
       const data = await response.json();
 
-      console.log("LOGIN RESPONSE:", data);
-
       if (data.ok) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("usuario", JSON.stringify(data.data));
-        localStorage.removeItem("guest");
-
-        window.dispatchEvent(new Event("usuario-login"));
-
-        const tipoUsuario = data.data?.tipoUsuario?.trim().toUpperCase();
-
-        console.log("TIPO USUARIO:", tipoUsuario);
-
-        if (tipoUsuario === "ADMINISTRADOR") {
-          navigate("/usuarios");
-        } else if (tipoUsuario === "COORDINADOR") {
-          navigate("/usuarios");
-        } else if (tipoUsuario === "SUPERADMIN") {
-          navigate("/usuarios");
-        }
+        guardarSesion(data.data, data.token);
+        navigate("/usuarios");
       } else {
         setErrorMessage(data.message || "Credenciales incorrectas");
       }
@@ -104,13 +98,19 @@ const Login = () => {
             />
           </div>
 
+          <div style={{ textAlign: "right", marginTop: -4, marginBottom: 8 }}>
+            <button
+              type="button"
+              style={{ background: "none", border: "none", color: "#4f46e5", fontSize: 13, cursor: "pointer", padding: 0 }}
+              onClick={() => navigate("/forgot-password")}
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
+          </div>
+
           {errorMessage && <p className="login-error">{errorMessage}</p>}
 
-          <button
-            type="button"
-            className="guest-btn"
-            onClick={handleGuestLogin}
-          >
+          <button type="button" className="guest-btn" onClick={handleGuestLogin}>
             Ingresar como invitado
           </button>
 

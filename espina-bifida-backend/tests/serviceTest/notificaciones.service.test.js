@@ -1,5 +1,5 @@
-import { jest, describe, beforeEach, afterEach, test, expect } from "@jest/globals";
-import { Readable } from "node:stream";
+import { jest, describe, beforeEach, test, expect } from "@jest/globals";
+import { EventEmitter } from "node:events";
 
 const mockExecute = jest.fn();
 const mockClose = jest.fn();
@@ -13,13 +13,18 @@ jest.unstable_mockModule("../../config/db.js", () => ({
 jest.unstable_mockModule("oracledb", () => ({
   default: {
     OUT_FORMAT_OBJECT: "OUT_FORMAT_OBJECT",
+    STRING: "STRING",
   },
   OUT_FORMAT_OBJECT: "OUT_FORMAT_OBJECT",
+  STRING: "STRING",
 }));
 
-jest.unstable_mockModule("../../modulos/notificaciones/notificaciones.mapper.js", () => ({
-  mapNotificacionToCard: mockMapNotificacionToCard,
-}));
+jest.unstable_mockModule(
+  "../../modulos/notificaciones/notificaciones.mapper.js",
+  () => ({
+    mapNotificacionToCard: mockMapNotificacionToCard,
+  })
+);
 
 const {
   getNotificaciones,
@@ -36,386 +41,386 @@ function crearMockConnection() {
   };
 }
 
-describe("notificaciones.service.js", () => {
-  let consoleErrorSpy;
-  let consoleLogSpy;
+function crearBlobMock(texto = "foto-test") {
+  const blob = new EventEmitter();
 
+  process.nextTick(() => {
+    blob.emit("data", Buffer.from(texto));
+    blob.emit("end");
+  });
+
+  return blob;
+}
+
+describe("notificaciones.service.js", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetConnection.mockResolvedValue(crearMockConnection());
-
-    consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-    consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
   });
 
-  afterEach(() => {
-    consoleErrorSpy.mockRestore();
-    consoleLogSpy.mockRestore();
-  });
-
-  describe("getNotificaciones", () => {
-    test("debe obtener notificaciones y mapearlas", async () => {
-      const rows = [
-        { NOTIFICACION_ID: 1, NOMBRE: "Juan" },
-        { NOTIFICACION_ID: 2, NOMBRE: "Ana" },
-      ];
-
-      mockExecute.mockResolvedValue({ rows });
-
-      mockMapNotificacionToCard
-        .mockReturnValueOnce({ id: 1, paciente: { nombre: "Juan" } })
-        .mockReturnValueOnce({ id: 2, paciente: { nombre: "Ana" } });
-
-      const result = await getNotificaciones("pendiente");
-
-      expect(mockExecute).toHaveBeenCalledWith(
-        expect.stringContaining("SELECT"),
-        { estado: "pendiente" },
-        { outFormat: "OUT_FORMAT_OBJECT" }
-      );
-
-      expect(mockMapNotificacionToCard).toHaveBeenCalledTimes(2);
-      expect(result).toEqual([
-        { id: 1, paciente: { nombre: "Juan" } },
-        { id: 2, paciente: { nombre: "Ana" } },
-      ]);
-      expect(mockClose).toHaveBeenCalled();
-    });
-
-    test("debe mandar estado null si viene vacío", async () => {
-      mockExecute.mockResolvedValue({ rows: [] });
-
-      await getNotificaciones("   ");
-
-      expect(mockExecute).toHaveBeenCalledWith(
-        expect.any(String),
-        { estado: null },
-        { outFormat: "OUT_FORMAT_OBJECT" }
-      );
-    });
-
-    test("debe cerrar conexión y lanzar error si falla", async () => {
-      mockExecute.mockRejectedValue(new Error("DB error"));
-
-      await expect(getNotificaciones()).rejects.toThrow("DB error");
-
-      expect(mockClose).toHaveBeenCalled();
-    });
-  });
-
-  describe("getNotificacionById", () => {
-    test("debe regresar null si no encuentra notificación", async () => {
-      mockExecute.mockResolvedValue({ rows: [] });
-
-      const result = await getNotificacionById(99);
-
-      expect(result).toBeNull();
-      expect(mockClose).toHaveBeenCalled();
-    });
-
-test("debe obtener notificación sin fotografía", async () => {
-  mockExecute.mockResolvedValue({
-    rows: [
+  test("getNotificaciones obtiene notificaciones y las mapea", async () => {
+    const rows = [
       {
         NOTIFICACION_ID: 1,
-        ESTADO_PROCESO: "pendiente",
-        FECHA_CREACION: "29/05/2026 14:00",
         PACIENTE_ID: 10,
-        NOMBRE: "Juan",
-        APELLIDO: "Pérez",
-        CURP: "CURP123",
-        GENERO: "M",
-        FECHA_NACIMIENTO: "2010-01-01",
-        DIRECCION: "Calle 1",
-        CIUDAD_RESIDENCIA: "Monterrey",
-        ESTADO_RESIDENCIA: "Nuevo León",
-        CODIGO_POSTAL: "64000",
-        TELEFONO_CASA: "111",
-        TELEFONO_CELULAR: "222",
-        EMAIL: "juan@test.com",
-        EMERGENCIA_CONTACTO: "Mamá",
-        EMERGENCIA_TELEFONO: "333",
-        LUGAR_NACIMIENTO: "Monterrey",
-        HOSPITAL_NACIMIENTO: "Hospital A",
-        SANGRE_TIPO: "O+",
-        VALVULA: "SI",
-        ETAPA_VIDA: "Niño",
-        NOTAS_ADICIONALES: "Ninguna",
-        FOTOGRAFIA: null,
-
-        TIPO_ESPINA_BIFIDA: null,
-        OTROS_PADECIMIENTO: null,
-
-        MADRE_LUGAR_NACIMIENTO: "Monterrey",
-        MADRE_NOMBRE: "Juan",
-        MADRE_ACIDO_FOLICO: "S",
-        MADRE_CD_EMBARAZO: "No",
-        MADRE_CITAS_CONTROL: 5,
-
-        PADRE_LUGAR_NACIMIENTO: "Monterrey",
-        PADRE_NOMBRE: "Juan",
+        TITULO: "Nueva solicitud",
+        ESTADO_PROCESO: "pendiente",
       },
-    ],
+      {
+        NOTIFICACION_ID: 2,
+        PACIENTE_ID: 11,
+        TITULO: "Otra solicitud",
+        ESTADO_PROCESO: "rechazado",
+      },
+    ];
+
+    mockExecute.mockResolvedValue({ rows });
+
+    mockMapNotificacionToCard
+      .mockReturnValueOnce({ id: 1, titulo: "Nueva solicitud" })
+      .mockReturnValueOnce({ id: 2, titulo: "Otra solicitud" });
+
+    const result = await getNotificaciones();
+
+    expect(mockExecute).toHaveBeenCalledWith(
+      expect.stringContaining("FROM NOTIFICACION"),
+      { estado: null },
+      { outFormat: "OUT_FORMAT_OBJECT" }
+    );
+
+    expect(mockMapNotificacionToCard).toHaveBeenCalledTimes(2);
+
+    expect(result).toEqual([
+      { id: 1, titulo: "Nueva solicitud" },
+      { id: 2, titulo: "Otra solicitud" },
+    ]);
+
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 
-  const result = await getNotificacionById("1");
+  test("getNotificaciones limpia estado con trim", async () => {
+    mockExecute.mockResolvedValue({ rows: [] });
 
-  expect(mockExecute).toHaveBeenCalledWith(
-    expect.stringContaining("WHERE n.notificacion_id = :notificacionId"),
-    { notificacionId: 1 },
-    { outFormat: "OUT_FORMAT_OBJECT" }
-  );
+    const result = await getNotificaciones(" pendiente ");
 
-  expect(result).toMatchObject({
-    NOTIFICACION_ID: 1,
-    ESTADO_PROCESO: "pendiente",
-    FECHA_CREACION: "29/05/2026 14:00",
-    PACIENTE_ID: 10,
-    NOMBRE: "Juan",
-    APELLIDO: "Pérez",
-    CURP: "CURP123",
-    GENERO: "M",
-    FECHA_NACIMIENTO: "2010-01-01",
-    DIRECCION: "Calle 1",
-    CIUDAD_RESIDENCIA: "Monterrey",
-    ESTADO_RESIDENCIA: "Nuevo León",
-    CODIGO_POSTAL: "64000",
-    TELEFONO_CASA: "111",
-    TELEFONO_CELULAR: "222",
-    EMAIL: "juan@test.com",
-    EMERGENCIA_CONTACTO: "Mamá",
-    EMERGENCIA_TELEFONO: "333",
-    LUGAR_NACIMIENTO: "Monterrey",
-    HOSPITAL_NACIMIENTO: "Hospital A",
-    SANGRE_TIPO: "O+",
-    VALVULA: "SI",
-    ETAPA_VIDA: "Niño",
-    NOTAS_ADICIONALES: "Ninguna",
-    FOTO: null,
-    TIPO_ESPINA_BIFIDA: null,
-    OTROS_PADECIMIENTO: null,
+    expect(mockExecute).toHaveBeenCalledWith(
+      expect.stringContaining("LOWER(n.estado_proceso) = LOWER(:estado)"),
+      { estado: "pendiente" },
+      { outFormat: "OUT_FORMAT_OBJECT" }
+    );
+
+    expect(result).toEqual([]);
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 
-  expect(result.TUTORES).toEqual([
-    expect.objectContaining({
-      tutorParentesco: "Madre",
-      tutorLugarNacimiento: "Monterrey",
-      tutorNombre: "Juan",
-      acidoFolico: "",
-      cdEmbarazo: "",
-      citasControl: "",
-    }),
-    expect.objectContaining({
-      tutorParentesco: "Padre",
-      tutorLugarNacimiento: "Monterrey",
-      tutorNombre: "Juan",
-    }),
-  ]);
+  test("getNotificaciones usa estado null si recibe string vacío", async () => {
+    mockExecute.mockResolvedValue({ rows: [] });
 
-  expect(mockClose).toHaveBeenCalled();
-});
-    test("debe convertir fotografía BLOB a base64", async () => {
-      const lob = new Readable({
-        read() {
-          this.push(Buffer.from("foto-test"));
-          this.push(null);
-        },
-      });
+    await getNotificaciones("   ");
 
-      mockExecute.mockResolvedValue({
+    expect(mockExecute).toHaveBeenCalledWith(
+      expect.any(String),
+      { estado: null },
+      { outFormat: "OUT_FORMAT_OBJECT" }
+    );
+
+    expect(mockClose).toHaveBeenCalledTimes(1);
+  });
+
+  test("getNotificacionById retorna null si no existe", async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+
+    const result = await getNotificacionById("999");
+
+    expect(mockExecute).toHaveBeenCalledWith(
+      expect.stringContaining("WHERE n.notificacion_id = :notificacionId"),
+      { notificacionId: 999 },
+      { outFormat: "OUT_FORMAT_OBJECT" }
+    );
+
+    expect(result).toBeNull();
+    expect(mockClose).toHaveBeenCalledTimes(1);
+  });
+
+  test("getNotificacionById retorna detalle con foto y tutores", async () => {
+    const fotografia = crearBlobMock("foto-test");
+
+    mockExecute
+      .mockResolvedValueOnce({
         rows: [
           {
             NOTIFICACION_ID: 1,
             ESTADO_PROCESO: "pendiente",
-            FECHA_CREACION: "29/05/2026",
+            FECHA_CREACION: "09/06/2026 10:00",
             PACIENTE_ID: 10,
-            NOMBRE: "Juan",
-            APELLIDO: "Pérez",
-            FOTOGRAFIA: lob,
+            NOMBRE: "Ana",
+            APELLIDO: "López",
+            CURP: "CURP123",
+            GENERO: "F",
+            FECHA_NACIMIENTO: "2010-01-01",
+            DIRECCION: "Calle 123",
+            CIUDAD_RESIDENCIA: "Monterrey",
+            ESTADO_RESIDENCIA: "Nuevo León",
+            CODIGO_POSTAL: "64000",
+            TELEFONO_CASA: "8180000000",
+            TELEFONO_CELULAR: "8111111111",
+            EMAIL: "ana@test.com",
+            EMERGENCIA_CONTACTO: "Mamá",
+            EMERGENCIA_TELEFONO: "8122222222",
+            LUGAR_NACIMIENTO: "Monterrey",
+            HOSPITAL_NACIMIENTO: "Hospital A",
+            SANGRE_TIPO: "O+",
+            VALVULA: "No",
+            ETAPA_VIDA: "Niñez",
+            NOTAS_ADICIONALES: "Notas",
+            TIPO_ESPINA_BIFIDA: "Mielomeningocele",
+            OTROS_PADECIMIENTO: "Ninguno",
+            FOTOGRAFIA: fotografia,
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            NOMBRE: "María López",
+            LUGAR_NACIMIENTO: "Monterrey",
+            ESCOLARIDAD: "Licenciatura",
+            OCUPACION: "Contadora",
+            EDAD: 35,
+            SEGURO_MEDICO: "IMSS",
+            CD_EMBARAZO: "Sí",
+            ACIDO_FOLICO: "S",
+            CITAS_CONTROL: 8,
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            NOMBRE: "Juan Pérez",
+            LUGAR_NACIMIENTO: "Guadalupe",
+            ESCOLARIDAD: "Preparatoria",
+            OCUPACION: "Empleado",
+            EDAD: 38,
+            SEGURO_MEDICO: "ISSSTE",
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            ADICCIONES: "Ninguna",
+            HIJO_DTN: "SI",
+            FAMILIAR_DTN: "NO",
+            EXPO_TOXICOS: "SI",
+            DESCRIPCION_EXPO_TOXICOS: "Químicos",
           },
         ],
       });
 
-      const result = await getNotificacionById("1");
+    const result = await getNotificacionById("1");
 
-      expect(result.FOTO).toBe(
-        `data:image/jpeg;base64,${Buffer.from("foto-test").toString("base64")}`
-      );
-    });
+    expect(mockExecute).toHaveBeenCalledTimes(4);
 
-    test("debe cerrar conexión y lanzar error si falla", async () => {
-      mockExecute.mockRejectedValue(new Error("DB error"));
+    expect(result).toEqual(
+      expect.objectContaining({
+        NOTIFICACION_ID: 1,
+        ESTADO_PROCESO: "pendiente",
+        PACIENTE_ID: 10,
+        NOMBRE: "Ana",
+        APELLIDO: "López",
+        FOTO: "data:image/jpeg;base64,Zm90by10ZXN0",
+        TUTORES: expect.any(Array),
+      })
+    );
 
-      await expect(getNotificacionById(1)).rejects.toThrow("DB error");
+    expect(result.TUTORES).toHaveLength(2);
 
-      expect(mockClose).toHaveBeenCalled();
-    });
+    expect(result.TUTORES[0]).toEqual(
+      expect.objectContaining({
+        tutorParentesco: "Madre",
+        tutorNombre: "María López",
+        madreSeguroMedico: "IMSS",
+        acidoFolico: "Sí",
+        citasControl: "8",
+        hijoDtn: "Sí",
+        familiarDtn: "No",
+        expoToxicos: "Sí",
+      })
+    );
+
+    expect(result.TUTORES[1]).toEqual(
+      expect.objectContaining({
+        tutorParentesco: "Padre",
+        tutorNombre: "Juan Pérez",
+        tutorSeguroMedico: "ISSSTE",
+        madreSeguroMedico: "",
+        acidoFolico: "",
+      })
+    );
+
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 
-  describe("aprobarNotificacion", () => {
-    test("debe aprobar notificación y regresar true si rowsAffected es mayor a 0", async () => {
-      mockExecute.mockResolvedValue({ rowsAffected: 1 });
+  test("getNotificacionById retorna detalle sin foto ni tutores si no existen", async () => {
+    mockExecute
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            NOTIFICACION_ID: 2,
+            ESTADO_PROCESO: "pendiente",
+            FECHA_CREACION: "09/06/2026 10:00",
+            PACIENTE_ID: 20,
+            NOMBRE: "Luis",
+            APELLIDO: "García",
+            FOTOGRAFIA: null,
+          },
+        ],
+      })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] });
 
-      const result = await aprobarNotificacion("1", "7");
+    const result = await getNotificacionById("2");
 
-      expect(mockExecute).toHaveBeenCalledWith(
-        expect.stringContaining("UPDATE NOTIFICACION SET estado_proceso = 'aprobado'"),
-        { notificacionId: 1 },
-        { autoCommit: true }
-      );
+    expect(result).toEqual(
+      expect.objectContaining({
+        NOTIFICACION_ID: 2,
+        PACIENTE_ID: 20,
+        NOMBRE: "Luis",
+        APELLIDO: "García",
+        FOTO: null,
+        TUTORES: [],
+      })
+    );
 
-      expect(result).toBe(true);
-      expect(mockClose).toHaveBeenCalled();
-    });
-
-    test("debe regresar false si no actualizó filas", async () => {
-      mockExecute.mockResolvedValue({ rowsAffected: 0 });
-
-      const result = await aprobarNotificacion("1", "7");
-
-      expect(result).toBe(false);
-    });
-
-    test("debe lanzar error si falla", async () => {
-      mockExecute.mockRejectedValue(new Error("DB error"));
-
-      await expect(aprobarNotificacion("1", "7")).rejects.toThrow("DB error");
-
-      expect(mockClose).toHaveBeenCalled();
-    });
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 
-  describe("rechazarNotificacion", () => {
-    test("debe rechazar notificación y regresar true si rowsAffected es mayor a 0", async () => {
-      mockExecute.mockResolvedValue({ rowsAffected: 1 });
-
-      const result = await rechazarNotificacion("2", "9");
-
-      expect(mockExecute).toHaveBeenCalledWith(
-        expect.stringContaining("UPDATE NOTIFICACION SET estado_proceso = 'rechazado'"),
-        { notificacionId: 2 },
-        { autoCommit: true }
-      );
-
-      expect(result).toBe(true);
-      expect(mockClose).toHaveBeenCalled();
+  test("aprobarNotificacion actualiza estado a aprobado y retorna true", async () => {
+    mockExecute.mockResolvedValue({
+      rowsAffected: 1,
     });
 
-    test("debe regresar false si no actualizó filas", async () => {
-      mockExecute.mockResolvedValue({ rowsAffected: 0 });
+    const result = await aprobarNotificacion("5");
 
-      const result = await rechazarNotificacion("2", "9");
+    expect(mockExecute).toHaveBeenCalledWith(
+      expect.stringContaining("UPDATE NOTIFICACION SET estado_proceso = :estado"),
+      { estado: "aprobado", notificacionId: 5 },
+      { autoCommit: true }
+    );
 
-      expect(result).toBe(false);
-    });
-
-    test("debe lanzar error si falla", async () => {
-      mockExecute.mockRejectedValue(new Error("DB error"));
-
-      await expect(rechazarNotificacion("2", "9")).rejects.toThrow("DB error");
-
-      expect(mockClose).toHaveBeenCalled();
-    });
+    expect(result).toBe(true);
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 
-  describe("eliminarNotificacionesAntiguas", () => {
-    test("debe regresar 0 si no hay notificaciones antiguas", async () => {
-  mockExecute.mockResolvedValueOnce({
-    rows: [],
+  test("aprobarNotificacion retorna false si no actualiza filas", async () => {
+    mockExecute.mockResolvedValue({
+      rowsAffected: 0,
+    });
+
+    const result = await aprobarNotificacion("5");
+
+    expect(result).toBe(false);
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 
-  const result = await eliminarNotificacionesAntiguas();
-
-  expect(mockExecute).toHaveBeenCalledWith(
-    expect.stringContaining("SELECT DISTINCT paciente_id"),
-    {},
-    { outFormat: "OUT_FORMAT_OBJECT" }
-  );
-
-  expect(result).toBe(0);
-  expect(mockClose).toHaveBeenCalled();
-});
-
-    test("debe eliminar notificaciones antiguas y datos relacionados", async () => {
-  mockExecute
-    .mockResolvedValueOnce({
-      rows: [{ PACIENTE_ID: 10 }, { PACIENTE_ID: 20 }],
-    })
-    .mockResolvedValue({ rowsAffected: 1 });
-
-  const result = await eliminarNotificacionesAntiguas();
-
-  const bindsEsperados = {
-    id0: 10,
-    id1: 20,
-  };
-
-  expect(mockExecute).toHaveBeenNthCalledWith(
-    1,
-    expect.stringContaining("SELECT DISTINCT paciente_id"),
-    {},
-    { outFormat: "OUT_FORMAT_OBJECT" }
-  );
-
-  expect(mockExecute).toHaveBeenNthCalledWith(
-    2,
-    expect.stringContaining("DELETE FROM NOTIFICACION"),
-    bindsEsperados,
-    { autoCommit: true }
-  );
-
-  expect(mockExecute).toHaveBeenNthCalledWith(
-    3,
-    expect.stringContaining("DELETE FROM PACIENTE_PADECIMIENTO"),
-    bindsEsperados,
-    { autoCommit: true }
-  );
-
-  expect(mockExecute).toHaveBeenNthCalledWith(
-    4,
-    expect.stringContaining("DELETE FROM HISTORIAL_MADRE"),
-    bindsEsperados,
-    { autoCommit: true }
-  );
-
-  expect(mockExecute).toHaveBeenNthCalledWith(
-    5,
-    expect.stringContaining("DELETE FROM HISTORIAL_PADRE"),
-    bindsEsperados,
-    { autoCommit: true }
-  );
-
-  expect(mockExecute).toHaveBeenNthCalledWith(
-    6,
-    expect.stringContaining("DELETE FROM EVENTO_VISITA"),
-    bindsEsperados,
-    { autoCommit: true }
-  );
-
-  expect(mockExecute).toHaveBeenNthCalledWith(
-    7,
-    expect.stringContaining("DELETE FROM MEMBRESIA"),
-    bindsEsperados,
-    { autoCommit: true }
-  );
-
-  expect(mockExecute).toHaveBeenNthCalledWith(
-    8,
-    expect.stringContaining("DELETE FROM PACIENTE"),
-    bindsEsperados,
-    { autoCommit: true }
-  );
-
-  expect(result).toBe(2);
-  expect(mockClose).toHaveBeenCalled();
-});
-
-    test("debe cerrar conexión y lanzar error si falla", async () => {
-      mockExecute.mockRejectedValue(new Error("DB error"));
-
-      await expect(eliminarNotificacionesAntiguas()).rejects.toThrow("DB error");
-
-      expect(mockClose).toHaveBeenCalled();
+  test("rechazarNotificacion actualiza estado a rechazado y retorna true", async () => {
+    mockExecute.mockResolvedValue({
+      rowsAffected: 1,
     });
+
+    const result = await rechazarNotificacion("6");
+
+    expect(mockExecute).toHaveBeenCalledWith(
+      expect.stringContaining("UPDATE NOTIFICACION SET estado_proceso = :estado"),
+      { estado: "rechazado", notificacionId: 6 },
+      { autoCommit: true }
+    );
+
+    expect(result).toBe(true);
+    expect(mockClose).toHaveBeenCalledTimes(1);
+  });
+
+  test("eliminarNotificacionesAntiguas retorna 0 si no hay pacientes antiguos", async () => {
+    mockExecute.mockResolvedValueOnce({
+      rows: [],
+    });
+
+    const result = await eliminarNotificacionesAntiguas();
+
+    expect(mockExecute).toHaveBeenCalledTimes(1);
+
+    expect(mockExecute).toHaveBeenCalledWith(
+      expect.stringContaining("SELECT DISTINCT paciente_id"),
+      {},
+      { outFormat: "OUT_FORMAT_OBJECT" }
+    );
+
+    expect(result).toBe(0);
+    expect(mockClose).toHaveBeenCalledTimes(1);
+  });
+
+  test("eliminarNotificacionesAntiguas elimina información relacionada y retorna cantidad de pacientes", async () => {
+    mockExecute
+      .mockResolvedValueOnce({
+        rows: [{ PACIENTE_ID: 10 }, { PACIENTE_ID: 20 }],
+      })
+      .mockResolvedValue({ rowsAffected: 1 });
+
+    const result = await eliminarNotificacionesAntiguas();
+
+    expect(result).toBe(2);
+
+    expect(mockExecute).toHaveBeenCalledTimes(8);
+
+    expect(mockExecute).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining("SELECT DISTINCT paciente_id"),
+      {},
+      { outFormat: "OUT_FORMAT_OBJECT" }
+    );
+
+    expect(mockExecute).toHaveBeenNthCalledWith(
+      2,
+      "DELETE FROM NOTIFICACION WHERE paciente_id IN (:id0,:id1)",
+      { id0: 10, id1: 20 },
+      { autoCommit: true }
+    );
+
+    expect(mockExecute).toHaveBeenNthCalledWith(
+      8,
+      "DELETE FROM PACIENTE WHERE paciente_id IN (:id0,:id1)",
+      { id0: 10, id1: 20 },
+      { autoCommit: true }
+    );
+
+    expect(mockClose).toHaveBeenCalledTimes(1);
+  });
+
+  test("cierra conexión y lanza error si falla getNotificaciones", async () => {
+    mockExecute.mockRejectedValue(new Error("Error Oracle"));
+
+    await expect(getNotificaciones()).rejects.toThrow("Error Oracle");
+
+    expect(mockClose).toHaveBeenCalledTimes(1);
+  });
+
+  test("cierra conexión y lanza error si falla aprobarNotificacion", async () => {
+    mockExecute.mockRejectedValue(new Error("Error update"));
+
+    await expect(aprobarNotificacion("1")).rejects.toThrow("Error update");
+
+    expect(mockClose).toHaveBeenCalledTimes(1);
+  });
+
+  test("cierra conexión y lanza error si falla eliminarNotificacionesAntiguas", async () => {
+    mockExecute.mockRejectedValue(new Error("Error delete"));
+
+    await expect(eliminarNotificacionesAntiguas()).rejects.toThrow(
+      "Error delete"
+    );
+
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 });

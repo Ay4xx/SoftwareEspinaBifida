@@ -12,10 +12,25 @@ const toFrontRol = (tipoUsuario) => {
   return "COORDINADOR";
 };
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
 function getToken() { return localStorage.getItem("token") || ""; }
-function authHeaders() {
-  return { Authorization: `Bearer ${getToken()}` };
+function authHeaders() { return { Authorization: `Bearer ${getToken()}` }; }
+
+function iniciales(nombre, username) {
+  if (nombre?.trim())
+    return nombre.split(" ").slice(0, 2).map((n) => n[0]?.toUpperCase()).join("");
+  return username?.split(/[@.]/).slice(0, 2).map((n) => n[0]?.toUpperCase()).join("") || "?";
 }
+
+async function apiFetch(url, options = {}) {
+  const res  = await fetch(url, options);
+  const data = await res.json();
+  if (!data.ok) throw new Error(data.message);
+  return data;
+}
+
+// ── Constantes de UI ──────────────────────────────────────────────────────────
 
 const ROLES = [
   {
@@ -39,6 +54,20 @@ const ROLES = [
   },
 ];
 
+const avatarClass = (rol) => {
+  if (rol === "ADMINISTRADOR") return "av-purple";
+  if (rol === "SUPERADMIN")    return "av-super";
+  return "av-blue";
+};
+
+const badgeClass = (rol) =>
+  rol === "ADMINISTRADOR" ? "badge-admin" : rol === "SUPERADMIN" ? "badge-super" : "badge-coord";
+
+const badgeLabel = (rol) =>
+  rol === "ADMINISTRADOR" ? "Administrador" : rol === "SUPERADMIN" ? "Super Admin" : "Coordinador";
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+
 function ModalUsuario({ modo, usuario, onClose, onGuardar }) {
   const esEditar = modo === "editar";
   const inputFotoRef = useRef(null);
@@ -50,10 +79,10 @@ function ModalUsuario({ modo, usuario, onClose, onGuardar }) {
     confirmarPassword: "",
     rol:               usuario?.rol      || "COORDINADOR",
   });
-  const [fotoArchivo,  setFotoArchivo]  = useState(null);
-  const [fotoPreview,  setFotoPreview]  = useState(usuario?.foto || null);
-  const [error,        setError]        = useState("");
-  const [cargando,     setCargando]     = useState(false);
+  const [fotoArchivo, setFotoArchivo] = useState(null);
+  const [fotoPreview, setFotoPreview] = useState(usuario?.foto || null);
+  const [error,       setError]       = useState("");
+  const [cargando,    setCargando]    = useState(false);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -74,12 +103,6 @@ function ModalUsuario({ modo, usuario, onClose, onGuardar }) {
   const passwordValida = reglasPassword.every((r) => r.ok);
   const coinciden      = form.password === form.confirmarPassword && form.confirmarPassword !== "";
 
-  const iniciales = (nombre, username) => {
-    if (nombre?.trim())
-      return nombre.split(" ").slice(0, 2).map((n) => n[0]?.toUpperCase()).join("");
-    return username?.split(/[@.]/).slice(0, 2).map((n) => n[0]?.toUpperCase()).join("") || "?";
-  };
-
   const handleGuardar = async () => {
     setError("");
     if (!form.nombre.trim())   return setError("El nombre es requerido");
@@ -92,11 +115,10 @@ function ModalUsuario({ modo, usuario, onClose, onGuardar }) {
 
     setCargando(true);
     try {
-      // Usar FormData para enviar foto
       const formData = new FormData();
-      formData.append("nombre",            form.nombre.trim());
-      formData.append("username",          form.username.trim());
-      formData.append("tipoUsuario",       toBackRol(form.rol));
+      formData.append("nombre",      form.nombre.trim());
+      formData.append("username",    form.username.trim());
+      formData.append("tipoUsuario", toBackRol(form.rol));
       if (!esEditar) {
         formData.append("password",          form.password);
         formData.append("confirmarPassword", form.confirmarPassword);
@@ -113,7 +135,7 @@ function ModalUsuario({ modo, usuario, onClose, onGuardar }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="modal-box" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div>
@@ -126,7 +148,6 @@ function ModalUsuario({ modo, usuario, onClose, onGuardar }) {
         </div>
 
         <div className="modal-body">
-
           {/* Foto de perfil */}
           <div className="field" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
             <div
@@ -151,7 +172,7 @@ function ModalUsuario({ modo, usuario, onClose, onGuardar }) {
               <div style={{
                 position: "absolute", bottom: 0, right: 0,
                 background: "#6366f1", borderRadius: "50%",
-                width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center"
+                width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center",
               }}>
                 <Camera size={14} color="white" />
               </div>
@@ -190,7 +211,7 @@ function ModalUsuario({ modo, usuario, onClose, onGuardar }) {
                 />
                 {form.password && (
                   <div className="password-rules">
-                    {reglasPassword.filter(r => !r.ok).map((r) => (
+                    {reglasPassword.filter((r) => !r.ok).map((r) => (
                       <span key={r.label} className="rule fail">{r.label}</span>
                     ))}
                   </div>
@@ -254,6 +275,8 @@ function ModalUsuario({ modo, usuario, onClose, onGuardar }) {
   );
 }
 
+// ── Página principal ──────────────────────────────────────────────────────────
+
 function GestionUsuarios() {
   const [usuarios, setUsuarios] = useState([]);
   const [search,   setSearch]   = useState("");
@@ -265,12 +288,9 @@ function GestionUsuarios() {
     setCargando(true);
     setError("");
     try {
-      const res  = await fetch(`${API}?busqueda=${busqueda}&limite=50`, { headers: authHeaders() });
-      const data = await res.json();
-      if (!data.ok) throw new Error(data.message);
+      const data = await apiFetch(`${API}?busqueda=${busqueda}&limite=50`, { headers: authHeaders() });
       setUsuarios(
-      data.usuarios.map((u) => {
-        return {
+        data.usuarios.map((u) => ({
           id:       u.id,
           nombre:   u.nombre,
           username: u.username,
@@ -279,9 +299,8 @@ function GestionUsuarios() {
           creado:   u.fechaRegistro
             ? new Date(u.fechaRegistro).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })
             : "—",
-        };
-      })
-    );
+        }))
+      );
     } catch (err) {
       setError("No se pudieron cargar los usuarios");
       console.error(err);
@@ -293,46 +312,27 @@ function GestionUsuarios() {
   useEffect(() => { cargarUsuarios(); }, []);
 
   const filtrados = usuarios.filter((u) =>
-    (u.nombre  || "").toLowerCase().includes(search.toLowerCase()) ||
+    (u.nombre   || "").toLowerCase().includes(search.toLowerCase()) ||
     (u.username || "").toLowerCase().includes(search.toLowerCase())
   );
 
-  const iniciales = (nombre, username) => {
-    if (nombre?.trim())
-      return nombre.split(" ").slice(0, 2).map((n) => n[0]?.toUpperCase()).join("");
-    return username?.split(/[@.]/).slice(0, 2).map((n) => n[0]?.toUpperCase()).join("") || "?";
-  };
-
-  const avatarClass = (rol) => {
-    if (rol === "ADMINISTRADOR") return "av-purple";
-    if (rol === "SUPERADMIN")    return "av-super";
-    return "av-blue";
-  };
-
-  const badgeClass  = (rol) => rol === "ADMINISTRADOR" ? "badge-admin" : rol === "SUPERADMIN" ? "badge-super" : "badge-coord";
-  const badgeLabel  = (rol) => rol === "ADMINISTRADOR" ? "Administrador" : rol === "SUPERADMIN" ? "Super Admin" : "Coordinador";
-
   const handleCrear = async (formData) => {
-    const res  = await fetch(API, { method: "POST", headers: authHeaders(), body: formData });
-    const data = await res.json();
-    if (!data.ok) throw new Error(data.message);
+    await apiFetch(API, { method: "POST", headers: authHeaders(), body: formData });
     await cargarUsuarios(search);
   };
 
   const handleEditar = async (formData) => {
-  const res  = await fetch(`${API}/${modal.usuario.id}`, { method: "PUT", headers: authHeaders(), body: formData });
-  const data = await res.json();
-  if (!data.ok) throw new Error(data.message);
+    const data = await apiFetch(`${API}/${modal.usuario.id}`, { method: "PUT", headers: authHeaders(), body: formData });
 
-  const usuarioActual = JSON.parse(localStorage.getItem("usuario") || "null");
-  if (usuarioActual && usuarioActual.id === modal.usuario.id) {
-    localStorage.setItem("usuario", JSON.stringify({
-      ...usuarioActual,
-      foto: data.data?.foto || usuarioActual.foto,
-      nombre: data.data?.nombre || usuarioActual.nombre,
-    }));
-    window.dispatchEvent(new Event("storage"));
-  }
+    const usuarioActual = JSON.parse(localStorage.getItem("usuario") || "null");
+    if (usuarioActual && usuarioActual.id === modal.usuario.id) {
+      localStorage.setItem("usuario", JSON.stringify({
+        ...usuarioActual,
+        foto:   data.data?.foto   || usuarioActual.foto,
+        nombre: data.data?.nombre || usuarioActual.nombre,
+      }));
+      window.dispatchEvent(new Event("storage"));
+    }
 
     await cargarUsuarios(search);
   };
@@ -340,9 +340,7 @@ function GestionUsuarios() {
   const handleBorrar = async (id) => {
     if (!window.confirm("¿Estás seguro de que quieres eliminar este usuario?")) return;
     try {
-      const res  = await fetch(`${API}/${id}`, { method: "DELETE", headers: authHeaders() });
-      const data = await res.json();
-      if (!data.ok) throw new Error(data.message);
+      await apiFetch(`${API}/${id}`, { method: "DELETE", headers: authHeaders() });
       setUsuarios((prev) => prev.filter((u) => u.id !== id));
     } catch (err) {
       alert(err.message || "Error al eliminar usuario");
@@ -382,7 +380,6 @@ function GestionUsuarios() {
                   <tr key={u.id}>
                     <td>
                       <div className="user-cell">
-                        {/* Avatar con foto o iniciales */}
                         {u.foto ? (
                           <img
                             src={u.foto}

@@ -145,36 +145,31 @@ function CalendarioRecibo({ visitas, fechaSeleccionada, onSelect }) {
 function ModalGenerarRecibo({ visitas, pacienteId, onClose }) {
   const [fechaSeleccionada, setFechaSeleccionada] = useState("");
   const [generando, setGenerando] = useState(false);
+  const [visitaIndex, setVisitaIndex] = useState(0);
+
+  const visitasDelDia =
+    visitas.filter(v => v.fecha === fechaSeleccionada);
 
   const visitaSeleccionada =
-    visitas.find(v => v.fecha === fechaSeleccionada);
+    visitasDelDia[visitaIndex];
 
-  const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
+  const handleFechaSelect = (fecha) => {
+    setFechaSeleccionada(fecha);
+    setVisitaIndex(0);
   };
 
   const handleGenerar = () => {
     if (!visitaSeleccionada) return;
-
     setGenerando(true);
 
     const total = calcularTotal(visitaSeleccionada);
+    const montoPagado = visitaSeleccionada.montoRecibido ?? 0; // ← ajusta el nombre del campo
+    const diferencia = montoPagado - total;
 
     const filas = [
-      ...visitaSeleccionada.servicios.map(s => ({
-        tipo: "Servicio",
-        ...s
-      })),
-      ...visitaSeleccionada.medicamentos.map(m => ({
-        tipo: "Medicamento",
-        ...m
-      })),
-      ...visitaSeleccionada.equipo.map(e => ({
-        tipo: "Equipo",
-        ...e
-      })),
+      ...visitaSeleccionada.servicios.map(s => ({ tipo: "Servicio", ...s })),
+      ...visitaSeleccionada.medicamentos.map(m => ({ tipo: "Medicamento", ...m })),
+      ...visitaSeleccionada.equipo.map(e => ({ tipo: "Equipo", ...e })),
     ];
 
     const html = `
@@ -186,23 +181,37 @@ function ModalGenerarRecibo({ visitas, pacienteId, onClose }) {
         <table style="width:100%; border-collapse:collapse;">
           <thead>
             <tr>
-              <th>Tipo</th>
-              <th>Concepto</th>
-              <th>Precio</th>
+              <th style="text-align:left; border-bottom:1px solid #e2e8f0; padding:8px;">Tipo</th>
+              <th style="text-align:left; border-bottom:1px solid #e2e8f0; padding:8px;">Concepto</th>
+              <th style="text-align:right; border-bottom:1px solid #e2e8f0; padding:8px;">Precio</th>
             </tr>
           </thead>
           <tbody>
             ${filas.map(f => `
               <tr>
-                <td>${f.tipo}</td>
-                <td>${f.nombre}</td>
-                <td>$${f.precio.toLocaleString("es-MX")}</td>
+                <td style="padding:8px;">${f.tipo}</td>
+                <td style="padding:8px;">${f.nombre}</td>
+                <td style="padding:8px; text-align:right;">$${f.precio.toLocaleString("es-MX")}</td>
               </tr>
             `).join("")}
           </tbody>
         </table>
 
-        <h2>Total: $${total.toLocaleString("es-MX")}</h2>
+        <div style="margin-top:16px; border-top:2px solid #e2e8f0; padding-top:12px;">
+          <p style="display:flex; justify-content:space-between;">
+            <span>Subtotal esperado:</span>
+            <strong>$${total.toLocaleString("es-MX")}</strong>
+          </p>
+          <p style="display:flex; justify-content:space-between;">
+            <span>Monto abonado:</span>
+            <strong>$${montoPagado.toLocaleString("es-MX")}</strong>
+          </p>
+          ${diferencia !== 0 ? `
+          <p style="display:flex; justify-content:space-between;">
+            <span>${diferencia < 0 ? 'Monto restante' : 'Cambio'}:</span>
+            <strong>$${Math.abs(diferencia).toLocaleString("es-MX")}</strong>
+          </p>` : ''}
+        </div>
       </div>
     `;
 
@@ -234,7 +243,7 @@ function ModalGenerarRecibo({ visitas, pacienteId, onClose }) {
   };
 
   return (
-    <div className="modal-backdrop" onClick={handleBackdropClick}>
+    <div className="modal-backdrop">
       <div className="modal-pago" style={{ maxWidth: 440 }}>
         <div className="modal-header">
           <div>
@@ -256,8 +265,32 @@ function ModalGenerarRecibo({ visitas, pacienteId, onClose }) {
           <CalendarioRecibo
             visitas={visitas}
             fechaSeleccionada={fechaSeleccionada}
-            onSelect={setFechaSeleccionada}
+            onSelect={handleFechaSelect}
           />
+
+          {visitasDelDia.length > 1 && (
+            <div style={{ marginBottom: "16px" }}>
+              <label>Selecciona el recibo:</label>
+
+              <select
+                value={visitaIndex}
+                onChange={(e) =>
+                  setVisitaIndex(Number(e.target.value))
+                }
+                style={{
+                  width: "100%",
+                  padding: "8px",
+                  marginTop: "6px"
+                }}
+              >
+                {visitasDelDia.map((_, index) => (
+                  <option key={index} value={index}>
+                    Recibo #{index + 1}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {visitaSeleccionada && (
             <div className="recibo-preview">
