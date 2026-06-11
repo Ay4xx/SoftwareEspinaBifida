@@ -118,7 +118,7 @@ function EquipoMedico() {
       <div className="equipo-card">
         <div className="equipo-header">
           <h3 className="equipo-title">
-            <Paperclip size={18} /> Préstamo de Equipo Médico
+            <Paperclip size={18} /> Préstamo de Comodato
           </h3>
           <button className="equipo-agregar" onClick={abrirPopup}>+ Agregar</button>
         </div>
@@ -126,7 +126,7 @@ function EquipoMedico() {
         {equipos.length > 0 ? (
           <>
             <div className="equipo-table-header">
-              <span>Equipo Médico</span>
+              <span>Comodato</span>
               <span>Cantidad</span>
               <span>Precio</span>
               <span>Fecha Estimada</span>
@@ -161,12 +161,12 @@ function EquipoMedico() {
             </div>
           </>
         ) : (
-          <p className="equipo-empty">No hay equipo médico agregado.</p>
+          <p className="equipo-empty">No hay comodato agregado.</p>
         )}
 
         <div className="equipo-footer">
           <button className="equipo-cancelar" onClick={cancelarLista}>Cancelar</button>
-          <button className="equipo-guardar" onClick={guardarConsultaEquipo}> Guardar Consulta</button>
+          <button className="equipo-guardar" onClick={guardarConsultaEquipo}> Guardar Comodato</button>
         </div>
       </div>
 
@@ -176,7 +176,7 @@ function EquipoMedico() {
           <div className="equipo-popup-msg" onClick={(e) => e.stopPropagation()}>
             <div className="equipo-popup-msg-icon"></div>
             <h4>¡Registro guardado!</h4>
-            <p>El préstamo de equipo médico fue registrado exitosamente.</p>
+            <p>El préstamo de comodato fue registrado exitosamente.</p>
             <button className="equipo-popup-confirmar" onClick={() => setPopup(null)}>
               Aceptar
             </button>
@@ -189,8 +189,8 @@ function EquipoMedico() {
         <div className="equipo-overlay">
           <div className="equipo-popup-msg" onClick={(e) => e.stopPropagation()}>
             <div className="equipo-popup-msg-icon"></div>
-            <h4>¡Sin equipo médico!</h4>
-            <p>Debes seleccionar al menos un equipo médico antes de guardar.</p>
+            <h4>¡Sin comodato!</h4>
+            <p>Debes seleccionar al menos un comodato antes de guardar.</p>
             <button className="equipo-popup-confirmar" onClick={() => setPopup(null)}>
               Entendido
             </button>
@@ -218,7 +218,7 @@ function EquipoMedico() {
           <div className="equipo-popup">
 
             <div className="equipo-popup-header">
-              <h4>Seleccionar Equipo Médico</h4>
+              <h4>Seleccionar Comodato</h4>
               <button className="equipo-popup-close" onClick={() => setShowPopup(false)}>
                 <X size={18} />
               </button>
@@ -228,7 +228,7 @@ function EquipoMedico() {
               <Search size={16} className="equipo-search-icon" />
               <input
                 type="text"
-                placeholder="Buscar equipo..."
+                placeholder="Buscar comodato..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
                 className="equipo-search-input"
@@ -237,7 +237,7 @@ function EquipoMedico() {
 
             <div className="equipo-popup-list">
               {disponiblesFiltrados.length === 0 ? (
-                <p className="equipo-empty">No se encontró equipo médico.</p>
+                <p className="equipo-empty">No se encontró comodato.</p>
               ) : (
                 disponiblesFiltrados.map((d) => {
                   const marcado = seleccionados.find((s) => s.EQUIPO_M_ID === d.EQUIPO_M_ID);

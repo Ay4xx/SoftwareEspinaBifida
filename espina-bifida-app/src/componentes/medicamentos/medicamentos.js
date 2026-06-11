@@ -149,7 +149,7 @@ function Medicamentos() {
 
         <div className="med-footer">
           <button className="med-cancelar" onClick={cancelarLista}>Cancelar</button>
-          <button className="med-guardar" onClick={guardarConsulta}> Guardar Consulta</button>
+          <button className="med-guardar" onClick={guardarConsulta}> Guardar Medicamento</button>
         </div>
       </div>
 

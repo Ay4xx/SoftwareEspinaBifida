@@ -41,6 +41,14 @@ function PanelCitas({
     (c) => c.estatus_cita === "CANCELADA"
   ).length;
 
+  // FORMATEAR TELÉFONO (protege contra null/undefined/vacío)
+  // El número se guarda sin lada (10 dígitos), se agrega +52 de México
+  const formatTelefono = (tel) => {
+    if (!tel) return "Sin teléfono";
+    const t = String(tel);
+    return "+52 " + t.slice(0, 3) + " " + t.slice(3, 6) + " " + t.slice(6, 10);
+  };
+
   return (
     <div className="appointments-panel">
       <div className="overlay">
@@ -93,7 +101,7 @@ function PanelCitas({
           </div>
         ) : (
           citas.map((cita) => {
-            const initials = cita.nombre
+            const initials = (cita.nombre ?? "")
               .split(" ")
               .map((n) => n[0])
               .join("");
@@ -118,12 +126,12 @@ function PanelCitas({
                   </div>
 
                   <div className="patient-details">
-                    <h3>{cita.nombre + " " + cita.apellido}</h3>
+                    <h3>{(cita.nombre ?? "") + " " + (cita.apellido ?? "")}</h3>
 
                     <div className="patient-meta">
                       <span>{cita.motivo}</span>
                       <span>{cita.hora_cita}</span>
-                      <span>{"+" + cita.telefono.slice(0, 2) + " " + cita.telefono.slice(2, 6) +  " " + cita.telefono.slice(6, 10)}</span>
+                      <span>{formatTelefono(cita.telefono)}</span>
                     </div>
                   </div>
                 </div>
