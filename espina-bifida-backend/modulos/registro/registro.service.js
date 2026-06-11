@@ -29,49 +29,77 @@ function normalizarSiNo(val) {
   return null;
 }
 
+// Normaliza la selección de padecimientos a un array limpio de strings.
+function parsearTiposEspina(valor) {
+  if (Array.isArray(valor)) {
+    return valor.map((t) => String(t).trim()).filter(Boolean);
+  }
+  if (typeof valor === "string") {
+    const txt = valor.trim();
+    if (txt === "") return [];
+    if (txt.startsWith("[")) {
+      try {
+        const arr = JSON.parse(txt);
+        if (Array.isArray(arr)) return arr.map((t) => String(t).trim()).filter(Boolean);
+      } catch (_) { /* cae al split por comas */ }
+    }
+    return txt.split(",").map((t) => t.trim()).filter(Boolean);
+  }
+  return [];
+}
+
 // ── Auxiliares de BD ──────────────────────────────────────────────────────────
 
-async function upsertPadecimiento(conn, pacienteId, tipoEspinaBifida, otrosPadecimiento) {
-  const resPad = await conn.execute(
-    `SELECT PADECIMIENTO_ID FROM PADECIMIENTOEB WHERE UPPER(TIPO_PADECIMIENTO) = UPPER(:tipo)`,
-    { tipo: tipoEspinaBifida },
-    { outFormat: oracledb.OUT_FORMAT_OBJECT }
-  );
+// Sincroniza TODOS los padecimientos del paciente: borra los actuales
+// y reinserta una fila por cada tipo seleccionado.
+async function sincronizarPadecimientos(conn, pacienteId, tiposEspinaBifida, otrosPadecimiento) {
+  const tipos = parsearTiposEspina(tiposEspinaBifida);
 
-  if (resPad.rows.length === 0) return;
-
-  const padecimientoId = resPad.rows[0].PADECIMIENTO_ID;
-
-  const checkPad = await conn.execute(
-    `SELECT COUNT(*) AS total FROM PACIENTE_PADECIMIENTO WHERE PACIENTE_ID = :pacienteId`,
+  // Confirmar el DELETE de inmediato para liberar locks antes de insertar
+  // (evita ORA-12860 deadlock entre DELETE e INSERT en la misma tabla).
+  await conn.execute(
+    `DELETE FROM PACIENTE_PADECIMIENTO WHERE PACIENTE_ID = :pacienteId`,
     { pacienteId },
-    { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    { autoCommit: true }
   );
 
-  if (checkPad.rows[0].TOTAL > 0) {
-    await conn.execute(
-      `UPDATE PACIENTE_PADECIMIENTO SET PADECIMIENTO_ID = :padecimientoId WHERE PACIENTE_ID = :pacienteId`,
-      { padecimientoId, pacienteId },
-      { autoCommit: false }
+  if (tipos.length === 0) return;
+
+  // Calcular el ID base UNA sola vez.
+  const resMax = await conn.execute(
+    `SELECT NVL(MAX(PADECIMIENTO_PACIENTE_ID),0) AS MAXID FROM PACIENTE_PADECIMIENTO`,
+    {},
+    { outFormat: oracledb.OUT_FORMAT_OBJECT }
+  );
+  let nextId = Number(resMax.rows[0].MAXID) + 1;
+
+  for (const tipo of tipos) {
+    const resPad = await conn.execute(
+      `SELECT PADECIMIENTO_ID FROM PADECIMIENTOEB WHERE UPPER(TIPO_PADECIMIENTO) = UPPER(:tipo)`,
+      { tipo },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
-  } else {
+    if (resPad.rows.length === 0) continue;
+
+    const padecimientoId = resPad.rows[0].PADECIMIENTO_ID;
+
     await conn.execute(
       `INSERT INTO PACIENTE_PADECIMIENTO
         (PADECIMIENTO_PACIENTE_ID, PACIENTE_ID, PADECIMIENTO_ID)
        VALUES
-        ((SELECT NVL(MAX(PADECIMIENTO_PACIENTE_ID),0)+1 FROM PACIENTE_PADECIMIENTO),
-         :pacienteId, :padecimientoId)`,
-      { pacienteId, padecimientoId },
-      { autoCommit: false }
+        (:nuevoId, :pacienteId, :padecimientoId)`,
+      { nuevoId: nextId, pacienteId, padecimientoId },
+      { autoCommit: true }
     );
-  }
+    nextId++;
 
-  if (tipoEspinaBifida === "OTROS" && otrosPadecimiento) {
-    await conn.execute(
-      `UPDATE PADECIMIENTOEB SET DESCRIPCION = :descripcion WHERE PADECIMIENTO_ID = :padecimientoId`,
-      { descripcion: nullIfEmpty(otrosPadecimiento), padecimientoId },
-      { autoCommit: false }
-    );
+    if (tipo.toUpperCase() === "OTROS" && otrosPadecimiento) {
+      await conn.execute(
+        `UPDATE PADECIMIENTOEB SET DESCRIPCION = :descripcion WHERE PADECIMIENTO_ID = :padecimientoId`,
+        { descripcion: nullIfEmpty(otrosPadecimiento), padecimientoId },
+        { autoCommit: true }
+      );
+    }
   }
 }
 
@@ -245,16 +273,13 @@ export async function actualizarPaso3(pacienteId, {
         notas:              nullIfEmpty(notas),
         pacienteId,
       },
-      { autoCommit: false }
+      { autoCommit: true }
     );
 
-    if (tipoEspinaBifida) {
-      await upsertPadecimiento(conn, pacienteId, tipoEspinaBifida, otrosPadecimiento);
-    }
-
-    await conn.commit();
+    // Sincronizar padecimientos (múltiples). Confirma sus operaciones
+    // internamente para evitar el deadlock ORA-12860.
+    await sincronizarPadecimientos(conn, pacienteId, tipoEspinaBifida, otrosPadecimiento);
   } catch (error) {
-    if (conn) await conn.rollback();
     throw error;
   } finally {
     if (conn) await conn.close();

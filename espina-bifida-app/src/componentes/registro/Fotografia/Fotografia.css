@@ -332,3 +332,55 @@
 .doc-item-quitar:hover {
   color: #1d4ed8;
 }
+
+/* Botón "ojo" junto a un archivo recién seleccionado */
+.doc-item-ver {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 6px;
+  background: #eff6ff;
+  color: #083a99;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.doc-item-ver:hover {
+  background: #dbeafe;
+}
+
+/* Contenedor de acciones cuando el doc ya está en la BD (modo revisión) */
+.doc-item-acciones-bd {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.doc-item-btn-ver {
+  background: #eff6ff;
+  border-color: #083a99 !important;
+  color: #083a99;
+}
+.doc-item-btn-ver:hover {
+  background: #dbeafe;
+}
+
+.doc-item-btn-descargar {
+  background: #083a99;
+  border-color: #083a99 !important;
+  color: #fff;
+}
+.doc-item-btn-descargar:hover {
+  background: #0a2f7a;
+}
+
+/* Que los <a> con clase de botón se vean igual que los botones */
+a.doc-item-btn {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}

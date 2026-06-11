@@ -2,11 +2,12 @@
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
-  testDir: './tests',
+  testDir: './src/tests/automaticasTest2',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
+
   reporter: [
     ['html'],
     [
@@ -20,15 +21,18 @@ export default defineConfig({
           },
           project: 'HS01',
           run: {
+            title: 'Regression Sprint 3',
             complete: true,
           },
         },
       },
     ],
   ],
+
   use: {
     trace: 'on-first-retry',
   },
+
   projects: [
     {
       name: 'chromium',

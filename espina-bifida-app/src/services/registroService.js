@@ -8,8 +8,14 @@ function nullIfEmpty(val) {
   return val;
 }
 
+function tiposEspinaArray(val) {
+  if (Array.isArray(val)) return val.filter(Boolean);
+  if (typeof val === "string" && val.trim() !== "") return [val];
+  return [];
+}
+
 function getUsuarioLocal() {
-  const usuario  = JSON.parse(localStorage.getItem("usuario") || "null");
+  const usuario    = JSON.parse(localStorage.getItem("usuario") || "null");
   const esInvitado = localStorage.getItem("guest") === "true";
   return { usuario, esInvitado };
 }
@@ -91,7 +97,7 @@ export async function actualizarPaso3(pacienteId, formData) {
       tipoSangre:         nullIfEmpty(formData.tipoSangre),
       usaValvula:         nullIfEmpty(formData.usaValvula),
       notas:              nullIfEmpty(formData.notas),
-      tipoEspinaBifida:   nullIfEmpty(formData.tipoEspinaBifida),
+      tipoEspinaBifida:   tiposEspinaArray(formData.tipoEspinaBifida),
       otrosPadecimiento:  nullIfEmpty(formData.otrosPadecimiento),
     }),
   });
@@ -138,6 +144,7 @@ export async function actualizarPaso5(pacienteId, foto, formData) {
 
 export async function actualizarPaciente(pacienteId, formData, tutores) {
   const body = new FormData();
+
   const campos = [
     ["nombre",             formData.nombres],
     ["apellido",           formData.apellidoPaterno],
@@ -158,12 +165,17 @@ export async function actualizarPaciente(pacienteId, formData, tutores) {
     ["tipoSangre",         formData.tipoSangre],
     ["usaValvula",         formData.usaValvula],
     ["notas",              formData.notas],
-    ["tipoEspinaBifida",   formData.tipoEspinaBifida],
     ["otrosPadecimiento",  formData.otrosPadecimiento],
   ];
   campos.forEach(([key, val]) => body.append(key, val || ""));
+
+  body.append("tipoEspinaBifida", JSON.stringify(tiposEspinaArray(formData.tipoEspinaBifida)));
   body.append("tutores", JSON.stringify(tutores));
+
   if (formData.foto instanceof File) body.append("foto", formData.foto);
+
+  // ✅ CORRECCIÓN: incluir los documentos al guardar cambios
+  appendDocumentos(body, formData?.documentos);
 
   return fetchJSON(`${PACIENTES_URL}/${pacienteId}`, { method: "PUT", body });
 }

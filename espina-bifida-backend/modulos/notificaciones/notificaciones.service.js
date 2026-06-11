@@ -98,6 +98,7 @@ export async function getNotificacionById(notificacionId) {
   try {
     conn = await getConnection();
 
+    // Datos del paciente (sin el JOIN a padecimientos, para no duplicar filas)
     const result = await conn.execute(
       `SELECT
         n.notificacion_id, n.estado_proceso,
@@ -108,13 +109,9 @@ export async function getNotificacionById(notificacionId) {
         p.telefono_casa, p.telefono_celular, p.email,
         p.emergencia_contacto, p.emergencia_telefono,
         p.lugar_nacimiento, p.hospital_nacimiento, p.sangre_tipo,
-        p.valvula, p.etapa_vida, p.notas_adicionales, p.fotografia,
-        pb.tipo_padecimiento AS tipo_espina_bifida,
-        pb.descripcion       AS otros_padecimiento
+        p.valvula, p.etapa_vida, p.notas_adicionales, p.fotografia
        FROM NOTIFICACION n
        INNER JOIN PACIENTE p ON n.paciente_id = p.paciente_id
-       LEFT JOIN PACIENTE_PADECIMIENTO pp ON pp.PACIENTE_ID = p.PACIENTE_ID
-       LEFT JOIN PADECIMIENTOEB pb ON pb.PADECIMIENTO_ID = pp.PADECIMIENTO_ID
        WHERE n.notificacion_id = :notificacionId`,
       { notificacionId: Number(notificacionId) },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
@@ -130,7 +127,16 @@ export async function getNotificacionById(notificacionId) {
 
     const STRING = { type: oracledb.STRING };
 
-    const [resMadre, resPadre, resAmbos] = await Promise.all([
+    const [resPadecimiento, resMadre, resPadre, resAmbos] = await Promise.all([
+      // Todos los padecimientos del paciente
+      fetchTutor(
+        `SELECT pb.TIPO_PADECIMIENTO, pb.DESCRIPCION
+           FROM PADECIMIENTOEB pb
+           JOIN PACIENTE_PADECIMIENTO pp ON pp.PADECIMIENTO_ID = pb.PADECIMIENTO_ID
+          WHERE pp.PACIENTE_ID = :pacienteId`,
+        { pacienteId: row.PACIENTE_ID },
+        { TIPO_PADECIMIENTO: STRING, DESCRIPCION: STRING }
+      ),
       fetchTutor(
         `SELECT NOMBRE, LUGAR_NACIMIENTO, ESCOLARIDAD, OCUPACION,
                 EDAD, SEGURO_MEDICO, CD_EMBARAZO, ACIDO_FOLICO, CITAS_CONTROL
@@ -163,6 +169,13 @@ export async function getNotificacionById(notificacionId) {
     if (madre) tutores.push(mapearTutor("Madre", madre, ambos));
     if (padre) tutores.push(mapearTutor("Padre", padre, ambos));
 
+    // Padecimientos como array
+    const padecimientos = resPadecimiento.rows || [];
+    const tiposEspina = padecimientos.map((r) => r.TIPO_PADECIMIENTO).filter(Boolean);
+    const otrosRow = padecimientos.find(
+      (r) => (r.TIPO_PADECIMIENTO || "").toUpperCase() === "OTROS"
+    );
+
     return {
       NOTIFICACION_ID:     row.NOTIFICACION_ID     ?? null,
       ESTADO_PROCESO:      row.ESTADO_PROCESO       ?? null,
@@ -188,8 +201,8 @@ export async function getNotificacionById(notificacionId) {
       VALVULA:             row.VALVULA              ?? null,
       ETAPA_VIDA:          row.ETAPA_VIDA           ?? null,
       NOTAS_ADICIONALES:   row.NOTAS_ADICIONALES    ?? null,
-      TIPO_ESPINA_BIFIDA:  row.TIPO_ESPINA_BIFIDA   ?? null,
-      OTROS_PADECIMIENTO:  row.OTROS_PADECIMIENTO   ?? null,
+      TIPO_ESPINA_BIFIDA:  tiposEspina,                       // ahora es un ARRAY
+      OTROS_PADECIMIENTO:  otrosRow?.DESCRIPCION || "",
       FOTO:                fotoBase64,
       TUTORES:             tutores,
     };

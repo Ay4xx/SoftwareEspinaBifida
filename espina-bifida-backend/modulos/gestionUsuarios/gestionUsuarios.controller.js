@@ -68,7 +68,7 @@ export async function actualizar(req, res) {
 
 export async function eliminar(req, res) {
   try {
-    await eliminarUsuario(Number(req.params.id), req.usuario.id);
+    await eliminarUsuario(Number(req.params.id), req.usuario?.id ?? null);
     res.json({ ok: true, message: "Usuario eliminado correctamente" });
   } catch (error) {
     console.error("Error en eliminar:", error);

@@ -9,6 +9,9 @@ import {
   updatePaciente,
   updateHistorialMadre,
   borrarPacienteService,
+  obtenerDocumento,
+  getDocumentosDisponibles,
+  guardarDocumentos,
 } from "../paciente/paciente.service.js";
 
 export async function listarPacienteCards(req, res) {
@@ -87,14 +90,23 @@ export async function actualizarPaciente(req, res) {
   try {
     const { id } = req.params;
     const datos = req.body;
-  
 
     if (datos.tutores && typeof datos.tutores === "string") {
       datos.tutores = JSON.parse(datos.tutores);
     }
 
-    await updatePaciente(Number(id), datos, req.file);
+    // upload.fields() guarda los archivos en req.files (objeto)
+    // upload.single() los guarda en req.file — soportamos ambos
+    const fotoFile = req.files?.foto?.[0] ?? req.file ?? null;
+
+    await updatePaciente(Number(id), datos, fotoFile);
     await updateHistorialMadre(Number(id), datos);
+
+    // Guardar documentos si vienen en la petición
+    if (req.files) {
+      await guardarDocumentos(Number(id), req.files);
+    }
+
     res.json({ ok: true, message: "Paciente actualizado correctamente" });
   } catch (error) {
     console.error("Error en actualizarPaciente:", error);
@@ -115,5 +127,48 @@ export async function borrarPaciente(req, res) {
   } catch (error) {
     console.error("Error en borrarPaciente:", error);
     return res.status(500).json({ ok: false, message: "Error interno del servidor" });
+  }
+}
+
+// ── Documentos ────────────────────────────────────────────────────────────────
+
+const NOMBRES_DESCARGA = {
+  preregistro:          "preregistro",
+  actaNacimiento:       "acta_nacimiento",
+  curp:                 "curp",
+  comprobanteDomicilio: "comprobante_domicilio",
+  ineFamilia:           "ine_familia",
+};
+
+// GET /api/pacientes/:id/documento/:tipo?descargar=1
+export async function verDocumento(req, res) {
+  try {
+    const { id, tipo } = req.params;
+    const descargar = req.query.descargar === "1" || req.query.descargar === "true";
+    const doc = await obtenerDocumento(id, tipo);
+    if (!doc) return res.status(404).json({ ok: false, message: "Documento no encontrado" });
+    const nombreBase = NOMBRES_DESCARGA[tipo] || "documento";
+    const filename = `${nombreBase}_${id}.${doc.extension}`;
+    res.set("Content-Type", doc.mime);
+    res.set(
+      "Content-Disposition",
+      `${descargar ? "attachment" : "inline"}; filename="${filename}"`
+    );
+    res.send(doc.buffer);
+  } catch (error) {
+    console.error("Error en verDocumento:", error);
+    res.status(500).json({ ok: false, message: "Error al obtener el documento" });
+  }
+}
+
+// GET /api/pacientes/:id/documentos
+export async function listarDocumentos(req, res) {
+  try {
+    const { id } = req.params;
+    const disponibles = await getDocumentosDisponibles(id);
+    res.json({ ok: true, data: disponibles });
+  } catch (error) {
+    console.error("Error en listarDocumentos:", error);
+    res.status(500).json({ ok: false, message: "Error al listar documentos" });
   }
 }

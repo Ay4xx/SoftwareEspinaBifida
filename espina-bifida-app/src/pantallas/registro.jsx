@@ -36,7 +36,7 @@ const FORM_INICIAL = {
   telefonoCasa: "", telefonoCelular: "", correo: "",
   emergenciaContacto: "", emergenciaTelefono: "",
   lugarNacimiento: "", hospitalNacimiento: "", tipoSangre: "", usaValvula: "",
-  tipoEspinaBifida: "", otrosPadecimiento: "", notas: "",
+  tipoEspinaBifida: [], otrosPadecimiento: "", notas: "",
   foto: null,
   documentos: { preregistro: null, actaNacimiento: null, curp: null, comprobanteDomicilio: null, ineFamilia: null },
 };
@@ -63,7 +63,11 @@ function mapearPacienteAForm(p, fotoBase = null) {
     tipoSangre:         p.SANGRE_TIPO         || "",
     usaValvula:         p.VALVULA === "SI" ? "Sí" : p.VALVULA === "NO" ? "No" : "",
     notas:              p.NOTAS_ADICIONALES   || "",
-    tipoEspinaBifida:   p.TIPO_ESPINA_BIFIDA  || "",
+    tipoEspinaBifida:   Array.isArray(p.TIPO_ESPINA_BIFIDA)
+                          ? p.TIPO_ESPINA_BIFIDA
+                          : p.TIPO_ESPINA_BIFIDA
+                          ? [p.TIPO_ESPINA_BIFIDA]
+                          : [],
     otrosPadecimiento:  p.OTROS_PADECIMIENTO  || "",
     foto:               fotoBase,
   };
@@ -317,8 +321,12 @@ function RegistroPage() {
         setGuardado(false);
         setAdvertencias([]);
         resetearFormulario();
-        if (esInvitado) navigate("/registro");
-        else navigate("/usuarios");
+        if (esInvitado) {
+          localStorage.removeItem("guest");
+          navigate("/login");
+        } else {
+          navigate("/usuarios");
+        }
       }, erroresPasos.length > 0 ? 5000 : 2000);
 
     } catch (error) {
@@ -409,6 +417,8 @@ function RegistroPage() {
             onChange={handleChange}
             onGuardar={modoRevision ? handleGuardarCambios : null}
             cambiosGuardados={cambiosGuardados}
+            modoRevision={modoRevision}
+            pacienteId={pacienteId}
           />
         );
       default: return null;
