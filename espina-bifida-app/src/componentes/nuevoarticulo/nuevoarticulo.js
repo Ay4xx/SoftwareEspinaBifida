@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./nuevoarticulo.css";
 import { X } from "lucide-react";
-
+import API_BASE from "../../config.js";
 
 
 const camposIniciales = {
@@ -37,8 +37,8 @@ function NuevoArticulo({ onCerrar, onGuardado }) {
     setCargando(true);
     try {
       const url = categoria === "medicina"
-        ? "http://localhost:3001/api/inventario/medicina"
-        : "http://localhost:3001/api/inventario/equipo";
+        ? `${API_BASE}/api/inventario/medicina`
+        : `${API_BASE}/api/inventario/equipo`;
 
       const body = categoria === "medicina"
         ? { descripcion, unidad: form.unidad, precio, medicion: form.medicion, cantidad_total }
@@ -77,7 +77,7 @@ function NuevoArticulo({ onCerrar, onGuardado }) {
           <select name="categoria" value={form.categoria} onChange={handleChange}>
             <option value="">Seleccionar</option>
             <option value="medicina">Medicina</option>
-            <option value="equipo">Equipo Médico</option>
+            <option value="equipo">Comodato</option>
           </select>
         </div>
 

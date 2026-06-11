@@ -4,10 +4,10 @@ import NuevoArticulo from "../componentes/nuevoarticulo/nuevoarticulo";
 import RegistrarEntrada from "../componentes/nuevoarticulo/registrararticulo";
 import EliminarArticulo from "../componentes/nuevoarticulo/eliminararticulo";
 import { Plus, RefreshCw, Search, Trash2 } from "lucide-react";
+import API_BASE from "../config.js";
 import "./inventario.css";
 
-const API_INVENTARIO = "http://localhost:3001/api/inventario/";
-
+const API_INVENTARIO = `${API_BASE}/api/inventario`;
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function calcularEstado(cantidad) {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Calendario from "../componentes/agendacitas/calendario";
 import PanelCitas from "../componentes/agendacitas/panelcitas";
 import PopupAgregarCita from "../componentes/agendacitas/popupagregarc";
+import API_BASE from "../config.js";
 import "./agendacitasp.css";
 
 function AgendaCitasPage() {
@@ -14,97 +15,37 @@ function AgendaCitasPage() {
     }, [selectedDate]);
 
     const obtenerCitas = async () => {
-
         try {
-
-            const fecha = selectedDate
-                .toISOString()
-                .split("T")[0];
-
-            const response = await fetch(
-                `http://localhost:3001/api/citas?fecha=${fecha}`
-            );
-
+            const fecha = selectedDate.toISOString().split("T")[0];
+            const response = await fetch(`${API_BASE}/api/citas?fecha=${fecha}`);
             const data = await response.json();
-            
             if (data.ok) {
                 setCitas(data.citas);
             }
-
         } catch (error) {
-
-            console.error(
-                "Error obteniendo citas:",
-                error
-            );
+            console.error("Error obteniendo citas:", error);
         }
     };
-
-    /*
-    ========================================
-    ELIMINAR
-    ========================================
-    */
 
     const handleDelete = async (id) => {
-
         try {
-
-            await fetch(
-                `http://localhost:3001/api/citas/${id}`,
-                {
-                    method: "DELETE",
-                }
-            );
-
+            await fetch(`${API_BASE}/api/citas/${id}`, { method: "DELETE" });
             obtenerCitas();
-
         } catch (error) {
-
-            console.error(
-                "Error eliminando cita:",
-                error
-            );
+            console.error("Error eliminando cita:", error);
         }
     };
 
-    /*
-    ========================================
-    CAMBIAR ESTATUS
-    ========================================
-    */
-
-    const handleStatusChange = async (
-        id,
-        status
-    ) => {
-
+    const handleStatusChange = async (id, status) => {
         try {
-
-            await fetch(
-                `http://localhost:3001/api/citas/${id}/estatus`,
-                {
-                    method: "PUT",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json",
-                    },
-
-                    body: JSON.stringify({
-                        estatus_cita: status,
-                    }),
-                }
-            );
-
+            await fetch(`${API_BASE}/api/citas/${id}/estatus`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ estatus_cita: status }),
+            });
             obtenerCitas();
-
         } catch (error) {
-
-            console.error(
-                "Error actualizando estatus:",
-                error
-            );
+            console.error("Error actualizando estatus:", error);
         }
     };
 
@@ -114,14 +55,12 @@ function AgendaCitasPage() {
                 <Calendario selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
             </div>
             <div className="lado-derecho">
-                <PanelCitas 
-                selectedDate={selectedDate} 
-                citas={citas}
-                onAddPatient={() => 
-                    setOpenPopup(true)
-                }
-                onDeleteAppointment={handleDelete}
-                onStatusChange={handleStatusChange}
+                <PanelCitas
+                    selectedDate={selectedDate}
+                    citas={citas}
+                    onAddPatient={() => setOpenPopup(true)}
+                    onDeleteAppointment={handleDelete}
+                    onStatusChange={handleStatusChange}
                 />
                 <PopupAgregarCita
                     isOpen={openPopup}

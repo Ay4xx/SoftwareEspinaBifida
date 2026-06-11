@@ -11,11 +11,11 @@ import {
   actualizarPaso4, actualizarPaso5, actualizarPaciente,
 } from "../services/registroService";
 import { useLocation, useNavigate } from "react-router-dom";
-
+import API_BASE from "../config.js";
 
 const TOTAL_PASOS        = 5;
-const NOTIFICACIONES_URL = "http://localhost:3001/api/notificaciones";
-const PACIENTES_URL      = "http://localhost:3001/api/pacientes";
+const NOTIFICACIONES_URL = `${API_BASE}/api/notificaciones`;
+const PACIENTES_URL      = `${API_BASE}/api/pacientes`;
 
 const CAMPOS_HISTORIAL = ["adicciones", "hijoDtn", "familiarDtn", "expoToxicos", "descripcionExpoToxicos"];
 
@@ -207,7 +207,7 @@ function RegistroPage() {
         const p = result.data;
         setPacienteId(p.PACIENTE_ID);
         setNotificacionEstado("aprobado");
-        const fotoUrl = p.FOTO ? `http://localhost:3001${p.FOTO}` : null;
+        const fotoUrl = p.FOTO ? `${API_BASE}${p.FOTO}` : null;
         setFormData((prev) => ({ ...prev, ...mapearPacienteAForm(p, fotoUrl) }));
         if (p.TUTORES?.length > 0) mapearTutores(p.TUTORES, setTutorMadre, setTutorPadre, setHistorialFamiliar);
       })

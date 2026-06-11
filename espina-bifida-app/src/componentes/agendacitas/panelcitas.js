@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import "./panelcitas.css";
+import placeholederPic from "../../assets/placeholder.png";
 import {
   CircleCheck,
   CircleDashed,
@@ -16,6 +17,18 @@ function PanelCitas({
   onDeleteAppointment,
   onStatusChange,
 }) {
+  const [filterStatus, setFilterStatus] = useState("");
+
+  const toggleFilter = (status) => {
+    setFilterStatus((current) =>
+      current === status ? "" : status
+    );
+  };
+
+  const filteredCitas = filterStatus
+    ? citas.filter((c) => c.estatus_cita === filterStatus)
+    : citas;
+
   // FORMATEAR FECHA
   const formattedDate = selectedDate.toLocaleDateString("es-MX", {
     weekday: "long",
@@ -65,22 +78,38 @@ function PanelCitas({
 
         {/* STATS */}
         <div className="stats-row">
-          <div className="stat-item green">
+          <div
+            className={`stat-item green ${filterStatus === "ATENDIDA" ? "active" : ""}`}
+            onClick={() => toggleFilter("ATENDIDA")}
+            role="button"
+          >
             <CircleCheck size={20} />
             <span>{atendidas} Atendidas</span>
           </div>
 
-          <div className="stat-item blue">
+          <div
+            className={`stat-item blue ${filterStatus === "CONFIRMADA" ? "active" : ""}`}
+            onClick={() => toggleFilter("CONFIRMADA")}
+            role="button"
+          >
             <CalendarCheck2 size={20} />
             <span>{confirmadas} Confirmadas</span>
           </div>
 
-          <div className="stat-item gray">
+          <div
+            className={`stat-item gray ${filterStatus === "PENDIENTE" ? "active" : ""}`}
+            onClick={() => toggleFilter("PENDIENTE")}
+            role="button"
+          >
             <CircleDashed size={20} />
             <span>{pendientes} Pendientes</span>
           </div>
 
-          <div className="stat-item red">
+          <div
+            className={`stat-item red ${filterStatus === "CANCELADA" ? "active" : ""}`}
+            onClick={() => toggleFilter("CANCELADA")}
+            role="button"
+          >
             <CircleX size={20} />
             <span>{canceladas} Canceladas</span>
           </div>
@@ -95,12 +124,12 @@ function PanelCitas({
 
       {/* LISTADO */}
       <div className="appointments-list">
-        {citas.length === 0 ? (
+        {filteredCitas.length === 0 ? (
           <div className="empty-state">
             No hay citas para este día
           </div>
         ) : (
-          citas.map((cita) => {
+          filteredCitas.map((cita) => {
             const initials = (cita.nombre ?? "")
               .split(" ")
               .map((n) => n[0])
@@ -121,8 +150,22 @@ function PanelCitas({
               >
                 {/* IZQUIERDA */}
                 <div className="patient-info">
-                  <div className="avatar">
-                    {initials}
+                          <div className="avatar">
+                    <img
+                      src={
+                        cita.foto
+                          ? cita.foto.startsWith("http")
+                            ? cita.foto
+                            : `http://localhost:3001${cita.foto}`
+                          : cita.id_paciente
+                          ? `http://localhost:3001/api/pacientes/${cita.id_paciente}/foto`
+                          : placeholederPic
+                      }
+                      alt={`${cita.nombre} ${cita.apellido}`}
+                      onError={(e) => {
+                        e.currentTarget.src = placeholederPic;
+                      }}
+                    />
                   </div>
 
                   <div className="patient-details">

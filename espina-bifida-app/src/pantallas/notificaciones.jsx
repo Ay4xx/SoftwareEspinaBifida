@@ -3,8 +3,10 @@ import "./notificaciones.css";
 import { UserRound, MapPin, Phone, IdCard, Check, Bell, Search } from "lucide-react";
 import { useNotificaciones } from "./notificacionesContext";
 import { useNavigate } from "react-router-dom";
+import API_BASE from "../config.js";
 
-const API_URL = "http://localhost:3001/api/notificaciones";
+const API_URL =  `${API_BASE}/api/notificaciones`;
+
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

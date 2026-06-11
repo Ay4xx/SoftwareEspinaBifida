@@ -1,7 +1,6 @@
+import API_BASE from "../config.js";
 export async function getEstadisticas() {
-  const response = await fetch(
-    "http://localhost:3001/api/estadisticas"
-  );
+  const response = await fetch(`${API_BASE}/api/estadisticas`);
 
   if (!response.ok) {
     throw new Error("Error al obtener las estadísticas");
@@ -17,8 +16,7 @@ export async function getEstadisticas() {
 }
 
 export async function descargarReporteMensual(filtros) {
-  const response = await fetch(
-    "http://localhost:3001/api/estadisticas/reporte",
+  const response = await fetch(`${API_BASE}/api/estadisticas/reporte`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },

@@ -1,5 +1,7 @@
-const API_URL       = "http://localhost:3001/api/registro";
-const PACIENTES_URL = "http://localhost:3001/api/pacientes";
+import API_BASE from "../config.js"; // ajusta la ruta según dónde esté
+
+const API_URL = `${API_BASE}/api/registro`;
+const PACIENTES_URL = `${API_BASE}/api/pacientes`;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

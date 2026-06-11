@@ -199,12 +199,12 @@ def generate(stats_json: str) -> bytes:
             ("Valor inventario",       medicinas.get("valor_inventario", 0)),
             ("Utilizadas total",       medicinas.get("utilizadas", 0)),
         ]),
-        ("INVENTARIO — EQUIPO MÉDICO", LIGHT_AMBER, [
-            ("Total equipos",          equipo.get("total", 0)),
+        ("INVENTARIO — COMODATOS", LIGHT_AMBER, [
+            ("Total comodatos",          equipo.get("total", 0)),
             ("En uso",                 equipo.get("en_uso", 0)),
             ("Regresados",             equipo.get("regresados", 0)),
             ("% retorno",              equipo.get("porcentaje_retorno", 0)),
-            ("Valor total equipo",     equipo.get("valor_total", 0)),
+            ("Valor total comodato",     equipo.get("valor_total", 0)),
         ]),
         ("NOTIFICACIONES", LIGHT_RED, [
             ("Este mes",               notificaciones.get("mes", 0)),
@@ -453,15 +453,15 @@ def generate(stats_json: str) -> bytes:
         ("Valor inventario",      medicinas.get("valor_inventario",0),    LIGHT_GREEN),
         ("Medicinas utilizadas",  medicinas.get("utilizadas",0),          LIGHT_BLUE),
         ("Actualizaciones inv.",  medicinas.get("actualizaciones_inventario",0), LIGHT_BLUE),
-        ("— EQUIPO MÉDICO —", None, MID),
-        ("Total equipos",         equipo.get("total",0),                  LIGHT_BLUE),
+        ("— COMODATOS —", None, MID),
+        ("Total comodatos",         equipo.get("total",0),                  LIGHT_BLUE),
         ("Cantidad disponible",   equipo.get("cantidad_total",0),         LIGHT_BLUE),
         ("En uso",                equipo.get("en_uso",0),                 LIGHT_AMBER),
         ("Regresados",            equipo.get("regresados",0),             LIGHT_GREEN),
         ("% retorno",             equipo.get("porcentaje_retorno",0),     LIGHT_BLUE),
-        ("Valor total equipo",    equipo.get("valor_total",0),            LIGHT_GREEN),
+        ("Valor total comodato",    equipo.get("valor_total",0),            LIGHT_GREEN),
     ]
-    money_set = {"Valor inventario", "Valor total equipo"}
+    money_set = {"Valor inventario", "Valor total comodato"}
     for ri, item in enumerate(inv_rows, 3):
         lbl, val, color = item
         if val is None:

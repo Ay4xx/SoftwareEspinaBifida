@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "./medicamentos.css";
 import { useParams } from "react-router-dom";
 import { Paperclip, X, Search } from "lucide-react";
+import API_BASE from "../../config.js";
 
 function Medicamentos() {
   const { pacienteId } = useParams();
@@ -15,8 +16,8 @@ function Medicamentos() {
   const abrirPopup = async () => {
     const ids = medicamentos.map((m) => m.MEDICINA_ID).join(",");
     const url = ids
-      ? `http://localhost:3001/api/medicamentos/disponibles?ids=${ids}`
-      : `http://localhost:3001/api/medicamentos/disponibles`;
+  ? `${API_BASE}/api/medicamentos/disponibles?ids=${ids}`
+  : `${API_BASE}/api/medicamentos/disponibles`;
 
     try {
       const res = await fetch(url);
@@ -87,7 +88,7 @@ function Medicamentos() {
     }
 
     try {
-      const res = await fetch("http://localhost:3001/api/medicamentos/guardar", {
+      const res = await fetch(`${API_BASE}/api/medicamentos/guardar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pacienteId, medicamentos }),
@@ -149,7 +150,7 @@ function Medicamentos() {
 
         <div className="med-footer">
           <button className="med-cancelar" onClick={cancelarLista}>Cancelar</button>
-          <button className="med-guardar" onClick={guardarConsulta}> Guardar Consulta</button>
+          <button className="med-guardar" onClick={guardarConsulta}> Guardar Medicamento</button>
         </div>
       </div>
 

@@ -498,16 +498,16 @@ export default function EstadisticasPage() {
             <KpiCard icon={Pill} label="Bajo stock"       value={fmt(medicinas.bajo_stock)}           color="amber" sub={pct(medicinas.bajo_stock, medicinas.total)} />
             <KpiCard className="kpi-card-long" icon={Pill} label="Valor inventario" value={fmtMoney(medicinas.valor_inventario)} color="green" />
           </div>
-          <SectionHeader title="Equipo médico" />
+          <SectionHeader title="Comodatos" />
           <div className="kpi-grid kpi-grid-4">
-            <KpiCard icon={Package} label="Total equipos"       value={fmt(equipo.total)}          color="blue" />
+            <KpiCard icon={Package} label="Total comodatos"       value={fmt(equipo.total)}          color="blue" />
             <KpiCard icon={Package} label="Cantidad disponible" value={fmt(equipo.cantidad_total)} color="teal" />
             <KpiCard icon={Package} label="Bajo stock"          value={fmt(equipo.bajo_stock)}     color="amber" sub={pct(equipo.bajo_stock, equipo.total)} />
             <KpiCard icon={Package} label="En uso"              value={fmt(equipo.en_uso)}         color="coral" sub={pct(equipo.en_uso, equipo.total)} />
             <KpiCard className="kpi-card-long" icon={Package} label="Valor total" value={fmtMoney(equipo.valor_total)} color="purple" />
           </div>
           <div className="charts-row-2">
-            <ChartCard title="Medicinas utilizadas por mes">
+            <ChartCard title="Medicinas vendidas por mes">
               <ResponsiveContainer width="100%" height={230}>
                 <BarChart data={medicinaSerie}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" />
@@ -518,12 +518,12 @@ export default function EstadisticasPage() {
                 </BarChart>
               </ResponsiveContainer>
             </ChartCard>
-            <ChartCard title="Estado del equipo médico">
+            <ChartCard title="Estado de los comodatos">
               <DonutChart data={donutEquipo} colors={[COLORS.coral, COLORS.teal]} />
             </ChartCard>
           </div>
           <div className="charts-row-2">
-            <ChartCard title="Equipos en uso por mes">
+            <ChartCard title="Comodatos en uso por mes">
               <ResponsiveContainer width="100%" height={220}>
                 <AreaChart data={equipoSerie}>
                   <defs>
