@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import "./registrocitas.css";
 import { CalendarDays } from "lucide-react";
+import API_BASE from "../../config.js";
 
 const horas = [
   "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
@@ -28,7 +29,7 @@ function RegistrarConsulta() {
   });
 
   useEffect(() => {
-    fetch("http://localhost:3001/api/medicos")
+    fetch(`${API_BASE}/api/medicos`)
       .then((r) => r.json())
       .then((res) => setMedicos(Array.isArray(res.data) ? res.data : []))
       .catch(console.error);
@@ -63,7 +64,7 @@ function RegistrarConsulta() {
     }
 
     try {
-      const response = await fetch("http://localhost:3001/api/medicos/guardar", {
+      const response = await fetch(`${API_BASE}/api/medicos/guardar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

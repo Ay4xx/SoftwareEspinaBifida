@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { Search, Plus, Pencil, Trash2, Camera } from "lucide-react";
+import API_BASE from "../config.js";
 import "./gestionUsuarios.css";
 
-const API = "http://localhost:3001/api/gestion-usuarios";
+const API = `${API_BASE}/api/gestion-usuarios`;
 
 const toBackRol  = (rol) => rol;
 const toFrontRol = (tipoUsuario) => {
@@ -148,7 +149,6 @@ function ModalUsuario({ modo, usuario, onClose, onGuardar }) {
         </div>
 
         <div className="modal-body">
-          {/* Foto de perfil */}
           <div className="field" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
             <div
               className="foto-preview-wrapper"
@@ -187,7 +187,6 @@ function ModalUsuario({ modo, usuario, onClose, onGuardar }) {
             />
           </div>
 
-          {/* Nombre y correo */}
           <div className="field-row">
             <div className="field">
               <label className="field-label">Nombre completo <span className="required">*</span></label>
@@ -199,7 +198,6 @@ function ModalUsuario({ modo, usuario, onClose, onGuardar }) {
             </div>
           </div>
 
-          {/* Contraseña — solo al crear */}
           {!esEditar && (
             <>
               <div className="field">
@@ -233,7 +231,6 @@ function ModalUsuario({ modo, usuario, onClose, onGuardar }) {
             </>
           )}
 
-          {/* Tipo de usuario */}
           <div className="field">
             <label className="field-label">Tipo de usuario <span className="required">*</span></label>
             <div className="role-grid">

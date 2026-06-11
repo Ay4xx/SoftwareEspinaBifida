@@ -1,9 +1,10 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import API_BASE from "../config.js";
 
 const NotificacionesContext = createContext();
 
-const API_URL = "http://localhost:3001/api/notificaciones";
-const SSE_URL = "http://localhost:3001/api/notificaciones-sse";
+const API_URL = `${API_BASE}/api/notificaciones`;
+const SSE_URL = `${API_BASE}/api/notificaciones-sse`;
 
 export function NotificacionesProvider({ children }) {
   const [pendientesCount, setPendientesCount] = useState(0);

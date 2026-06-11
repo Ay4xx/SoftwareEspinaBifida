@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./registrararticulo.css";
 import { X } from "lucide-react";
+import API_BASE from "../../config.js";
 
 function RegistrarEntrada({ onCerrar, onGuardado }) {
   const [categoria, setCategoria] = useState("");
@@ -14,7 +15,7 @@ function RegistrarEntrada({ onCerrar, onGuardado }) {
   useEffect(() => {
     if (!categoria) return;
 
-    fetch("http://localhost:3001/api/inventario/")
+    fetch(`${API_BASE}/api/inventario`)
       .then((r) => r.json())
       .then((res) => {
         const todos = res.data || [];
@@ -33,8 +34,8 @@ function RegistrarEntrada({ onCerrar, onGuardado }) {
     setCargando(true);
     try {
       const url = categoria === "medicina"
-        ? "http://localhost:3001/api/inventario/medicina/cantidad"
-        : "http://localhost:3001/api/inventario/equipo/cantidad";
+        ? `${API_BASE}/api/inventario/medicina/cantidad`
+        : `${API_BASE}/api/inventario/equipo/cantidad`;
 
       const body = categoria === "medicina"
         ? { medicinaId: seleccionado, cantidad: parseInt(cantidad) }

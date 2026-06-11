@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import API_BASE from "../config.js";
 import "./login.css";
 
-const API_FORGOT = "http://localhost:3001/api/forgot-password/request";
+const API_FORGOT = `${API_BASE}/api/forgot-password/request`;
 
 const ForgotPassword = () => {
   const [email,        setEmail]        = useState("");

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import "./equipomedico.css";
 import { useParams } from "react-router-dom";
 import { Paperclip, X, Search } from "lucide-react";
-
+import API_BASE from "../../config.js";
 function getMinDate() {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -21,9 +21,8 @@ function EquipoMedico() {
   const abrirPopup = async () => {
     const ids = equipos.map((e) => e.EQUIPO_M_ID).join(",");
     const url = ids
-      ? `http://localhost:3001/api/equipomedico/disponibles?ids=${ids}`
-      : `http://localhost:3001/api/equipomedico/disponibles`;
-
+      ? `${API_BASE}/api/equipomedico/disponibles?ids=${ids}`
+      : `${API_BASE}/api/equipomedico/disponibles`;
     try {
       const res = await fetch(url);
       const json = await res.json();
@@ -95,7 +94,7 @@ function EquipoMedico() {
     }
 
     try {
-      const res = await fetch("http://localhost:3001/api/equipomedico/guardar", {
+      const res = await fetch(`${API_BASE}/api/equipomedico/guardar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pacienteId, equipos }),

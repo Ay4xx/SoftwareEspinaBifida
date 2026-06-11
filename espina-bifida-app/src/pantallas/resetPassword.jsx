@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import "./login.css";
+import API_BASE from "../config.js";
 
 const API_VALIDATE = "http://localhost:3001/api/forgot-password/validate";
 const API_RESET    = "http://localhost:3001/api/forgot-password/reset";

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./eliminararticulo.css";
 import { X } from "lucide-react";
+import API_BASE from "../../config.js";
 
 function EliminarArticulo({ onCerrar, onGuardado }) {
   const [categoria, setCategoria] = useState("");
@@ -13,7 +14,7 @@ function EliminarArticulo({ onCerrar, onGuardado }) {
   useEffect(() => {
     if (!categoria) return;
 
-    fetch("http://localhost:3001/api/inventario/")
+    fetch(`${API_BASE}/api/inventario`)
       .then((r) => r.json())
       .then((res) => {
         const todos = res.data || [];
@@ -38,7 +39,7 @@ function EliminarArticulo({ onCerrar, onGuardado }) {
     setCargando(true);
     try {
       const res = await fetch(
-        `http://localhost:3001/api/inventario/${categoria}/${seleccionado}`,
+        `${API_BASE}/api/inventario/${categoria}/${seleccionado}`,
         { method: "DELETE" }
       );
       const json = await res.json();

@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import API_BASE from "../config.js";
 import "./login.css";
 
-const API_LOGIN = "http://localhost:3001/api/login";
+const API_LOGIN = `${API_BASE}/api/login`;
+
 
 // ── Helper ────────────────────────────────────────────────────────────────────
 
