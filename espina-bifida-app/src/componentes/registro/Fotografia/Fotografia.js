@@ -1,6 +1,8 @@
 import React, { useRef, useState, useEffect } from "react";
 import "./Fotografia.css";
-import { Camera, Check, FileText, Upload, X } from "lucide-react";
+import { Camera, Check, FileText, Upload, X, Eye, Download } from "lucide-react";
+
+const PACIENTES_URL = "http://localhost:3001/api/pacientes";
 
 const DOCUMENTOS_CONFIG = [
   { key: "actaNacimiento",       label: "Acta de nacimiento" },
@@ -9,7 +11,10 @@ const DOCUMENTOS_CONFIG = [
   { key: "ineFamilia",           label: "INE de familia (menores)" },
 ];
 
-function DocumentoItem({ label, archivo, onChange }) {
+function DocumentoItem({
+  docKey, label, archivo, onChange,
+  modoRevision, pacienteId, disponibleEnBD,
+}) {
   const inputRef = useRef(null);
 
   const handleArchivo = (e) => {
@@ -24,6 +29,19 @@ function DocumentoItem({ label, archivo, onChange }) {
     if (file) onChange(file);
   };
 
+  // Abre el archivo recién seleccionado (aún no subido) en una pestaña nueva
+  const verArchivoLocal = () => {
+    if (!(archivo instanceof File)) return;
+    const url = URL.createObjectURL(archivo);
+    window.open(url, "_blank", "noopener,noreferrer");
+    // liberar después de un momento (ya se abrió en la pestaña)
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  };
+
+  // URL del documento guardado en la BD
+  const urlDocBD = (descargar) =>
+    `${PACIENTES_URL}/${pacienteId}/documento/${docKey}${descargar ? "?descargar=1" : ""}`;
+
   return (
     <div className="doc-item">
       <div className="doc-item-icono">
@@ -36,11 +54,50 @@ function DocumentoItem({ label, archivo, onChange }) {
           <span className="doc-item-nombre">{archivo.name}</span>
           <button
             type="button"
+            className="doc-item-ver"
+            onClick={verArchivoLocal}
+            title="Ver archivo seleccionado"
+          >
+            <Eye size={14} />
+          </button>
+          <button
+            type="button"
             className="doc-item-quitar"
             onClick={() => onChange(null)}
             title="Quitar archivo"
           >
             <X size={14} />
+          </button>
+        </div>
+      ) : modoRevision && disponibleEnBD ? (
+        // En revisión, si el documento ya existe en la BD: abrir / descargar
+        <div className="doc-item-acciones-bd">
+          <a
+            href={urlDocBD(false)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="doc-item-btn doc-item-btn-ver"
+            title="Abrir documento"
+          >
+            <Eye size={14} />
+            Abrir
+          </a>
+          <a
+            href={urlDocBD(true)}
+            className="doc-item-btn doc-item-btn-descargar"
+            title="Descargar documento"
+          >
+            <Download size={14} />
+            Descargar
+          </a>
+          <button
+            type="button"
+            className="doc-item-btn"
+            onClick={() => inputRef.current?.click()}
+            title="Reemplazar documento"
+          >
+            <Upload size={14} />
+            Reemplazar
           </button>
         </div>
       ) : (
@@ -67,10 +124,11 @@ function DocumentoItem({ label, archivo, onChange }) {
   );
 }
 
-function Fotografia({ datos, onChange, onGuardar, cambiosGuardados }) {
+function Fotografia({ datos, onChange, onGuardar, cambiosGuardados, modoRevision, pacienteId }) {
   const inputRef = useRef(null);
   const [preview, setPreview] = useState(null);
   const [arrastrandoEncima, setArrastrandoEncima] = useState(false);
+  const [docsDisponibles, setDocsDisponibles] = useState({});
 
   useEffect(() => {
     if (!datos?.foto) { setPreview(null); return; }
@@ -81,6 +139,15 @@ function Fotografia({ datos, onChange, onGuardar, cambiosGuardados }) {
       reader.readAsDataURL(datos.foto);
     }
   }, [datos?.foto]);
+
+  // En modo revisión, consultar qué documentos tiene el paciente en la BD
+  useEffect(() => {
+    if (!modoRevision || !pacienteId) return;
+    fetch(`${PACIENTES_URL}/${pacienteId}/documentos`)
+      .then((r) => r.json())
+      .then((result) => { if (result.ok) setDocsDisponibles(result.data || {}); })
+      .catch(() => {});
+  }, [modoRevision, pacienteId, cambiosGuardados]);
 
   const procesarFoto = (archivo) => {
     if (!archivo) return;
@@ -188,9 +255,13 @@ function Fotografia({ datos, onChange, onGuardar, cambiosGuardados }) {
         {DOCUMENTOS_CONFIG.map(({ key, label }) => (
           <DocumentoItem
             key={key}
+            docKey={key}
             label={label}
             archivo={documentos[key] || null}
             onChange={(file) => handleDocumento(key, file)}
+            modoRevision={modoRevision}
+            pacienteId={pacienteId}
+            disponibleEnBD={!!docsDisponibles[key]}
           />
         ))}
       </div>

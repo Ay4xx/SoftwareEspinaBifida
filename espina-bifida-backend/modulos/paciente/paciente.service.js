@@ -37,6 +37,24 @@ function parseTutores(datos) {
   return [];
 }
 
+function parsearTiposEspina(valor) {
+  if (Array.isArray(valor)) {
+    return valor.map((t) => String(t).trim()).filter(Boolean);
+  }
+  if (typeof valor === "string") {
+    const txt = valor.trim();
+    if (txt === "") return [];
+    if (txt.startsWith("[")) {
+      try {
+        const arr = JSON.parse(txt);
+        if (Array.isArray(arr)) return arr.map((t) => String(t).trim()).filter(Boolean);
+      } catch (_) { /* cae al split por comas */ }
+    }
+    return txt.split(",").map((t) => t.trim()).filter(Boolean);
+  }
+  return [];
+}
+
 function mapearTutorCompleto(parentesco, row, ambos) {
   const base = {
     tutorParentesco:        parentesco,
@@ -112,43 +130,172 @@ async function upsertHistorialAmbos(conn, pacienteId, tutor) {
   }
 }
 
-async function upsertPadecimiento(conn, pacienteId, tipoEspinaBifida, otrosPadecimiento) {
-  const resPad = await conn.execute(
-    `SELECT PADECIMIENTO_ID FROM PADECIMIENTOEB WHERE UPPER(TIPO_PADECIMIENTO) = UPPER(:tipo)`,
-    { tipo: tipoEspinaBifida },
-    { outFormat: oracledb.OUT_FORMAT_OBJECT }
-  );
-  if (!resPad.rows.length) return;
+async function sincronizarPadecimientos(conn, pacienteId, tiposEspinaBifida, otrosPadecimiento) {
+  const tipos = parsearTiposEspina(tiposEspinaBifida);
 
-  const padecimientoId = resPad.rows[0].PADECIMIENTO_ID;
-
-  const check = await conn.execute(
-    `SELECT COUNT(*) AS total FROM PACIENTE_PADECIMIENTO WHERE PACIENTE_ID = :pacienteId`,
+  await conn.execute(
+    `DELETE FROM PACIENTE_PADECIMIENTO WHERE PACIENTE_ID = :pacienteId`,
     { pacienteId },
-    { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    { autoCommit: true }
   );
 
-  if (check.rows[0].TOTAL > 0) {
-    await conn.execute(
-      `UPDATE PACIENTE_PADECIMIENTO SET PADECIMIENTO_ID = :padecimientoId WHERE PACIENTE_ID = :pacienteId`,
-      { padecimientoId, pacienteId }, { autoCommit: false }
+  if (tipos.length === 0) return;
+
+  const resMax = await conn.execute(
+    `SELECT NVL(MAX(PADECIMIENTO_PACIENTE_ID),0) AS MAXID FROM PACIENTE_PADECIMIENTO`,
+    {},
+    { outFormat: oracledb.OUT_FORMAT_OBJECT }
+  );
+  let nextId = Number(resMax.rows[0].MAXID) + 1;
+
+  for (const tipo of tipos) {
+    const resPad = await conn.execute(
+      `SELECT PADECIMIENTO_ID FROM PADECIMIENTOEB WHERE UPPER(TIPO_PADECIMIENTO) = UPPER(:tipo)`,
+      { tipo },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
-  } else {
+    if (!resPad.rows.length) continue;
+
+    const padecimientoId = resPad.rows[0].PADECIMIENTO_ID;
+
     await conn.execute(
       `INSERT INTO PACIENTE_PADECIMIENTO
         (PADECIMIENTO_PACIENTE_ID, PACIENTE_ID, PADECIMIENTO_ID)
        VALUES
-        ((SELECT NVL(MAX(PADECIMIENTO_PACIENTE_ID),0)+1 FROM PACIENTE_PADECIMIENTO),
-         :pacienteId, :padecimientoId)`,
-      { pacienteId, padecimientoId }, { autoCommit: false }
+        (:nuevoId, :pacienteId, :padecimientoId)`,
+      { nuevoId: nextId, pacienteId, padecimientoId },
+      { autoCommit: true }
     );
+    nextId++;
+
+    if (tipo.toUpperCase() === "OTROS" && otrosPadecimiento) {
+      await conn.execute(
+        `UPDATE PADECIMIENTOEB SET DESCRIPCION = :descripcion WHERE PADECIMIENTO_ID = :padecimientoId`,
+        { descripcion: otrosPadecimiento || null, padecimientoId },
+        { autoCommit: true }
+      );
+    }
+  }
+}
+
+// ── Documentos ────────────────────────────────────────────────────────────────
+
+// Mapa: clave del frontend -> columna en la tabla PACIENTE
+const COLUMNAS_DOCUMENTOS = {
+  preregistro:          "DOC_PREREGISTRO",
+  actaNacimiento:       "DOC_ACTA_NACIMIENTO",
+  curp:                 "DOC_CURP",
+  comprobanteDomicilio: "DOC_COMPROBANTE_DOMICILIO",
+  ineFamilia:           "DOC_INE_FAMILIA",
+};
+
+// Mapa: campo del FormData -> clave del frontend
+const CAMPOS_FORM_A_KEY = {
+  docPreregistro:          "preregistro",
+  docActaNacimiento:       "actaNacimiento",
+  docCurp:                 "curp",
+  docComprobanteDomicilio: "comprobanteDomicilio",
+  docIneFamilia:           "ineFamilia",
+};
+
+function detectarMime(buffer) {
+  if (!buffer || buffer.length < 4) return "application/octet-stream";
+  if (buffer[0] === 0x25 && buffer[1] === 0x50 && buffer[2] === 0x44 && buffer[3] === 0x46)
+    return "application/pdf";
+  if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47)
+    return "image/png";
+  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff)
+    return "image/jpeg";
+  return "application/octet-stream";
+}
+
+function extensionDeMime(mime) {
+  if (mime === "application/pdf") return "pdf";
+  if (mime === "image/png") return "png";
+  if (mime === "image/jpeg") return "jpg";
+  return "bin";
+}
+
+// Guarda los documentos que vienen en req.files (upload.fields).
+// req.files es un objeto { docActaNacimiento: [fileObj], ... }
+export async function guardarDocumentos(pacienteId, reqFiles) {
+  // Construir objeto { columna: buffer } solo con los que llegaron
+  const updates = {};
+  for (const [fieldName, key] of Object.entries(CAMPOS_FORM_A_KEY)) {
+    const fileArr = reqFiles[fieldName];
+    if (fileArr && fileArr[0]?.buffer) {
+      const col = COLUMNAS_DOCUMENTOS[key];
+      if (col) updates[col] = fileArr[0].buffer;
+    }
   }
 
-  if (tipoEspinaBifida === "OTROS" && otrosPadecimiento) {
+  if (Object.keys(updates).length === 0) return; // nada que guardar
+
+  let conn;
+  try {
+    conn = await getConnection();
+    // Construir SET dinámico: solo las columnas que llegaron
+    const setClauses = Object.keys(updates)
+      .map((col, i) => `${col} = :doc${i}`)
+      .join(", ");
+    const binds = {};
+    Object.values(updates).forEach((buf, i) => { binds[`doc${i}`] = buf; });
+    binds.pacienteId = Number(pacienteId);
+
     await conn.execute(
-      `UPDATE PADECIMIENTOEB SET DESCRIPCION = :descripcion WHERE PADECIMIENTO_ID = :padecimientoId`,
-      { descripcion: otrosPadecimiento || null, padecimientoId }, { autoCommit: false }
+      `UPDATE PACIENTE SET ${setClauses} WHERE PACIENTE_ID = :pacienteId`,
+      binds,
+      { autoCommit: true }
     );
+  } finally {
+    if (conn) await conn.close();
+  }
+}
+
+// Devuelve { buffer, mime, extension } o null si no existe el documento.
+export async function obtenerDocumento(pacienteId, tipoDoc) {
+  const columna = COLUMNAS_DOCUMENTOS[tipoDoc];
+  if (!columna) return null;
+  let conn;
+  try {
+    conn = await getConnection();
+    const result = await conn.execute(
+      `SELECT ${columna} AS DOC FROM PACIENTE WHERE PACIENTE_ID = :id`,
+      { id: Number(pacienteId) },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    if (!result.rows?.length) return null;
+    const buffer = await leerBlob(result.rows[0].DOC);
+    if (!buffer) return null;
+    const mime = detectarMime(buffer);
+    return { buffer, mime, extension: extensionDeMime(mime) };
+  } finally {
+    if (conn) await conn.close();
+  }
+}
+
+// Devuelve qué documentos tiene el paciente.
+export async function getDocumentosDisponibles(pacienteId) {
+  let conn;
+  try {
+    conn = await getConnection();
+    const cols = Object.values(COLUMNAS_DOCUMENTOS)
+      .map((c) => `CASE WHEN ${c} IS NULL THEN 0 ELSE 1 END AS ${c}`)
+      .join(", ");
+    const result = await conn.execute(
+      `SELECT ${cols} FROM PACIENTE WHERE PACIENTE_ID = :id`,
+      { id: Number(pacienteId) },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    if (!result.rows?.length) return {};
+    const row = result.rows[0];
+    const disponibles = {};
+    for (const [key, col] of Object.entries(COLUMNAS_DOCUMENTOS)) {
+      disponibles[key] = row[col] === 1;
+    }
+    return disponibles;
+  } finally {
+    if (conn) await conn.close();
   }
 }
 
@@ -379,16 +526,11 @@ export async function updatePaciente(pacienteId, datos = {}, archivo = null) {
         notas:              datos.notas              || null,
         pacienteId,
       },
-      { autoCommit: false }
+      { autoCommit: true }
     );
 
-    if (datos.tipoEspinaBifida) {
-      await upsertPadecimiento(conn, pacienteId, datos.tipoEspinaBifida, datos.otrosPadecimiento);
-    }
-
-    await conn.commit();
+    await sincronizarPadecimientos(conn, pacienteId, datos.tipoEspinaBifida, datos.otrosPadecimiento);
   } catch (error) {
-    if (conn) await conn.rollback();
     throw error;
   } finally {
     if (conn) await conn.close();
@@ -462,10 +604,15 @@ export async function getPacienteCompleto(id) {
       ),
     ]);
 
-    const madre        = resMadre.rows?.[0]        || null;
-    const padre        = resPadre.rows?.[0]        || null;
-    const ambos        = resAmbos.rows?.[0]        || null;
-    const padecimiento = resPadecimiento.rows?.[0] || null;
+    const madre = resMadre.rows?.[0] || null;
+    const padre = resPadre.rows?.[0] || null;
+    const ambos = resAmbos.rows?.[0] || null;
+
+    const padecimientos = resPadecimiento.rows || [];
+    const tiposEspina = padecimientos.map((r) => r.TIPO_PADECIMIENTO).filter(Boolean);
+    const otrosRow = padecimientos.find(
+      (r) => (r.TIPO_PADECIMIENTO || "").toUpperCase() === "OTROS"
+    );
 
     return {
       PACIENTE_ID:         p.PACIENTE_ID,
@@ -488,8 +635,8 @@ export async function getPacienteCompleto(id) {
       SANGRE_TIPO:         p.SANGRE_TIPO,
       VALVULA:             p.VALVULA,
       NOTAS_ADICIONALES:   p.NOTAS_ADICIONALES,
-      TIPO_ESPINA_BIFIDA:  padecimiento?.TIPO_PADECIMIENTO || "",
-      OTROS_PADECIMIENTO:  padecimiento?.DESCRIPCION       || "",
+      TIPO_ESPINA_BIFIDA:  tiposEspina,
+      OTROS_PADECIMIENTO:  otrosRow?.DESCRIPCION || "",
       FOTO:                `/api/pacientes/${p.PACIENTE_ID}/foto`,
       TUTORES:             [
         mapearTutorCompleto("Madre", madre, ambos),

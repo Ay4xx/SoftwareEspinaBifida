@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, Plus, Pencil, Trash2, Camera } from "lucide-react";
 import API_BASE from "../config.js";
+import { Search, Plus, Pencil, Trash2, Camera, AlertTriangle } from "lucide-react";
 import "./gestionUsuarios.css";
 
 const API = `${API_BASE}/api/gestion-usuarios`;
@@ -66,6 +66,51 @@ const badgeClass = (rol) =>
 
 const badgeLabel = (rol) =>
   rol === "ADMINISTRADOR" ? "Administrador" : rol === "SUPERADMIN" ? "Super Admin" : "Coordinador";
+
+// ── Modal de confirmación de borrado ─────────────────────────────────────────
+
+function ModalConfirmarBorrado({ usuario, onCancelar, onConfirmar }) {
+  const [borrando, setBorrando] = useState(false);
+  const [error,    setError]    = useState("");
+
+  const handleConfirmar = async () => {
+    setError("");
+    setBorrando(true);
+    try {
+      await onConfirmar();
+    } catch (err) {
+      setError(err.message || "Error al eliminar usuario");
+      setBorrando(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onCancelar}>
+      <div className="modal-box confirm-box" onClick={(e) => e.stopPropagation()}>
+        <div className="confirm-icon">
+          <AlertTriangle size={26} />
+        </div>
+        <h3 className="confirm-title">¿Eliminar usuario?</h3>
+        <p className="confirm-text">
+          Estás a punto de eliminar a{" "}
+          <strong>{usuario.nombre || usuario.username}</strong>.
+          Esta acción no se puede deshacer.
+        </p>
+
+        {error && <p className="form-error">{error}</p>}
+
+        <div className="confirm-actions">
+          <button className="btn-cancel" onClick={onCancelar} disabled={borrando}>
+            Cancelar
+          </button>
+          <button className="btn-borrar btn-borrar-solid" onClick={handleConfirmar} disabled={borrando}>
+            <Trash2 size={13}/> {borrando ? "Eliminando..." : "Sí, eliminar"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
 
@@ -275,11 +320,12 @@ function ModalUsuario({ modo, usuario, onClose, onGuardar }) {
 // ── Página principal ──────────────────────────────────────────────────────────
 
 function GestionUsuarios() {
-  const [usuarios, setUsuarios] = useState([]);
-  const [search,   setSearch]   = useState("");
-  const [modal,    setModal]    = useState(null);
-  const [cargando, setCargando] = useState(true);
-  const [error,    setError]    = useState("");
+  const [usuarios,  setUsuarios]  = useState([]);
+  const [search,    setSearch]    = useState("");
+  const [modal,     setModal]     = useState(null);
+  const [aBorrar,   setABorrar]   = useState(null); // usuario pendiente de confirmar borrado
+  const [cargando,  setCargando]  = useState(true);
+  const [error,     setError]     = useState("");
 
   const cargarUsuarios = async (busqueda = "") => {
     setCargando(true);
@@ -334,14 +380,12 @@ function GestionUsuarios() {
     await cargarUsuarios(search);
   };
 
-  const handleBorrar = async (id) => {
-    if (!window.confirm("¿Estás seguro de que quieres eliminar este usuario?")) return;
-    try {
-      await apiFetch(`${API}/${id}`, { method: "DELETE", headers: authHeaders() });
-      setUsuarios((prev) => prev.filter((u) => u.id !== id));
-    } catch (err) {
-      alert(err.message || "Error al eliminar usuario");
-    }
+  // Ya no usa window.confirm: abre el modal de confirmación propio
+  const confirmarBorrado = async () => {
+    const id = aBorrar.id;
+    await apiFetch(`${API}/${id}`, { method: "DELETE", headers: authHeaders() });
+    setUsuarios((prev) => prev.filter((u) => u.id !== id));
+    setABorrar(null);
   };
 
   return (
@@ -403,7 +447,7 @@ function GestionUsuarios() {
                             <button className="btn-editar" onClick={() => setModal({ modo: "editar", usuario: u })}>
                               <Pencil size={13}/> Editar
                             </button>
-                            <button className="btn-borrar" onClick={() => handleBorrar(u.id)}>
+                            <button className="btn-borrar" onClick={() => setABorrar(u)}>
                               <Trash2 size={13}/> Borrar
                             </button>
                           </>
@@ -431,6 +475,14 @@ function GestionUsuarios() {
           usuario={modal.usuario}
           onClose={() => setModal(null)}
           onGuardar={modal.modo === "nuevo" ? handleCrear : handleEditar}
+        />
+      )}
+
+      {aBorrar && (
+        <ModalConfirmarBorrado
+          usuario={aBorrar}
+          onCancelar={() => setABorrar(null)}
+          onConfirmar={confirmarBorrado}
         />
       )}
     </div>

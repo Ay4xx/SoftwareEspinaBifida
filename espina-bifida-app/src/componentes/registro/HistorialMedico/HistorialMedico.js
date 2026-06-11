@@ -1,6 +1,6 @@
 import React from "react";
 import "./HistorialMedico.css";
-import { ClipboardList } from "lucide-react";
+import { ClipboardList, Check } from "lucide-react";
 
 const TIPOS_SANGRE = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
@@ -19,6 +19,22 @@ const PADECIMIENTOS = [
 function HistorialMedico({ datos, onChange }) {
   const handleInput = (e) => {
     onChange({ [e.target.name]: e.target.value });
+  };
+
+  // tipoEspinaBifida ahora es un array. Soportamos también que llegue
+  // como string (datos viejos / primera carga) y lo normalizamos.
+  const seleccionados = Array.isArray(datos.tipoEspinaBifida)
+    ? datos.tipoEspinaBifida
+    : datos.tipoEspinaBifida
+    ? [datos.tipoEspinaBifida]
+    : [];
+
+  const togglePadecimiento = (p) => {
+    const yaEsta = seleccionados.includes(p);
+    const nuevos = yaEsta
+      ? seleccionados.filter((x) => x !== p)
+      : [...seleccionados, p];
+    onChange({ tipoEspinaBifida: nuevos });
   };
 
   return (
@@ -91,25 +107,30 @@ function HistorialMedico({ datos, onChange }) {
           </div>
         </div>
 
-        {/* Padecimiento */}
+        {/* Padecimiento (selección múltiple) */}
         <div className="hm-campo-full">
           <label>Padecimiento (Tipo de Espina Bífida)</label>
+          <p className="hm-ayuda">Puedes seleccionar más de una opción.</p>
           <div className="hm-padecimiento-grid">
-            {PADECIMIENTOS.map((p) => (
-              <button
-                key={p}
-                type="button"
-                className={`hm-padecimiento-btn ${datos.tipoEspinaBifida === p ? "activo" : ""}`}
-                onClick={() => onChange({ tipoEspinaBifida: datos.tipoEspinaBifida === p ? "" : p })}
-              >
-                <span className="hm-espina-radio">
-                  <span className={`hm-espina-radio-inner ${datos.tipoEspinaBifida === p ? "activo" : ""}`} />
-                </span>
-                <span className="hm-padecimiento-nombre">{p}</span>
-              </button>
-            ))}
+            {PADECIMIENTOS.map((p) => {
+              const activo = seleccionados.includes(p);
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  className={`hm-padecimiento-btn ${activo ? "activo" : ""}`}
+                  onClick={() => togglePadecimiento(p)}
+                  aria-pressed={activo}
+                >
+                  <span className={`hm-espina-check ${activo ? "activo" : ""}`}>
+                    {activo && <Check size={14} color="white" strokeWidth={3} />}
+                  </span>
+                  <span className="hm-padecimiento-nombre">{p}</span>
+                </button>
+              );
+            })}
           </div>
-          {datos.tipoEspinaBifida === "OTROS" && (
+          {seleccionados.includes("OTROS") && (
             <input
               type="text"
               name="otrosPadecimiento"
