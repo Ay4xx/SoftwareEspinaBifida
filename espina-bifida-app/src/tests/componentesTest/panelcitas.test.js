@@ -80,6 +80,23 @@ describe("PanelCitas", () => {
     expect(onStatusChange).toHaveBeenCalledWith(1, "ATENDIDA");
   });
 
+  test("filtra citas al hacer clic sobre un estado", () => {
+    render(
+      <PanelCitas
+        selectedDate={new Date()}
+        citas={mockCitas}
+        onAddPatient={() => {}}
+        onDeleteAppointment={() => {}}
+        onStatusChange={() => {}}
+      />
+    );
+
+    fireEvent.click(screen.getByText(/1 Atendidas/i));
+
+    expect(screen.getByText(/Juan Pérez/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Ana López/i)).not.toBeInTheDocument();
+  });
+
   test("llama onDeleteAppointment al borrar una cita", () => {
     const onDeleteAppointment = jest.fn();
 
