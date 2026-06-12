@@ -21,13 +21,17 @@ function Credencial() {
         const response = await fetch(
           `${API_BASE}/api/pacientes/credencial/${pacienteId}`
         );
+        console.log("status:", response.status);
+
         const json = await response.json();
+        console.log("json completo:", json);
 
         if (!response.ok || !json.ok) {
           throw new Error(json.message || "No se pudo cargar la credencial");
         }
 
         setDatos(json.data);
+        console.log("datosMostrados:", datosMostrados);
       } catch (err) {
         console.error("Error cargando la credencial:", err);
         setError(err.message);
@@ -39,35 +43,35 @@ function Credencial() {
     fetchCredencial();
   }, [pacienteId]);
 
-  const datosMostrados = datos || {
-    folio: "000",
-    nombre: "Sin nombre",
-    direccion: "Sin dirección",
-    telCasa: "Sin teléfono",
-    padres: "Sin contacto",
-    fechaExpedicion: "Sin fecha",
-    tipoSangre: "Sin tipo",
-    valvula: "No",
-    accidenteAvisar: "Sin contacto",
-    telefonoEmergencia: "Sin teléfono",
-    correo: "Sin correo",
-    fechaNacimiento: "Sin fecha",
-    lugarNacimiento: "Sin lugar",
-    hospital: "Sin hospital",
-    fotoPrincipal: placeholederPic,
-    fotoMini: placeholederPic,
-    logo: logoPic,
-  };
+  const datosMostrados = datos
+    ? datos
+    : {
+        folio: "000",
+        nombreCompleto: "Sin nombre",
+        direccion: "Sin dirección",
+        telCasa: "Sin teléfono",
+        padres: "Sin contacto",
+        fechaExpedicion: "Sin fecha",
+        tipoSangre: "Sin tipo",
+        valvula: "No",
+        accidenteAvisar: "Sin contacto",
+        telefonoEmergencia: "Sin teléfono",
+        correo: "Sin correo",
+        fechaNacimiento: "Sin fecha",
+        lugarNacimiento: "Sin lugar",
+        hospital: "Sin hospital",
+      };
+
+  // URL de foto — el || nunca funciona con template literals (siempre truthy)
+  const fotoUrl = `${API_BASE}/api/pacientes/${pacienteId}/foto`;
 
   const descargarImagen = async () => {
     if (!credencialRef.current) return;
-
     try {
       const dataUrl = await toPng(credencialRef.current, {
         cacheBust: true,
         pixelRatio: 2,
       });
-
       const link = document.createElement("a");
       link.download = "credencial.png";
       link.href = dataUrl;
@@ -79,18 +83,15 @@ function Credencial() {
 
   const descargarPDF = async () => {
     if (!credencialRef.current) return;
-
     try {
       const dataUrl = await toPng(credencialRef.current, {
         cacheBust: true,
         pixelRatio: 2,
       });
-
       const ancho = credencialRef.current.offsetWidth;
       const alto = credencialRef.current.offsetHeight;
       const orientacion = ancho > alto ? "landscape" : "portrait";
       const pdf = new jsPDF({ orientation: orientacion, unit: "px", format: [ancho, alto] });
-
       pdf.addImage(dataUrl, "PNG", 0, 0, ancho, alto);
       pdf.save("credencial.pdf");
     } catch (error) {
@@ -126,7 +127,8 @@ function Credencial() {
 
           <div className="info-col">
             <div className="fila">
-              <span><strong>Nombre:</strong> {datosMostrados.nombre}</span>
+              {/* FIX 1: nombreCompleto en lugar de nombre */}
+              <span><strong>Nombre:</strong> {datosMostrados.nombreCompleto}</span>
               <span><strong>Folio:</strong> {datosMostrados.folio}</span>
             </div>
 
@@ -135,9 +137,12 @@ function Credencial() {
             </div>
 
             <div className="fila foto-info">
-              <img src={`${API_BASE}/api/pacientes/${pacienteId}/foto`
-              || placeholederPic} 
-              alt="Foto mini" className="foto-mini" 
+              {/* FIX 2: onError como fallback real para la foto */}
+              <img
+                src={fotoUrl}
+                alt="Foto mini"
+                className="foto-mini"
+                onError={(e) => { e.target.src = placeholederPic; }}
               />
               <div className="bloque-texto">
                 <div><strong>Tel. Casa:</strong> {datosMostrados.telCasa}</div>
@@ -181,9 +186,10 @@ function Credencial() {
 
         <div className="credencial-inferior">
           <img
-            src={`${API_BASE}/api/pacientes/${pacienteId}/foto` || placeholederPic}
+            src={fotoUrl}
             alt="Foto principal"
             className="foto-principal"
+            onError={(e) => { e.target.src = placeholederPic; }}
           />
         </div>
       </div>
