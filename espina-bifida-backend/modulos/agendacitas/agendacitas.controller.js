@@ -28,8 +28,6 @@ export async function obtenerCitasPorFecha(
       });
     }
 
-    console.log("fecha query:");
-    console.log(fecha);
     const citas = await getCitasByFecha(fecha);
 
     res.json({
