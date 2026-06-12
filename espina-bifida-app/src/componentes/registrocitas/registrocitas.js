@@ -10,9 +10,13 @@ const horas = [
 ];
 
 function getMinDate() {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  return tomorrow.toISOString().split("T")[0];
+  const today = new Date();
+
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
 function RegistrarConsulta() {
@@ -55,6 +59,8 @@ function RegistrarConsulta() {
   };
 
   const handleSubmit = async () => {
+    console.log("handleSubmit ejecutado");
+
     const { fecha, hora, medico_id, servicio_id, cuota } = form;
     console.log("Valores del formulario:", form); //  log en navegador
   

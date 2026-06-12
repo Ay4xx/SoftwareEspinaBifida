@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Mail, Phone, MapPin, Calendar, Clock } from "lucide-react";
+import API_BASE from "../../config.js";
 import "./detallepaciente.css";
 import placeholederPic from "../../assets/placeholder.png";
 
@@ -10,7 +11,7 @@ function VisualizarInfo() {
   const [paciente, setPaciente] = useState(null);
 
   useEffect(() => {
-    fetch(`http://localhost:3001/api/pacientes/detalle/${pacienteId}`)
+    fetch(`${API_BASE}/api/pacientes/detalle/${pacienteId}`)
       .then((r) => r.json())
       .then((res) => setPaciente(res.data))
       .catch(console.error);
@@ -60,7 +61,7 @@ function VisualizarInfo() {
           <img
             className="avatar"
             src={paciente.foto
-              ? `http://localhost:3001${paciente.foto}`
+              ? `${API_BASE}${paciente.foto}`
               : placeholederPic}
             alt={`${paciente.NOMBRE} ${paciente.APELLIDO}`} 
           />

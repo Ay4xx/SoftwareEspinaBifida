@@ -49,9 +49,9 @@
   
   .equipo-table-header {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1.5fr 36px; /* 👈 agrega 1.5fr */
+    grid-template-columns: 3fr 1fr 1fr 1fr 1.5fr 40px;
     align-items: center;
-    gap: 24px;
+    gap: 16px;
     padding: 10px 8px;
     font-size: 11px;
     font-weight: 600;
@@ -61,10 +61,10 @@
   
   .equipo-row {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1.5fr 36px; /* 👈 agrega 1.5fr */
+    grid-template-columns: 3fr 1fr 1fr 1fr 1.5fr 40px;
     align-items: center;
-    gap: 24px;
-    padding: 10px 8px;
+    gap: 16px;
+    padding: 12px 8px;
     border-bottom: 1px solid #f3f4f6;
   }
   
@@ -110,6 +110,13 @@
     font-size: 14px;
     color: #1f2937;
     font-weight: 700;
+  }
+
+  .equipo-stock {
+      justify-self: center;
+      font-size: 14px;
+      color: #6b7280;
+      font-weight: 500;
   }
   
   .equipo-delete {

@@ -3,6 +3,7 @@ import { Search } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import PatientCard from "../../componentes/patientCard/patientCard";
 import PatientCardSkeleton from "../../componentes/patientCard/patientCardSkeleton";
+import API_BASE from "../../config.js";
 import "./usuario.css";
 
 function UsuariosPage() {
@@ -20,7 +21,7 @@ function UsuariosPage() {
         setLoading(true);
         setError("");
 
-        const res  = await fetch(`http://localhost:3001/api/pacientes/cards?search=${encodeURIComponent(search)}`);
+        const res  = await fetch(`${API_BASE}/api/pacientes/cards?search=${encodeURIComponent(search)}`);
         const data = await res.json();
 
         if (!data.ok) throw new Error(data.message || "Error al cargar pacientes");

@@ -26,6 +26,7 @@ const allowedOrigin = process.env.FRONTEND_URL || "http://localhost:3000";
 
 app.use(cors({
   origin: allowedOrigin,
+  credentials: true
 }));
 
 app.use(express.json());
@@ -60,4 +61,5 @@ app.use("/api/gestion-usuarios", gestionUsuarioRoutes);
 app.use("/api/estadisticas", estadisticasRoutes);
 app.use("/api/membresia", membresiaRoutes);
 app.use("/api/pagos", pagoreciboRoutes);
+
 export default app;

@@ -89,8 +89,8 @@ const SERIES_POR_SECCION = {
 
 /* ── Exports públicos ───────────────────────────────────────────────────── */
 
-export async function getEstadisticasService() {
-  const { kpis: k, series } = await getEstadisticasModel();
+export async function getEstadisticasService({ fechaInicio, fechaFin } = {}) {
+  const { kpis: k, series } = await getEstadisticasModel({ fechaInicio, fechaFin });
   return buildStatsObject(k, series);
 }
 
@@ -98,7 +98,8 @@ export async function descargarReporteMensualService(filtros) {
   console.log("\n========== SERVICE ==========");
   console.log("Filtros:", JSON.stringify(filtros));
 
-  const { kpis: k, series } = await getEstadisticasModel();
+  const { fechaInicio, fechaFin } = filtros;
+  const { kpis: k, series } = await getEstadisticasModel({ fechaInicio, fechaFin });
   const stats = buildStatsObject(k, series);
   const payload = buildFilteredPayload(stats, filtros);
 

@@ -2,6 +2,7 @@
 
 import {
   getCitasByFecha,
+  getCargaMes,
   crearCita,
   actualizarEstatusCita,
   eliminarCita,
@@ -27,8 +28,6 @@ export async function obtenerCitasPorFecha(
       });
     }
 
-    console.log("fecha query:");
-    console.log(fecha);
     const citas = await getCitasByFecha(fecha);
 
     res.json({
@@ -174,6 +173,37 @@ export async function actualizarEstatus(
       ok: false,
       message:
         "Error actualizando estatus",
+    });
+  }
+}
+
+/*
+========================================
+OBTENER CARGA DEL MES
+========================================
+*/
+export async function obtenerCargaMes(req, res) {
+  try {
+    const { anio, mes } = req.query;
+
+    const dias = await getCargaMes(
+      Number(anio),
+      Number(mes)
+    );
+
+    res.json({
+      ok: true,
+      dias,
+    });
+  } catch (error) {
+    console.error(
+      "Error obteniendo carga del mes:",
+      error
+    );
+
+    res.status(500).json({
+      ok: false,
+      message: "Error obteniendo carga del mes",
     });
   }
 }

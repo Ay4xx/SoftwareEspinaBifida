@@ -126,6 +126,7 @@ function EquipoMedico() {
           <>
             <div className="equipo-table-header">
               <span>Comodato</span>
+              <span>Disponible</span>
               <span>Cantidad</span>
               <span>Precio</span>
               <span>Fecha Estimada</span>
@@ -135,6 +136,10 @@ function EquipoMedico() {
             {equipos.map((e) => (
               <div key={e.EQUIPO_M_ID} className="equipo-row">
                 <span className="equipo-nombre">{e.DESCRIPCION}</span>
+                <span className="equipo-stock">
+                  {e.CANTIDAD_TOTAL}
+                </span>
+
                 <input
                   type="number"
                   className="equipo-input"

@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
 import "./historial.css";
 import React, { useEffect, useState } from "react";
-
+import API_BASE from "../../config.js";
 import ModalPago from "./ModalPago";
 import ModalGenerarRecibo from "./ModalRecibo";
 import { calcularTotal } from "./helper";
@@ -23,7 +23,7 @@ function VisualizarHistorial() {
 
   const cargarHistorial = async () => {
     try {
-      const response = await fetch(`http://localhost:3001/api/historial/${pacienteId}`);
+      const response = await fetch(`${API_BASE}/api/historial/${pacienteId}`);
       const rows = await response.json();
       setData(transformarDatos(rows));
     } catch (err) {
@@ -47,7 +47,7 @@ function VisualizarHistorial() {
     try {
 
       const response = await fetch(
-        `http://localhost:3001/api/historial/${pacienteId}/${popupData.eventoId}`,
+        `${API_BASE}/api/historial/${pacienteId}/${popupData.eventoId}`,
         {
           method: "DELETE",
         }

@@ -119,6 +119,7 @@ function Medicamentos() {
           <>
             <div className="med-table-header">
               <span>Medicamento</span>
+              <span>Disponible</span>
               <span>Cantidad</span>
               <span>Precio</span>
               <span></span>
@@ -127,6 +128,11 @@ function Medicamentos() {
             {medicamentos.map((m) => (
               <div key={m.MEDICINA_ID} className="med-row">
                 <span className="med-nombre">{m.DESCRIPCION}</span>
+
+                <span className="med-stock">
+                  {m.CANTIDAD_TOTAL} {m.UNIDAD}
+                </span>
+
                 <input
                   type="number"
                   className="med-input"

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./panelcitas.css";
 import placeholederPic from "../../assets/placeholder.png";
+import API_BASE from "../../config.js";
 import {
   CircleCheck,
   CircleDashed,
@@ -156,9 +157,9 @@ function PanelCitas({
                         cita.foto
                           ? cita.foto.startsWith("http")
                             ? cita.foto
-                            : `http://localhost:3001${cita.foto}`
+                            : `${API_BASE}${cita.foto}`
                           : cita.id_paciente
-                          ? `http://localhost:3001/api/pacientes/${cita.id_paciente}/foto`
+                          ? `${API_BASE}/api/pacientes/${cita.id_paciente}/foto`
                           : placeholederPic
                       }
                       alt={`${cita.nombre} ${cita.apellido}`}

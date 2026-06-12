@@ -8,7 +8,8 @@ const MIME_MAP = {
 
 export async function getEstadisticas(req, res) {
   try {
-    const data = await getEstadisticasService();
+    const { fechaInicio, fechaFin } = req.query; 
+    const data = await getEstadisticasService({ fechaInicio, fechaFin });
     return res.status(200).json({ ok: true, data });
   } catch (error) {
     console.error("Error en getEstadisticas:", error);

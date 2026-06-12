@@ -86,3 +86,24 @@
 .empty-day {
   visibility: hidden;
 }
+
+.busy-low {
+  background-color: #d1fae5 !important;
+  color: #065f46;
+}
+
+.busy-medium {
+  background-color: #fde68a !important;
+  color: #92400e;
+}
+
+.busy-high {
+  background-color: #fecaca !important;
+  color: #991b1b;
+}
+
+.active-day {
+  background: #ff914d !important;
+  color: white !important;
+  font-weight: bold;
+}
