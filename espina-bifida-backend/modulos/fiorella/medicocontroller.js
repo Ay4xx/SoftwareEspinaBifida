@@ -21,6 +21,8 @@ export async function listarServiciosPorMedico(req, res) {
 }
 
 export async function guardarConsultaServicio(req, res) {
+  console.log("POST /guardar recibido");
+  console.log(req.body);
   try {
     const { pacienteId, fechaEvento, cuota, servicioId, horaCita } = req.body;
     const result = await guardarEventoServicio(pacienteId, fechaEvento, cuota, servicioId, horaCita);

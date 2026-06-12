@@ -42,7 +42,7 @@ export async function guardarEventoServicio(pacienteId, fechaEvento, cuota, serv
       `BEGIN
         insertar_evento_servicio(
           :pacienteId,
-          :fechaEvento,
+          TO_DATE(:fechaEvento, 'YYYY-MM-DD'),
           :cuota,
           :servicioId,
           :horaCita
@@ -50,7 +50,7 @@ export async function guardarEventoServicio(pacienteId, fechaEvento, cuota, serv
       END;`,
       {
         pacienteId: parseInt(pacienteId),
-        fechaEvento: new Date(fechaEvento),
+        fechaEvento,
         cuota: parseInt(cuota),
         servicioId: parseInt(servicioId),
         horaCita
