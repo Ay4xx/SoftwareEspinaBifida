@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import API_BASE from "../../config.js";
 import "./detallefamiliar.css";
 
 function VisualizarFamiliar() {
@@ -7,7 +8,7 @@ function VisualizarFamiliar() {
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    fetch(`http://localhost:3001/api/familiar/${pacienteId}`)
+    fetch(`${API_BASE}/api/familiar/${pacienteId}`)
       .then(res => res.json())
       .then(rows => {
         setData(rows[0]);

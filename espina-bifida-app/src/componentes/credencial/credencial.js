@@ -5,6 +5,7 @@ import { jsPDF } from "jspdf";
 import "./credencial.css";
 import logoPic from "../../assets/logo_AEBNL.png";
 import placeholederPic from "../../assets/placeholder.png";
+import API_BASE from "../../config.js";
 
 function Credencial() {
   const { pacienteId } = useParams();
@@ -18,7 +19,7 @@ function Credencial() {
     const fetchCredencial = async () => {
       try {
         const response = await fetch(
-          `http://localhost:3001/api/pacientes/credencial/${pacienteId}`
+          `${API_BASE}/api/pacientes/credencial/${pacienteId}`
         );
         const json = await response.json();
 
@@ -134,7 +135,7 @@ function Credencial() {
             </div>
 
             <div className="fila foto-info">
-              <img src={`http://localhost:3001/api/pacientes/${pacienteId}/foto`
+              <img src={`${API_BASE}/api/pacientes/${pacienteId}/foto`
               || placeholederPic} 
               alt="Foto mini" className="foto-mini" 
               />
@@ -180,7 +181,7 @@ function Credencial() {
 
         <div className="credencial-inferior">
           <img
-            src={`http://localhost:3001/api/pacientes/${pacienteId}/foto` || placeholederPic}
+            src={`${API_BASE}/api/pacientes/${pacienteId}/foto` || placeholederPic}
             alt="Foto principal"
             className="foto-principal"
           />

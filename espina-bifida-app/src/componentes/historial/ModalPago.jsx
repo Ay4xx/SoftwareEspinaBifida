@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import API_BASE from "../../config.js";
 
 function ModalPago({ data, pacienteId, onClose }) {
   const [form, setForm] = useState({
@@ -56,7 +57,7 @@ function ModalPago({ data, pacienteId, onClose }) {
       };
 
       const response = await fetch(
-        "http://localhost:3001/api/pagos/guardar",
+        `${API_BASE}/api/pagos/guardar`,
         {
           method: "POST",
           headers: {

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { MapPin, Calendar, Plus, Pencil } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import placeholederPic from "../../assets/placeholder.png";
+import API_BASE from "../../config.js";
 import "./patientCard.css";
 
 function PatientCard({ patient }) {
@@ -50,7 +51,7 @@ function PatientCard({ patient }) {
     setFeedback("");
     try {
       const response = await fetch(
-        `http://localhost:3001/api/membresia/activar/${patient.id}`,
+        `${API_BASE}/api/membresia/activar/${patient.id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -75,7 +76,7 @@ function PatientCard({ patient }) {
     setFeedback("");
     try {
       const response = await fetch(
-        `http://localhost:3001/api/membresia/desactivar/${patient.id}`,
+        `${API_BASE}/api/membresia/desactivar/${patient.id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -100,7 +101,7 @@ function PatientCard({ patient }) {
         <div className="user-info">
           <img
             className="avatar-circle"
-            src={patient.foto ? `http://localhost:3001${patient.foto}` : placeholederPic}
+            src={patient.foto ? `${API_BASE}${patient.foto}` : placeholederPic}
             alt={patient.name}
           />
           <div>
