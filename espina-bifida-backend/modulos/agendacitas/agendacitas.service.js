@@ -1,13 +1,13 @@
 import { getConnection } from "../../config/db.js";
 import oracledb from "oracledb";
 
-//obtener citas por fecha
+// ========================================
+// OBTENER CITAS POR FECHA
+// ========================================
 export async function getCitasByFecha(fecha) {
-
   let conn;
 
   try {
-
     conn = await getConnection();
 
     const result = await conn.execute(
@@ -26,18 +26,12 @@ export async function getCitasByFecha(fecha) {
       FROM AGENDA_CITAS c
       INNER JOIN PACIENTE p
         ON c.ID_PACIENTE = p.PACIENTE_ID
-      WHERE TO_CHAR(
-        c.FECHA_CITA,
-        'YYYY-MM-DD'
-      ) = :fecha
+      WHERE TO_CHAR(c.FECHA_CITA, 'YYYY-MM-DD') = :fecha
       ORDER BY c.HORA_CITA
       `,
+      { fecha },
       {
-        fecha,
-      },
-      {
-        outFormat:
-          oracledb.OUT_FORMAT_OBJECT,
+        outFormat: oracledb.OUT_FORMAT_OBJECT,
       }
     );
 
@@ -53,20 +47,55 @@ export async function getCitasByFecha(fecha) {
       motivo: row.MOTIVO,
       notas: row.NOTAS,
     }));
-
   } finally {
-
     if (conn) await conn.close();
   }
 }
 
-//crea una cita nueva
-export async function crearCita(citaData) {
-
+// ========================================
+// OBTENER CARGA DEL MES
+// ========================================
+export async function getCargaMes(anio, mes) {
   let conn;
 
   try {
+    conn = await getConnection();
 
+    const result = await conn.execute(
+      `
+      SELECT
+        TO_CHAR(FECHA_CITA, 'DD') AS DIA,
+        COUNT(*) AS TOTAL
+      FROM AGENDA_CITAS
+      WHERE EXTRACT(YEAR FROM FECHA_CITA) = :anio
+        AND EXTRACT(MONTH FROM FECHA_CITA) = :mes
+      GROUP BY TO_CHAR(FECHA_CITA, 'DD')
+      `,
+      {
+        anio,
+        mes,
+      },
+      {
+        outFormat: oracledb.OUT_FORMAT_OBJECT,
+      }
+    );
+
+    return result.rows.map((row) => ({
+      dia: Number(row.DIA),
+      total: row.TOTAL,
+    }));
+  } finally {
+    if (conn) await conn.close();
+  }
+}
+
+// ========================================
+// CREAR CITA
+// ========================================
+export async function crearCita(citaData) {
+  let conn;
+
+  try {
     conn = await getConnection();
 
     const result = await conn.execute(
@@ -90,27 +119,17 @@ export async function crearCita(citaData) {
       RETURNING ID_CITA INTO :idCita
       `,
       {
-        idPaciente: parseInt(
-          citaData.id_paciente
-        ),
+        idPaciente: parseInt(citaData.id_paciente),
 
-        // STRING NORMAL
-        fechaCita:
-          citaData.fecha_cita,
+        fechaCita: citaData.fecha_cita,
 
-        // VARCHAR2(5)
-        horaCita:
-          citaData.hora_cita,
+        horaCita: citaData.hora_cita,
 
-        motivo:
-          citaData.motivo || null,
+        motivo: citaData.motivo || null,
 
-        notas:
-          citaData.notas || null,
+        notas: citaData.notas || null,
 
-        estatusCita:
-          citaData.estatus_cita ||
-          "PENDIENTE",
+        estatusCita: citaData.estatus_cita || "PENDIENTE",
 
         idCita: {
           dir: oracledb.BIND_OUT,
@@ -124,17 +143,16 @@ export async function crearCita(citaData) {
 
     return {
       ok: true,
-      id_cita:
-        result.outBinds.idCita[0],
+      id_cita: result.outBinds.idCita[0],
     };
-
   } finally {
-
     if (conn) await conn.close();
   }
 }
 
-//cambiar estatus de cita
+// ========================================
+// ACTUALIZAR ESTATUS
+// ========================================
 export async function actualizarEstatusCita(
   idCita,
   nuevoEstatus
@@ -165,7 +183,9 @@ export async function actualizarEstatusCita(
   }
 }
 
-//eliminar cita
+// ========================================
+// ELIMINAR CITA
+// ========================================
 export async function eliminarCita(idCita) {
   let conn;
 
@@ -191,7 +211,9 @@ export async function eliminarCita(idCita) {
   }
 }
 
-//obtiener cita por id
+// ========================================
+// OBTENER CITA POR ID
+// ========================================
 export async function getCitaById(idCita) {
   let conn;
 
