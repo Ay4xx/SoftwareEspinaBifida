@@ -1,8 +1,9 @@
 import React, { useRef, useState, useEffect } from "react";
 import "./Fotografia.css";
 import { Camera, Check, FileText, Upload, X, Eye, Download } from "lucide-react";
+import API_BASE from "../../../config.js";
 
-const PACIENTES_URL = "http://localhost:3001/api/pacientes";
+const PACIENTES_URL = `${API_BASE}/api/pacientes`;
 
 const DOCUMENTOS_CONFIG = [
   { key: "actaNacimiento",       label: "Acta de nacimiento" },

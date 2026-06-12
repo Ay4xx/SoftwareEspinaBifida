@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./popupagregarc.css";
 import { X } from "lucide-react";
+import API_BASE from "../../config.js";
 
 function PopupAgregarCita({
   isOpen,
@@ -86,7 +87,7 @@ function PopupAgregarCita({
         .toISOString()
         .split("T")[0];
 
-      const response = await fetch("http://localhost:3001/api/citas", {
+      const response = await fetch(`${API_BASE}/api/citas`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -197,7 +198,7 @@ function PopupAgregarCita({
                     setIsSearching(true);
                     searchTimeoutRef.current = setTimeout(async () => {
                       try {
-                        const resp = await fetch(`http://localhost:3001/api/pacientes/cards?search=${encodeURIComponent(v.trim())}`);
+                        const resp = await fetch(`${API_BASE}/api/pacientes/cards?search=${encodeURIComponent(v.trim())}`);
                         const json = await resp.json();
                         if (json.ok && Array.isArray(json.data)) {
                           setSearchResults(json.data);
