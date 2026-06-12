@@ -1,5 +1,9 @@
 import React, { useState } from "react";
-import { X, Download, FileSpreadsheet, FileText, FileDown, Users, CalendarDays, Activity, Heart, Stethoscope, Pill, Package, Bell } from "lucide-react";
+import {
+  X, Download, FileSpreadsheet, FileText, FileDown,
+  Users, CalendarDays, Activity, Heart, Stethoscope,
+  Pill, Package, Bell, CalendarRange,
+} from "lucide-react";
 import { descargarReporteMensual } from "../../services/estadisticasService";
 import "./ReporteMensualModal.css";
 
@@ -27,6 +31,11 @@ const EXT  = { excel: "xlsx", pdf: "pdf", csv: "csv" };
 
 const FORM_INICIAL = Object.fromEntries([...SECCIONES.map((s) => [s.key, true]), ["tipoArchivo", "excel"]]);
 
+// ── Helper de formato de fecha legible ────────────────────────────────────────
+
+const fmtFecha = (s) =>
+  s ? new Date(s + "T00:00:00").toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" }) : null;
+
 // ── Helper de descarga ────────────────────────────────────────────────────────
 
 function descargarArchivo(blob, tipoArchivo) {
@@ -43,7 +52,7 @@ function descargarArchivo(blob, tipoArchivo) {
 
 // ── Componente ────────────────────────────────────────────────────────────────
 
-export default function ReporteMensualModal({ open, onClose }) {
+export default function ReporteMensualModal({ open, onClose, fechaInicio = "", fechaFin = "" }) {
   const [formData, setFormData] = useState(FORM_INICIAL);
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState("");
@@ -54,6 +63,10 @@ export default function ReporteMensualModal({ open, onClose }) {
   const setAllSections = (value) => setFormData((p) => ({ ...p, ...Object.fromEntries(SECCIONES.map((s) => [s.key, value])) }));
   const selectedCount  = SECCIONES.filter((s) => formData[s.key]).length;
 
+  const tieneFiltroFecha = fechaInicio || fechaFin;
+  const labelInicio      = fmtFecha(fechaInicio);
+  const labelFin         = fmtFecha(fechaFin);
+
   const handleDownload = async () => {
     if (loading) return;
     if (selectedCount === 0) { setError("Selecciona al menos una sección."); return; }
@@ -63,7 +76,14 @@ export default function ReporteMensualModal({ open, onClose }) {
     let success = false;
 
     try {
-      const data = await descargarReporteMensual(formData);
+      // Incluir las fechas del dashboard en el payload del reporte
+      const payload = {
+        ...formData,
+        ...(fechaInicio && { fechaInicio }),
+        ...(fechaFin    && { fechaFin }),
+      };
+
+      const data = await descargarReporteMensual(payload);
       const blob = data instanceof Blob ? data : new Blob([data], { type: MIME[formData.tipoArchivo] });
       descargarArchivo(blob, formData.tipoArchivo);
       success = true;
@@ -89,6 +109,18 @@ export default function ReporteMensualModal({ open, onClose }) {
             <X size={18} strokeWidth={2} />
           </button>
         </div>
+
+        {/* Período activo del dashboard */}
+        {tieneFiltroFecha && (
+          <div className="rm-periodo-info">
+            <CalendarRange size={14} className="rm-periodo-icon" />
+            <span className="rm-periodo-texto">
+              Período filtrado:&nbsp;
+              <strong>{labelInicio || "…"} — {labelFin || "…"}</strong>
+            </span>
+            <span className="rm-periodo-nota">El reporte usará este rango.</span>
+          </div>
+        )}
 
         <div className="rm-section-label">
           <span>Secciones ({selectedCount}/{SECCIONES.length})</span>
@@ -119,7 +151,14 @@ export default function ReporteMensualModal({ open, onClose }) {
         <div className="rm-format-grid">
           {FORMATOS.map(({ value, label, icon: Icon, desc }) => (
             <label key={value} className={`rm-format-card ${formData.tipoArchivo === value ? "selected" : ""}`}>
-              <input type="radio" name="tipoArchivo" value={value} checked={formData.tipoArchivo === value} onChange={() => setFormData((p) => ({ ...p, tipoArchivo: value }))} className="rm-hidden-check" />
+              <input
+                type="radio"
+                name="tipoArchivo"
+                value={value}
+                checked={formData.tipoArchivo === value}
+                onChange={() => setFormData((p) => ({ ...p, tipoArchivo: value }))}
+                className="rm-hidden-check"
+              />
               <Icon size={20} strokeWidth={1.8} className={`rm-fmt-icon ${formData.tipoArchivo === value ? "active" : ""}`} />
               <p className="rm-fmt-name">{label}</p>
               <p className="rm-fmt-desc">{desc}</p>
@@ -129,13 +168,18 @@ export default function ReporteMensualModal({ open, onClose }) {
 
         {error && <p className="rm-error">{error}</p>}
 
-        <button className={`rm-download-btn ${loading ? "loading" : ""}`} onClick={handleDownload} disabled={loading}>
+        <button
+          className={`rm-download-btn ${loading ? "loading" : ""}`}
+          onClick={handleDownload}
+          disabled={loading}
+        >
           {loading ? (
             <><span className="rm-spinner" />Generando reporte…</>
           ) : (
             <><Download size={16} strokeWidth={2.5} />Descargar reporte</>
           )}
         </button>
+
       </div>
     </div>
   );

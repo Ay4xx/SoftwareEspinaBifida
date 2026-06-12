@@ -540,6 +540,30 @@
   white-space: nowrap;
 }
 
+.periodo-aplicar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--color-blue, #378ADD);
+  border: none;
+  border-radius: 6px;
+  padding: 5px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.periodo-aplicar:hover {
+  background: #2970c0;
+}
+
+.periodo-aplicar:active {
+  transform: scale(0.97);
+}
+
 .periodo-clear {
   display: inline-flex;
   align-items: center;

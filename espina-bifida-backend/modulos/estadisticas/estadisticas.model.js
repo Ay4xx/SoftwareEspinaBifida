@@ -27,10 +27,12 @@ export async function getEstadisticasModel({ fechaInicio, fechaFin } = {}) {
          ${w("p.fecha_alta")}) AS total_pacientes,
 
         (SELECT COUNT(*) FROM paciente p
-         LEFT JOIN notificacion n ON n.paciente_id = p.paciente_id
-         WHERE (n.estado_proceso = 'aprobado' OR n.notificacion_id IS NULL)
-         AND TRUNC(p.fecha_alta,'MM') = TRUNC(SYSDATE,'MM')
-         ${w("p.fecha_alta")}) AS pacientes_nuevos_mes,
+        LEFT JOIN notificacion n ON n.paciente_id = p.paciente_id
+        WHERE (n.estado_proceso = 'aprobado' OR n.notificacion_id IS NULL)
+        AND ${hasFecha
+          ? "p.fecha_alta BETWEEN :fi AND :ff"
+          : "TRUNC(p.fecha_alta,'MM') = TRUNC(SYSDATE,'MM')"
+        }) AS pacientes_nuevos_mes,
 
         (SELECT COUNT(*) FROM paciente p
          LEFT JOIN notificacion n ON n.paciente_id = p.paciente_id
@@ -55,17 +57,22 @@ export async function getEstadisticasModel({ fechaInicio, fechaFin } = {}) {
         (SELECT COUNT(*) FROM agenda_citas WHERE estatus_cita = 'PENDIENTE'
          ${w("fecha_cita")}) AS citas_pendientes,
 
+
         (SELECT COUNT(*) FROM agenda_citas
-         WHERE TRUNC(fecha_cita,'MM') = TRUNC(SYSDATE,'MM')
-         ${w("fecha_cita")}) AS citas_mes,
+          WHERE ${hasFecha
+            ? "fecha_cita BETWEEN :fi AND :ff"
+            : "TRUNC(fecha_cita,'MM') = TRUNC(SYSDATE,'MM')"
+          }) AS citas_mes,
 
         /* VISITAS */
         (SELECT COUNT(*) FROM evento_visita WHERE 1=1
          ${w("fecha_evento")}) AS total_visitas,
 
-        (SELECT COUNT(*) FROM evento_visita
-         WHERE TRUNC(fecha_evento,'MM') = TRUNC(SYSDATE,'MM')
-         ${w("fecha_evento")}) AS visitas_mes,
+        (SELECT COUNT(*) FROM agenda_citas
+        WHERE ${hasFecha
+          ? "fecha_cita BETWEEN :fi AND :ff"
+          : "TRUNC(fecha_cita,'MM') = TRUNC(SYSDATE,'MM')"
+        }) AS citas_mes,
 
         (SELECT NVL(SUM(cuota),0) FROM evento_visita WHERE 1=1
          ${w("fecha_evento")}) AS cuotas_totales,
@@ -94,10 +101,11 @@ export async function getEstadisticasModel({ fechaInicio, fechaFin } = {}) {
          INNER JOIN evento_visita ev ON es.evento_id = ev.evento_id
          WHERE 1=1 ${w("ev.fecha_evento")}) AS total_servicios_realizados,
 
-        (SELECT COUNT(*) FROM eventos_servicios es
-         INNER JOIN evento_visita ev ON es.evento_id = ev.evento_id
-         WHERE TRUNC(ev.fecha_evento,'MM') = TRUNC(SYSDATE,'MM')
-         ${w("ev.fecha_evento")}) AS servicios_realizados_mes,
+        (SELECT COUNT(*) FROM agenda_citas
+        WHERE ${hasFecha
+          ? "fecha_cita BETWEEN :fi AND :ff"
+          : "TRUNC(fecha_cita,'MM') = TRUNC(SYSDATE,'MM')"
+        }) AS citas_mes,
 
         /* MEDICINAS */
         (SELECT COUNT(*) FROM inventario_medicinas) AS total_medicinas,

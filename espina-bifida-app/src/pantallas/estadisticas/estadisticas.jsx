@@ -260,19 +260,26 @@ export default function EstadisticasPage() {
   const [activeSection, setActiveSection] = useState("resumen");
 
   // ── Estado del filtro de fechas ──────────────────────────────────────────
-  const [fechaInicio, setFechaInicio] = useState("");
-  const [fechaFin,    setFechaFin]    = useState("");
+  // "draft" = lo que el usuario está escribiendo en los inputs
+  // "aplicado" = lo que realmente dispara el fetch
+  const [draftInicio,   setDraftInicio]   = useState("");
+  const [draftFin,      setDraftFin]      = useState("");
+  const [fechaInicio,   setFechaInicio]   = useState("");
+  const [fechaFin,      setFechaFin]      = useState("");
 
-  const tieneFiltro = fechaInicio || fechaFin;
+  const tieneFiltro  = fechaInicio || fechaFin;
+  const hayDraft     = draftInicio || draftFin;
+  // Mostrar botón Aplicar si el draft difiere de lo aplicado
+  const draftPendiente = draftInicio !== fechaInicio || draftFin !== fechaFin;
 
-  // Formato legible para mostrar el período activo, ej: "01/01/2024 – 31/12/2024"
+  // Formato legible para mostrar el período activo
   const labelPeriodo = useMemo(() => {
     if (!fechaInicio && !fechaFin) return null;
-    const fmt = (s) => s ? new Date(s + "T00:00:00").toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" }) : "…";
-    return `${fmt(fechaInicio)} – ${fmt(fechaFin)}`;
+    const fmtDate = (s) => s ? new Date(s + "T00:00:00").toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" }) : "…";
+    return `${fmtDate(fechaInicio)} – ${fmtDate(fechaFin)}`;
   }, [fechaInicio, fechaFin]);
 
-  // ── Carga de datos (reactiva al período) ─────────────────────────────────
+  // ── Carga de datos — solo se dispara cuando cambian las fechas APLICADAS ─
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -294,7 +301,14 @@ export default function EstadisticasPage() {
     return () => { cancelled = true; };
   }, [fechaInicio, fechaFin]);
 
+  const aplicarFiltro = () => {
+    setFechaInicio(draftInicio);
+    setFechaFin(draftFin);
+  };
+
   const limpiarFiltro = () => {
+    setDraftInicio("");
+    setDraftFin("");
     setFechaInicio("");
     setFechaFin("");
   };
@@ -365,33 +379,37 @@ export default function EstadisticasPage() {
           <input
             type="date"
             className="periodo-input"
-            value={fechaInicio}
-            max={fechaFin || undefined}
-            onChange={(e) => setFechaInicio(e.target.value)}
+            value={draftInicio}
+            max={draftFin || undefined}
+            onChange={(e) => setDraftInicio(e.target.value)}
             title="Fecha inicio"
           />
           <span className="periodo-sep">—</span>
           <input
             type="date"
             className="periodo-input"
-            value={fechaFin}
-            min={fechaInicio || undefined}
-            onChange={(e) => setFechaFin(e.target.value)}
+            value={draftFin}
+            min={draftInicio || undefined}
+            onChange={(e) => setDraftFin(e.target.value)}
             title="Fecha fin"
           />
         </div>
 
+        {draftPendiente && (draftInicio || draftFin) && (
+          <button className="periodo-aplicar" onClick={aplicarFiltro}>
+            Aplicar
+          </button>
+        )}
+
         {tieneFiltro ? (
           <div className="periodo-activo">
-            <span className="periodo-badge">
-              {labelPeriodo}
-            </span>
+            <span className="periodo-badge">{labelPeriodo}</span>
             <button className="periodo-clear" onClick={limpiarFiltro} title="Quitar filtro">
               <X size={13} /> Limpiar
             </button>
           </div>
         ) : (
-          <span className="periodo-hint">Mostrando todos los registros</span>
+          !hayDraft && <span className="periodo-hint">Mostrando todos los registros</span>
         )}
 
         {loading && <span className="periodo-loading">Actualizando…</span>}
@@ -403,12 +421,12 @@ export default function EstadisticasPage() {
           <div className="kpi-grid">
             <KpiCard icon={Users}        label="Total pacientes"    value={fmt(pacientes.total)}               color="blue" />
             <KpiCard icon={CalendarDays} label="Servicios otorgados"     value={fmt(citas.mes)}                     color="purple" sub={`${fmt(citas.atendidas)} atendidas`} />
-            <KpiCard icon={Activity}     label="Visitas este mes"   value={fmt(visitas.mes)}                   color="teal"   sub={`${fmt(visitas.total)} totales`} />
+            <KpiCard icon={Activity}     label="Visitas en el período"   value={fmt(visitas.total)}                   color="teal"/>
             <KpiCard icon={DollarSign}   label="Ingresos totales"   value={fmtMoney(visitas.ingresos_totales)} color="green"  sub={`Promedio ${fmtMoney(visitas.ingreso_promedio)}`} />
             <KpiCard icon={Pill}         label="Medicinas vendidas"   value={fmt(medicinas.utilizadas)}          color="amber"  sub={`${fmt(medicinas.bajo_stock)} bajo stock`} />
             <KpiCard icon={Package}      label="Comodato"      value={fmt(equipo.en_uso)}                 color="coral"  sub={`${equipo.porcentaje_retorno}% retorno`} />
             <KpiCard icon={Heart}        label="Membresías activas" value={fmt(membresias.activas)}            color="pink"   sub={`${fmt(membresias.vencidas)} vencidas`} />
-            <KpiCard icon={Bell}         label="Registros mes"      value={fmt(notificaciones.mes)}            color="gray"   sub={`${tasaAprobacion}% aprobación`} />
+            <KpiCard icon={Bell}         label="Registros por Período"      value={fmt(notificaciones.mes)}            color="gray"   sub={`${tasaAprobacion}% aprobación`} />
           </div>
           <div className="charts-row-2">
             <ChartCard title="Visitas por mes">
@@ -450,7 +468,7 @@ export default function EstadisticasPage() {
         <section>
           <div className="kpi-grid kpi-grid-4">
             <KpiCard icon={Users}       label="Total"                value={fmt(pacientes.total)}             color="blue" />
-            <KpiCard icon={Users}       label="Nuevos mes"           value={fmt(pacientes.nuevos_mes)}        color="purple" />
+            <KpiCard icon={Users}       label="Nuevos en el período"           value={fmt(pacientes.nuevos_mes)}        color="purple" />
             <KpiCard icon={Activity}    label="Con válvula"          value={fmt(pacientes.con_valvula)}       color="teal" />
             <KpiCard icon={Stethoscope} label="Padecimiento anotado"    value={fmt(pacientes.con_padecimientos)} color="amber" />
             <KpiCard icon={Heart}       label="Membresías activas"   value={fmt(membresias.activas)}          color="pink"  sub={`${fmt(membresias.vencidas)} vencidas`} />
@@ -517,7 +535,6 @@ export default function EstadisticasPage() {
             <KpiCard icon={DollarSign}  label="Descuentos"           value={fmtMoney(visitas.descuentos_totales)} color="amber" />
             <KpiCard icon={DollarSign}  label="Pago promedio"        value={fmtMoney(visitas.ingreso_promedio)}   color="teal" />
             <KpiCard icon={Stethoscope} label="Servicios totales"    value={fmt(servicios.total)}                 color="purple" />
-            <KpiCard icon={Stethoscope} label="Servicios del mes"    value={fmt(servicios.mes)}                   color="coral" />
             <KpiCard icon={Activity}    label="% pago completo"      value={`${visitas.porcentaje_pago}%`}        color="gray" />
             <KpiCard icon={Pill}        label="Medicinas entregadas" value={fmt(medicinas.utilizadas)}            color="pink" />
           </div>
@@ -581,7 +598,7 @@ export default function EstadisticasPage() {
                   <XAxis dataKey="mes" {...AXIS_PROPS} />
                   <YAxis {...AXIS_PROPS} axisLine={false} allowDecimals={false} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="utilizadas" name="Medicinas Vendidas" fill={COLORS.amber} radius={[4,4,0,0]} />
+                  <Bar dataKey="utilizadas" name="Medicinas utilizadas" fill={COLORS.amber} radius={[4,4,0,0]} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartCard>
@@ -626,7 +643,7 @@ export default function EstadisticasPage() {
       {activeSection === "notificaciones" && (
         <section>
           <div className="kpi-grid kpi-grid-4">
-            <KpiCard icon={Bell} label="Este mes"        value={fmt(notificaciones.mes)}        color="blue" />
+            <KpiCard icon={Bell} label="En el período"        value={fmt(notificaciones.mes)}        color="blue" />
             <KpiCard icon={Bell} label="Rechazados"      value={fmt(notificaciones.rechazados)} color="red" />
             <KpiCard icon={Bell} label="Tasa aprobación" value={`${tasaAprobacion}%`}           color="green" />
           </div>
@@ -647,7 +664,12 @@ export default function EstadisticasPage() {
         </section>
       )}
 
-      <ReporteMensualModal open={openReporte} onClose={() => setOpenReporte(false)} />
+      <ReporteMensualModal
+        open={openReporte}
+        onClose={() => setOpenReporte(false)}
+        fechaInicio={fechaInicio}
+        fechaFin={fechaFin}
+      />
     </div>
   );
 }

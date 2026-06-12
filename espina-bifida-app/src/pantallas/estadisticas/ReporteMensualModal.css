@@ -287,3 +287,35 @@
   .rm-format-grid { grid-template-columns: 1fr; }
   .rm-format-card { flex-direction: row; text-align: left; gap: 10px; }
 }
+
+/* ── Banner de período activo en el modal ─────────────────────────────────── */
+
+.rm-periodo-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(55, 138, 221, 0.08);
+  border: 1px solid rgba(55, 138, 221, 0.22);
+  border-radius: 8px;
+  padding: 9px 14px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.rm-periodo-icon {
+  color: #378ADD;
+  flex-shrink: 0;
+}
+
+.rm-periodo-texto {
+  font-size: 13px;
+  color: var(--text-primary, #111827);
+}
+
+.rm-periodo-nota {
+  font-size: 12px;
+  color: var(--text-secondary, #6b7280);
+  margin-left: auto;
+  font-style: italic;
+  white-space: nowrap;
+}
