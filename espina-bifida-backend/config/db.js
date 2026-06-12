@@ -10,6 +10,5 @@ export async function getConnection() {
     connectString: process.env.DB_CONNECT_STRING,
     configDir: process.env.TNS_ADMIN,
     walletLocation: process.env.TNS_ADMIN,
-    walletPassword: process.env.WALLET_PASSWORD
   });
 }
