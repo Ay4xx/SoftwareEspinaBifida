@@ -22,8 +22,11 @@ const app = express();
 
 export const sseClients = new Set();
 
+const allowedOrigin = process.env.FRONTEND_URL || "http://localhost:3000";
+
 app.use(cors({
-  origin: true,
+  origin: allowedOrigin,
+  credentials: true
 }));
 
 app.use(express.json());
