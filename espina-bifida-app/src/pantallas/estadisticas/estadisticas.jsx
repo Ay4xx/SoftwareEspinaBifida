@@ -7,7 +7,7 @@ import {
 import {
   Users, Heart, CalendarDays, Stethoscope, Pill,
   DollarSign, Bell, Activity, Package,
-  Download, Filter,
+  Download, Filter, CalendarRange, X,
 } from "lucide-react";
 
 import { getEstadisticas } from "../../services/estadisticasService";
@@ -20,7 +20,6 @@ const fmt      = (n) => Number(n || 0).toLocaleString("es-MX");
 const fmtMoney = (n) => `$${Number(n || 0).toLocaleString("es-MX", { minimumFractionDigits: 0 })}`;
 const pct      = (a, b) => (!b ? "0%" : `${((a / b) * 100).toFixed(1)}%`);
 
-// Mapea un array [{mes, total}] a [{mes, <key>: total}]
 const mapSerie = (arr, key) => arr.map((r) => ({ mes: r.mes, [key]: r.total }));
 
 // ── Paleta de colores ─────────────────────────────────────────────────────────
@@ -260,18 +259,45 @@ export default function EstadisticasPage() {
   const [openReporte,   setOpenReporte]   = useState(false);
   const [activeSection, setActiveSection] = useState("resumen");
 
+  // ── Estado del filtro de fechas ──────────────────────────────────────────
+  const [fechaInicio, setFechaInicio] = useState("");
+  const [fechaFin,    setFechaFin]    = useState("");
+
+  const tieneFiltro = fechaInicio || fechaFin;
+
+  // Formato legible para mostrar el período activo, ej: "01/01/2024 – 31/12/2024"
+  const labelPeriodo = useMemo(() => {
+    if (!fechaInicio && !fechaFin) return null;
+    const fmt = (s) => s ? new Date(s + "T00:00:00").toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" }) : "…";
+    return `${fmt(fechaInicio)} – ${fmt(fechaFin)}`;
+  }, [fechaInicio, fechaFin]);
+
+  // ── Carga de datos (reactiva al período) ─────────────────────────────────
   useEffect(() => {
+    let cancelled = false;
     (async () => {
       try {
-        setStats(await getEstadisticas());
+        setLoading(true);
+        setError("");
+        const data = await getEstadisticas({
+          fechaInicio: fechaInicio || undefined,
+          fechaFin:    fechaFin    || undefined,
+        });
+        if (!cancelled) setStats(data);
       } catch (e) {
         console.error(e);
-        setError("No se pudieron cargar las estadísticas.");
+        if (!cancelled) setError("No se pudieron cargar las estadísticas.");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
-  }, []);
+    return () => { cancelled = true; };
+  }, [fechaInicio, fechaFin]);
+
+  const limpiarFiltro = () => {
+    setFechaInicio("");
+    setFechaFin("");
+  };
 
   if (loading) return <LoadingSkeleton />;
   if (error)   return <div className="estadisticas-page"><p className="estadisticas-error">{error}</p></div>;
@@ -329,6 +355,47 @@ export default function EstadisticasPage() {
           </button>
         ))}
       </nav>
+
+      {/* ── Barra de filtro de fechas ── */}
+      <div className="periodo-bar">
+        <CalendarRange size={15} className="periodo-icon" />
+        <span className="periodo-label">Período</span>
+
+        <div className="periodo-inputs">
+          <input
+            type="date"
+            className="periodo-input"
+            value={fechaInicio}
+            max={fechaFin || undefined}
+            onChange={(e) => setFechaInicio(e.target.value)}
+            title="Fecha inicio"
+          />
+          <span className="periodo-sep">—</span>
+          <input
+            type="date"
+            className="periodo-input"
+            value={fechaFin}
+            min={fechaInicio || undefined}
+            onChange={(e) => setFechaFin(e.target.value)}
+            title="Fecha fin"
+          />
+        </div>
+
+        {tieneFiltro ? (
+          <div className="periodo-activo">
+            <span className="periodo-badge">
+              {labelPeriodo}
+            </span>
+            <button className="periodo-clear" onClick={limpiarFiltro} title="Quitar filtro">
+              <X size={13} /> Limpiar
+            </button>
+          </div>
+        ) : (
+          <span className="periodo-hint">Mostrando todos los registros</span>
+        )}
+
+        {loading && <span className="periodo-loading">Actualizando…</span>}
+      </div>
 
       {/* ── RESUMEN ── */}
       {activeSection === "resumen" && (
@@ -514,7 +581,7 @@ export default function EstadisticasPage() {
                   <XAxis dataKey="mes" {...AXIS_PROPS} />
                   <YAxis {...AXIS_PROPS} axisLine={false} allowDecimals={false} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="utilizadas" name="Medicinas utilizadas" fill={COLORS.amber} radius={[4,4,0,0]} />
+                  <Bar dataKey="utilizadas" name="Medicinas Vendidas" fill={COLORS.amber} radius={[4,4,0,0]} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartCard>
