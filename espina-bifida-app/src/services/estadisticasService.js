@@ -1,6 +1,12 @@
 import API_BASE from "../config.js";
-export async function getEstadisticas() {
-  const response = await fetch(`${API_BASE}/api/estadisticas`);
+
+export async function getEstadisticas({ fechaInicio, fechaFin } = {}) {
+  const params = new URLSearchParams();
+  if (fechaInicio) params.set("fechaInicio", fechaInicio);
+  if (fechaFin)    params.set("fechaFin",    fechaFin);
+
+  const query    = params.size ? `?${params.toString()}` : "";
+  const response = await fetch(`${API_BASE}/api/estadisticas${query}`);
 
   if (!response.ok) {
     throw new Error("Error al obtener las estadísticas");
@@ -16,13 +22,11 @@ export async function getEstadisticas() {
 }
 
 export async function descargarReporteMensual(filtros) {
-  const response = await fetch(`${API_BASE}/api/estadisticas/reporte`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(filtros),
-    }
-  );
+  const response = await fetch(`${API_BASE}/api/estadisticas/reporte`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(filtros),
+  });
 
   if (!response.ok) {
     throw new Error("Error al descargar el reporte");
